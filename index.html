@@ -1118,7 +1118,7 @@ function frameBlocksMic(){
 }
 function voiceStatus(){
   if (!Voice.SR) return {ok:false, msg:'Dieser Browser erkennt keine Sprache. Mit Chrome, Edge oder Safari klappt es. Antippen funktioniert überall.'};
-  if (frameBlocksMic()) return {ok:false, msg:'In dieser Ansicht ist das Mikrofon gesperrt, deshalb läuft alles per Antippen. Für die Sprachsteuerung öffne Blitzbirne über die Webadresse alexulbricht80-debug.github.io/blitzbirne in Chrome, Edge oder Safari.'};
+  if (frameBlocksMic()) return {ok:false, msg:'In dieser Ansicht ist das Mikrofon gesperrt, deshalb läuft alles per Antippen. Für die Sprachsteuerung öffne Blitzbirne über die Webadresse alexulbricht80-debug.github.io/Blitzbirne in Chrome, Edge oder Safari.'};
   if (Voice.fatal) return {ok:false, msg:Voice.fatal};
   return {ok:true, msg:'Sprachsteuerung bereit. Beim Start fragt der Browser einmal nach dem Mikrofon.'};
 }
