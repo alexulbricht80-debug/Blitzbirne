@@ -347,6 +347,64 @@ h2,h3{margin:0}
   .rrow{grid-template-columns:6.6em minmax(0,1fr);}
   .rrow .rval{grid-column:1 / -1;text-align:left}
 }
+
+/* Funken und Leuchtstadt: bewusst immer Nacht, in beiden Themen gleich */
+.citycard{background:linear-gradient(180deg,#0c1534 0%,#1a2a5e 100%);color:#e9eeff;border-radius:18px;padding:16px 16px 0;overflow:hidden;box-shadow:var(--shadow)}
+.citytop{display:flex;align-items:center;gap:14px}
+.bulbwrap{width:78px;height:78px;flex:none;position:relative}
+.bulbwrap .bulb{width:100%;height:100%;overflow:visible}
+.bulb .glow{transition:filter .4s}
+.bulb:not(.full) .glow{filter:none}
+.bulbwrap.burst .bulb{animation:burst .7s ease-out}
+@keyframes burst{0%{transform:scale(1)}35%{transform:scale(1.18) rotate(-4deg)}70%{transform:scale(.96) rotate(2deg)}100%{transform:scale(1)}}
+.citytext{min-width:0;display:grid;gap:3px}
+.citytitle{font-family:var(--f-hand);font-weight:800;font-size:1.3rem;color:#ffffff;line-height:1.2}
+.citysub{color:#b9c4ea;font-size:.92rem}
+.citynext{color:#ffe27a;font-size:.92rem;font-weight:700}
+.citynext b{font-family:var(--f-clock);font-variant-numeric:tabular-nums}
+.city{margin:10px -16px 0}
+.city svg{display:block;width:100%;height:auto}
+.cityhow{margin:0 -16px;padding:10px 16px 12px;background:#0b1430;font-size:.88rem;color:#b9c4ea}
+.cityhow summary{cursor:pointer;font-weight:700;color:#e9eeff}
+.cityhow ul{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:4px;max-width:30em}
+.cityhow li{display:flex;justify-content:space-between;gap:12px}
+.cityhow li b{color:#ffe27a;font-family:var(--f-clock)}
+.cityhow p{margin:8px 0 0}
+.city .fresh{animation:fresh 1.4s ease-in-out 3}
+@keyframes fresh{0%,100%{opacity:1}40%{opacity:.15}}
+.city .spin{animation:spin 24s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.city .blink{animation:blink 1.6s steps(2,start) infinite}
+@keyframes blink{50%{opacity:.15}}
+.city .beam{animation:beam 4s ease-in-out infinite alternate}
+@keyframes beam{from{transform:rotate(-14deg)}to{transform:rotate(12deg)}}
+.city .fw{animation:fw 2.4s ease-out infinite;opacity:0}
+.city .fw1{animation-delay:.8s}
+.city .fw2{animation-delay:1.6s}
+@keyframes fw{0%{transform:scale(.2);opacity:0}15%{opacity:1}70%{transform:scale(1);opacity:.9}100%{transform:scale(1.15);opacity:0}}
+
+.sparkchip{display:inline-flex;align-items:center;gap:4px;padding:3px 10px 3px 6px;border-radius:999px;background:#1a2a5e;color:#ffe27a;font-family:var(--f-clock);font-weight:600;font-size:.88rem;font-variant-numeric:tabular-nums}
+.sparkchip svg{width:16px;height:16px;fill:#ffd84a}
+.sparkchip.pop{animation:pop2 .45s ease-out}
+@keyframes pop2{0%{transform:scale(1)}40%{transform:scale(1.35)}100%{transform:scale(1)}}
+
+.sparkcard{margin-top:16px;background:linear-gradient(180deg,#0c1534 0%,#1a2a5e 100%);color:#e9eeff;border-radius:18px;padding:16px;overflow:hidden}
+.sparkhead{display:flex;align-items:center;gap:16px}
+.sparkinfo{min-width:0;display:grid;gap:6px}
+.sparkbig{font-family:var(--f-hand);font-weight:800;font-size:clamp(1.6rem,6vw,2.2rem);color:#ffe27a;line-height:1.1}
+.schips{display:flex;flex-wrap:wrap;gap:6px}
+.schip{padding:3px 10px;border-radius:999px;background:rgba(255,255,255,.08);font-size:.84rem;color:#d5ddf7}
+.schip b{color:#ffe27a;font-family:var(--f-clock);font-weight:600}
+.sparknote{font-size:.9rem;color:#b9c4ea}
+.sparknote b{color:#ffffff;font-family:var(--f-clock)}
+.levelup{margin:14px -16px -16px;padding-top:12px;border-top:1px solid rgba(255,255,255,.08)}
+.lutext{font-family:var(--f-hand);font-weight:800;font-size:clamp(1.3rem,5vw,1.7rem);color:#ffffff;text-align:center;padding-inline:16px;animation:pop .8s ease-out both}
+@media (prefers-reduced-motion:reduce){.city .spin,.city .beam,.city .fw,.city .blink,.city .fresh{animation:none!important}.city .fw{opacity:1}}
+
+.citymile{color:#b9c4ea;font-size:.86rem}
+.city .halo{opacity:0;animation:halo 1.4s ease-out 4}
+@keyframes halo{0%{transform:scale(.2);opacity:.75}100%{transform:scale(1.6);opacity:0}}
+@media (prefers-reduced-motion:reduce){.city .halo{animation:none!important;opacity:.25}}
 </style>
 </head>
 <body>
@@ -367,6 +425,10 @@ h2,h3{margin:0}
       <label for="name2">Kind 2<input id="name2" maxlength="16" autocomplete="off"></label>
       <button class="btn primary" type="submit">Speichern</button>
     </form>
+  </div>
+
+  <div class="block">
+    <div class="citycard" id="cityCard"></div>
   </div>
 
   <div class="block">
@@ -421,6 +483,7 @@ h2,h3{margin:0}
 <section id="screen-play" hidden>
   <div class="playbar">
     <span class="who" id="playWho"></span>
+    <span class="sparkchip" id="sparkChip" title="Funken in dieser Runde"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5 2 L5 13.5 h6 L9.5 22 L19 9.8 h-6.2 Z"/></svg><b id="sparkNum">0</b></span>
     <div class="dots" id="dots"></div>
     <span class="count" id="playCount"></span>
     <button class="quit" id="quitBtn" type="button">Beenden</button>
@@ -447,6 +510,7 @@ h2,h3{margin:0}
     <div><h2 class="done-title" id="doneTitle"></h2><p class="done-sub" id="doneSub"></p></div>
     <div class="stars" id="stars"></div>
   </div>
+  <div class="sparkcard" id="sparkCard"></div>
   <div class="stats">
     <div class="stat"><div class="v" id="statAvg"></div><div class="k" id="statAvgK">Durchschnitt pro richtiger Aufgabe</div></div>
     <div class="stat"><div class="v" id="statOk"></div><div class="k" id="statOkK">beim ersten Versuch richtig</div></div>
@@ -489,7 +553,7 @@ var DEFAULTS = {
   current: 'p1', mode: 'math', level: {math: 1, read: 'check'}, count: 10,
   input: 'voice', auto: true, code: 'Check', speak: true, syl: true, caps: false,
   retry: true, sound: true, history: {}, best: {},
-  log: {}, flash: {}, lastCheck: {}
+  log: {}, flash: {}, lastCheck: {}, sparks: {}, sparkDay: {}
 };
 function clone(o){ return JSON.parse(JSON.stringify(o)); }
 function migrate(o){
@@ -497,7 +561,11 @@ function migrate(o){
   Object.keys(o || {}).forEach(function(k){ base[k] = o[k]; });
   base.level = Object.assign({math: 1, read: 'check'}, (o && o.level) || {});
   if (typeof base.level.read === 'number') base.level.read = ['w1', 'w2', 's1', 's2'][base.level.read - 1] || 'check';
-  ['history', 'best', 'log', 'flash', 'lastCheck'].forEach(function(k){ if (!base[k] || typeof base[k] !== 'object') base[k] = {}; });
+  var hadSparks = o && o.sparks && typeof o.sparks === 'object';
+  ['history', 'best', 'log', 'flash', 'lastCheck', 'sparks', 'sparkDay'].forEach(function(k){ if (!base[k] || typeof base[k] !== 'object') base[k] = {}; });
+  if (!hadSparks) Object.keys(base.history).forEach(function(pid){
+    base.sparks[pid] = (base.history[pid] || []).reduce(function(a, h){ return a + (h.ok || 0) + 3; }, 0);
+  });
   if (!Array.isArray(base.players) || base.players.length < 2) base.players = clone(DEFAULTS.players);
   return base;
 }
@@ -960,6 +1028,190 @@ function demoLog(){
 }
 
 /* =====================================================================
+   FUNKEN UND LEUCHTSTADT
+   Jede richtige Aufgabe bringt einen Funken. Funken füllen die Birne.
+   Ist sie voll, geht in der Stadt des Kindes ein neues Licht an.
+   ===================================================================== */
+var BULB_PATH = 'M24 4.5c-7.7 0-13.5 5.9-13.5 13.3 0 4.6 2.3 7.9 4.6 10.3 1.4 1.5 2.2 3 2.2 4.9v1.5h13.4V33c0-1.9.8-3.4 2.2-4.9 2.3-2.4 4.6-5.7 4.6-10.3C37.5 10.4 31.7 4.5 24 4.5z';
+var SPARK_RULES = [['Jede richtige Aufgabe', 1], ['Runde geschafft', 3], ['Neue Bestzeit', 5], ['Alles richtig', 2], ['Erste Runde am Tag', 2], ['Lesecheck: jedes gelesene Wort', 1], ['Lesecheck geschafft', 5]];
+var SVGID = 0;
+
+function needFor(level){ return Math.min(50, 20 + 5 * level); }
+function levelInfo(total){
+  var lv = 0, rest = total || 0, need = needFor(0);
+  while (rest >= need) { rest -= need; lv++; need = needFor(lv); }
+  return {level: lv, into: rest, need: need, frac: rest / need, total: total || 0};
+}
+function sparksOf(pid){ return (S.sparks && S.sparks[pid]) || 0; }
+function earn(pid, n){
+  if (!n) return;
+  if (!S.sparks) S.sparks = {};
+  S.sparks[pid] = sparksOf(pid) + n;
+  save();
+}
+function todayKey(){ var d = new Date(); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); }
+
+/* ---------- Die Stadt ---------- */
+function seeded(seed){ return function(){ seed = (seed * 1664525 + 1013904223) % 4294967296; return seed / 4294967296; }; }
+var SPECIALS = [
+  {k:'lamps',   at:5,  name:'Straßenlaternen', cheer:'Die Straßenlaternen gehen an!'},
+  {k:'tower',   at:10, name:'Leuchtturm',      cheer:'Der Leuchtturm leuchtet!'},
+  {k:'wheel',   at:15, name:'Riesenrad',       cheer:'Das Riesenrad blinkt!'},
+  {k:'tv',      at:20, name:'Fernsehturm',     cheer:'Der Fernsehturm strahlt!'},
+  {k:'stadium', at:30, name:'Stadion mit Flutlicht', cheer:'Flutlicht im Stadion!'},
+  {k:'moon',    at:40, name:'Mond',            cheer:'Der Mond geht auf!'},
+  {k:'fire',    at:50, name:'Feuerwerk',       cheer:'Feuerwerk über der Stadt!'}
+];
+var CITY = (function(){
+  var G = 168, wins = [], rnd = seeded(7);
+  var B = [[62,26,52],[90,22,80],[114,30,44],[146,24,96],[172,28,60],[202,20,72],[224,26,48],[252,14,34]];
+  B.forEach(function(b){
+    var x = b[0], w = b[1], h = b[2], cols = Math.max(1, Math.floor((w - 6) / 8)), rows = Math.floor((h - 10) / 10);
+    var ox = x + (w - (cols * 8 - 4)) / 2;
+    for (var r = 0; r < rows; r++) for (var c = 0; c < cols; c++) wins.push({k:'win', x: ox + c * 8, y: G - h + 6 + r * 10});
+  });
+  for (var i = wins.length - 1; i > 0; i--) { var j = Math.floor(rnd() * (i + 1)); var t = wins[i]; wins[i] = wins[j]; wins[j] = t; }
+  var slots = wins.slice();
+  SPECIALS.forEach(function(s){ slots.splice(s.at - 1, 0, s); });
+  var stars = [], rs = seeded(11);
+  while (stars.length < 46) {
+    var sx = 6 + rs() * 388, sy = 6 + rs() * 62;
+    if (Math.abs(sx - 366) < 20 && sy < 50) continue;
+    stars.push({x: sx, y: sy, r: 0.5 + rs() * 0.9});
+  }
+  return {G: G, B: B, slots: slots, stars: stars};
+})();
+
+function nextMilestone(lit){
+  for (var i = 0; i < SPECIALS.length; i++) if (SPECIALS[i].at > lit) return {name: SPECIALS[i].name, inN: SPECIALS[i].at - lit};
+  return null;
+}
+function cheerFor(prevLit, lit){
+  var sp = SPECIALS.filter(function(s){ return s.at > prevLit && s.at <= lit; }).pop();
+  if (sp) return sp.cheer;
+  if (lit > CITY.slots.length) return lit - prevLit === 1 ? 'Ein neuer Stern am Himmel!' : 'Neue Sterne am Himmel!';
+  return lit - prevLit === 1 ? 'Ein neues Licht in deiner Stadt!' : (lit - prevLit) + ' neue Lichter in deiner Stadt!';
+}
+
+function citySVG(lit, prevLit){
+  if (prevLit == null) prevLit = lit;
+  var id = 'c' + (++SVGID), G = CITY.G, out = [];
+  var on = {}, fresh = {};
+  CITY.slots.forEach(function(s, i){ if (i < lit) { on[i] = 1; if (i >= prevLit) fresh[i] = 1; } });
+  var spOn = {}, spFresh = {};
+  CITY.slots.forEach(function(s, i){ if (s.k !== 'win') { spOn[s.k] = !!on[i]; spFresh[s.k] = !!fresh[i]; } });
+  var fc = function(k){ return spFresh[k] ? ' fresh' : ''; };
+  out.push('<svg viewBox="0 0 400 180" role="img" aria-label="Leuchtstadt mit ' + Math.min(lit, CITY.slots.length) + ' von ' + CITY.slots.length + ' Lichtern">');
+  out.push('<defs><filter id="' + id + 'g" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="1.8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>' +
+           '<linearGradient id="' + id + 'b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe680" stop-opacity=".55"/><stop offset="1" stop-color="#ffe680" stop-opacity="0"/></linearGradient></defs>');
+  // Sterne: einige immer da, weitere kommen nach der vollen Stadt dazu
+  var extra = Math.max(0, lit - CITY.slots.length), prevExtra = Math.max(0, prevLit - CITY.slots.length);
+  CITY.stars.forEach(function(st, i){
+    if (i < 14) out.push('<circle cx="' + st.x.toFixed(1) + '" cy="' + st.y.toFixed(1) + '" r="' + (st.r * 0.8).toFixed(2) + '" fill="#ffffff" opacity=".35"/>');
+    else if (i - 14 < extra) out.push('<circle class="star' + (i - 14 >= prevExtra ? ' fresh' : '') + '" cx="' + st.x.toFixed(1) + '" cy="' + st.y.toFixed(1) + '" r="' + (st.r + 0.6).toFixed(2) + '" fill="#fff6c8" filter="url(#' + id + 'g)"/>');
+  });
+  // Mond
+  out.push(spOn.moon
+    ? '<g class="sp' + fc('moon') + '" filter="url(#' + id + 'g)"><circle cx="366" cy="30" r="12" fill="#fff3c4"/><circle cx="361" cy="27" r="2.2" fill="#e8dca8"/><circle cx="369" cy="35" r="1.6" fill="#e8dca8"/></g>'
+    : '<circle cx="366" cy="30" r="12" fill="#ffffff" opacity=".06"/>');
+  // Feuerwerk
+  if (spOn.fire) {
+    [[104, 40, '#ff8fb1'], [214, 30, '#8fe3ff'], [300, 52, '#ffe680']].forEach(function(f, fi){
+      var rays = '';
+      for (var a = 0; a < 12; a++) { var an = a / 12 * Math.PI * 2; rays += '<line x1="' + (f[0] + Math.cos(an) * 4).toFixed(1) + '" y1="' + (f[1] + Math.sin(an) * 4).toFixed(1) + '" x2="' + (f[0] + Math.cos(an) * 13).toFixed(1) + '" y2="' + (f[1] + Math.sin(an) * 13).toFixed(1) + '"/>'; }
+      out.push('<g class="fw fw' + fi + '" stroke="' + f[2] + '" stroke-width="1.6" stroke-linecap="round" style="transform-origin:' + f[0] + 'px ' + f[1] + 'px">' + rays + '</g>');
+    });
+  }
+  // Fernsehturm
+  var tvOn = spOn.tv;
+  out.push('<g class="sp' + fc('tv') + '"><rect x="134" y="44" width="4" height="' + (G - 44) + '" fill="#1a2756"/><line x1="136" y1="22" x2="136" y2="46" stroke="#1a2756" stroke-width="1.6"/>' +
+           '<ellipse cx="136" cy="52" rx="10" ry="4" fill="#1a2756"/><ellipse cx="136" cy="47" rx="6" ry="3" fill="#1a2756"/>' +
+           (tvOn ? '<g filter="url(#' + id + 'g)"><rect x="128" y="51" width="16" height="2" rx="1" fill="#ffd84a"/><circle class="blink" cx="136" cy="21" r="1.8" fill="#ff5a5a"/></g>' : '<circle cx="136" cy="21" r="1.4" fill="#3a4a80"/>') + '</g>');
+  // Riesenrad
+  var wcx = 283, wcy = 122, wr = 30, wheel = '<g class="sp' + fc('wheel') + '"><line x1="' + wcx + '" y1="' + wcy + '" x2="270" y2="' + G + '" stroke="#24336a" stroke-width="2.4"/><line x1="' + wcx + '" y1="' + wcy + '" x2="296" y2="' + G + '" stroke="#24336a" stroke-width="2.4"/>';
+  wheel += '<g class="' + (spOn.wheel ? 'spin' : '') + '" style="transform-origin:' + wcx + 'px ' + wcy + 'px"><circle cx="' + wcx + '" cy="' + wcy + '" r="' + wr + '" fill="none" stroke="#2c3d78" stroke-width="2"/>';
+  var lampsW = '';
+  for (var a = 0; a < 12; a++) {
+    var an = a / 12 * Math.PI * 2, lx = wcx + Math.cos(an) * wr, ly = wcy + Math.sin(an) * wr;
+    if (a % 3 === 0) wheel += '<line x1="' + wcx + '" y1="' + wcy + '" x2="' + lx.toFixed(1) + '" y2="' + ly.toFixed(1) + '" stroke="#2c3d78" stroke-width="1"/>';
+    lampsW += '<circle cx="' + lx.toFixed(1) + '" cy="' + ly.toFixed(1) + '" r="2" fill="' + (spOn.wheel ? ['#ffd84a', '#ff8fb1', '#8fe3ff'][a % 3] : '#34457a') + '"/>';
+  }
+  wheel += spOn.wheel ? '<g filter="url(#' + id + 'g)">' + lampsW + '</g>' : lampsW;
+  wheel += '</g><circle cx="' + wcx + '" cy="' + wcy + '" r="3" fill="#2c3d78"/></g>';
+  out.push(wheel);
+  // Meer und Leuchtturm
+  out.push('<rect x="0" y="152" width="60" height="28" fill="#13234f"/><path d="M0 158 q8 -3 16 0 t16 0 t16 0 t12 0" stroke="#2a3f7c" stroke-width="1" fill="none"/>');
+  var tw = '<g class="sp' + fc('tower') + '"><ellipse cx="28" cy="153" rx="14" ry="4" fill="#1a2756"/><polygon points="22,152 34,152 31.5,102 24.5,102" fill="#e8ecf8"/>' +
+           '<polygon points="23.2,136 32.8,136 32.2,126 23.8,126" fill="#d9534f"/><polygon points="24.6,114 31.4,114 31,106 25,106" fill="#d9534f"/>' +
+           '<rect x="23" y="94" width="10" height="8" fill="' + (spOn.tower ? '#ffd84a' : '#34457a') + '"' + (spOn.tower ? ' filter="url(#' + id + 'g)"' : '') + '/><polygon points="22,94 34,94 28,88" fill="#d9534f"/>';
+  if (spOn.tower) tw += '<polygon class="beam" points="28,98 -12,86 -12,110" fill="url(#' + id + 'b)" style="transform-origin:28px 98px"/>';
+  out.push(tw + '</g>');
+  // Häuser
+  CITY.B.forEach(function(b){ out.push('<rect x="' + b[0] + '" y="' + (G - b[2]) + '" width="' + b[1] + '" height="' + b[2] + '" fill="#16224f"/>'); });
+  var offW = '', onW = '', halos = '';
+  CITY.slots.forEach(function(s, i){
+    if (s.k !== 'win') return;
+    var r = '<rect' + (fresh[i] ? ' class="fresh"' : '') + ' x="' + s.x.toFixed(1) + '" y="' + s.y + '" width="4" height="5" rx=".6" fill="' + (on[i] ? '#ffd84a' : '#24336a') + '"/>';
+    if (on[i]) onW += r; else offW += r;
+    if (fresh[i]) halos += '<circle class="halo" cx="' + (s.x + 2).toFixed(1) + '" cy="' + (s.y + 2.5) + '" r="9" fill="#ffd84a" style="transform-origin:' + (s.x + 2).toFixed(1) + 'px ' + (s.y + 2.5) + 'px"/>';
+  });
+  out.push(offW + halos + '<g filter="url(#' + id + 'g)">' + onW + '</g>');
+  // Stadion
+  var st = '<g class="sp' + fc('stadium') + '">';
+  [318, 338, 374, 394].forEach(function(mx){
+    st += '<line x1="' + mx + '" y1="' + G + '" x2="' + mx + '" y2="112" stroke="#24336a" stroke-width="1.6"/>';
+    if (spOn.stadium) st += '<polygon points="' + (mx - 3) + ',114 ' + (mx + 3) + ',114 ' + (mx < 356 ? mx + 26 : mx - 6) + ',148 ' + (mx < 356 ? mx + 6 : mx - 26) + ',148" fill="url(#' + id + 'b)" opacity=".8"/>';
+    st += '<rect x="' + (mx - 4) + '" y="109" width="8" height="4" rx="1" fill="' + (spOn.stadium ? '#fffbe6' : '#34457a') + '"' + (spOn.stadium ? ' filter="url(#' + id + 'g)"' : '') + '/>';
+  });
+  if (spOn.stadium) st += '<ellipse cx="356" cy="142" rx="34" ry="5" fill="#3fae5a" opacity=".9"/>';
+  st += '<path d="M312 ' + G + ' L318 144 Q356 132 394 144 L400 ' + G + ' Z" fill="#1a2756"/><path d="M318 144 Q356 132 394 144" stroke="' + (spOn.stadium ? '#ffd84a' : '#2c3d78') + '" stroke-width="1.6" fill="none"/></g>';
+  out.push(st);
+  // Straßenlaternen
+  var lp = '<g class="sp' + fc('lamps') + '">';
+  [78, 128, 192, 244].forEach(function(x){
+    if (spOn.lamps) lp += '<polygon points="' + (x - 1.5) + ',152 ' + (x + 1.5) + ',152 ' + (x + 8) + ',' + G + ' ' + (x - 8) + ',' + G + '" fill="url(#' + id + 'b)"/>';
+    lp += '<line x1="' + x + '" y1="' + G + '" x2="' + x + '" y2="152" stroke="#2c3d78" stroke-width="1.2"/><circle cx="' + x + '" cy="151" r="2" fill="' + (spOn.lamps ? '#ffe680' : '#34457a') + '"' + (spOn.lamps ? ' filter="url(#' + id + 'g)"' : '') + '/>';
+  });
+  out.push(lp + '</g>');
+  out.push('<rect x="60" y="' + G + '" width="340" height="12" fill="#0b1430"/><rect x="0" y="' + G + '" width="60" height="12" fill="#13234f"/>');
+  out.push('</svg>');
+  return out.join('');
+}
+
+/* ---------- Die Birne ---------- */
+function bulbSVG(frac, cls){
+  var id = 'b' + (++SVGID), f = Math.max(0, Math.min(1, frac));
+  return '<svg class="bulb ' + (cls || '') + (f >= 1 ? ' full' : '') + '" viewBox="0 0 48 48" aria-hidden="true"><defs><clipPath id="' + id + '"><path d="' + BULB_PATH + '"/></clipPath>' +
+    '<filter id="' + id + 'g" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="2.4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>' +
+    '<g class="glow" filter="url(#' + id + 'g)"><path d="' + BULB_PATH + '" fill="#8d9bcf"/>' +
+    '<g clip-path="url(#' + id + ')"><rect class="bulbfill" x="8" y="4.5" width="32" height="31" fill="#ffd84a" style="transform:translateY(' + ((1 - f) * 31).toFixed(2) + 'px)"/></g></g>' +
+    '<path d="' + BULB_PATH + '" fill="none" stroke="#e6ebfa" stroke-width="1.6" stroke-linejoin="round"/>' +
+    '<rect x="17.5" y="36.4" width="13" height="3" rx="1.5" fill="#a9b6de"/><rect x="19" y="40.6" width="10" height="3" rx="1.5" fill="#a9b6de"/>' +
+    '<circle cx="19.8" cy="18" r="1.6" fill="#0e1838"/><circle cx="28.2" cy="18" r="1.6" fill="#0e1838"/>' +
+    '<path d="M20 22.6 q4 3.4 8 0" stroke="#0e1838" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>';
+}
+function setBulb(el, frac, animate){
+  var r = el && el.querySelector('.bulbfill'); if (!r) return;
+  r.style.transition = animate ? 'transform .9s cubic-bezier(.3,.7,.3,1)' : 'none';
+  r.style.transform = 'translateY(' + ((1 - Math.max(0, Math.min(1, frac))) * 31).toFixed(2) + 'px)';
+  el.querySelector('svg').classList.toggle('full', frac >= 1);
+}
+
+/* ---------- Karte auf der Startseite ---------- */
+function cityCardHTML(p){
+  var total = sparksOf(p.id), lv = levelInfo(total), lit = lv.level, nm = nextMilestone(lit);
+  var litTxt = lit === 0 ? 'Noch ist alles dunkel. Das erste Licht wartet!' : (Math.min(lit, CITY.slots.length) === 1 ? '1 Licht leuchtet' : Math.min(lit, CITY.slots.length) + ' Lichter leuchten') + (lit > CITY.slots.length ? ' und ' + (lit - CITY.slots.length) + ' neue Sterne' : '');
+  return '<div class="citytop"><div class="bulbwrap" id="cityBulb">' + bulbSVG(lv.frac) + '</div><div class="citytext">' +
+    '<div class="citytitle">Leuchtstadt von ' + esc(p.name) + '</div>' +
+    '<div class="citysub">' + litTxt + '</div>' +
+    '<div class="citynext"><b>' + (lv.need - lv.into) + '</b> Funken bis zum nächsten Licht</div>' +
+    (nm ? '<div class="citymile">Als Nächstes: ' + esc(nm.name) + ' in ' + (nm.inN === 1 ? '1 Licht' : nm.inN + ' Lichtern') + '</div>' : '') +
+    '</div></div><div class="city">' + citySVG(lit) + '</div>' +
+    '<details class="cityhow"><summary>So gibt es Funken</summary><ul>' + SPARK_RULES.map(function(r){ return '<li><span>' + esc(r[0]) + '</span><b>+' + r[1] + '</b></li>'; }).join('') + '</ul>' +
+    '<p>Bisher gesammelt: <b>' + total + '</b> Funken.</p></details>';
+}
+
+/* =====================================================================
    RECHNEN
    ===================================================================== */
 var OPWORD = {'+':'plus', '−':'minus', '·':'mal', ':':'geteilt durch'};
@@ -1166,7 +1418,9 @@ var SFX = {
   go: function(){ tone(1320, 0, .2, 'triangle', .09); },
   good: function(){ tone(784, 0, .16); tone(1175, .09, .28); },
   bad: function(){ tone(330, 0, .28, 'triangle', .08); },
-  record: function(){ [784, 988, 1175, 1568].forEach(function(f, i){ tone(f, i * .1, .32); }); }
+  record: function(){ [784, 988, 1175, 1568].forEach(function(f, i){ tone(f, i * .1, .32); }); },
+  spark: function(){ tone(1568, 0, .09, 'triangle', .05); tone(2093, .05, .12, 'triangle', .04); },
+  levelup: function(){ [523, 659, 784, 1047, 1319, 1568].forEach(function(f, i){ tone(f, i * .09, .5, 'triangle', .09); }); }
 };
 
 /* ---------- Bildschirm an lassen ---------- */
@@ -1196,6 +1450,7 @@ var STATUS_TXT = {bad:'Baustelle', warn:'unsicher', ok:'sitzt', none:'zu wenig D
 function renderStart(){
   var p = curPlayer(), isRead = S.mode === 'read', lv = S.level[S.mode];
   if (isRead && !READ_SUBS.some(function(s){ return s.id === lv; })) lv = S.level.read = 'check';
+  $('#cityCard').innerHTML = cityCardHTML(p);
   $('#players').innerHTML = S.players.map(function(pl){
     var h = (S.history[pl.id] || []).length;
     var ini = (pl.name.trim().charAt(0) || '?').toUpperCase();
@@ -1330,6 +1585,7 @@ function startRound(){
   else queue = freeQueue(sub, S.count, player.name);
   var g = G = {mode:mode, level:level, sub:sub, player:player, queue:queue, focus:focus, idx:0, results:[], timing:false, voiceOn:false, tries:0, typed:''};
   g.voiceOn = effectiveInput() === 'voice' && sub !== 'check';
+  g.sparkStart = sparksOf(player.id); g.sparks = 0; $('#sparkNum').textContent = '0';
   g.colored = sub === 'check' ? false : S.syl;
   g.retry = S.retry && sub !== 'check' && sub !== 'flash';
   if (sub === 'flash') { g.flashMs = S.flash[player.id] || 1000; g.flashStart = g.flashMs; }
@@ -1662,12 +1918,19 @@ function logRead(g, r){
   if (S.log[pid].length > 4000) S.log[pid] = S.log[pid].slice(-4000);
   save();
 }
+function bumpChip(){
+  var c = $('#sparkChip'); $('#sparkNum').textContent = '+' + G.sparks;
+  c.classList.remove('pop'); void c.offsetWidth; c.classList.add('pop');
+  if (G.sub !== 'check') SFX.spark();
+}
 function commit(correct){
   var g = G; if (!g || !g.pending) return;
   clearTimeout(g.autoNext);
   try { speechSynthesis.cancel(); } catch (e) {}
   var r = g.pending; r.correct = correct; g.pending = null; g.marking = false; g.results.push(r);
   logRead(g, r);
+  var sp = (g.sub === 'check' || correct) ? 1 : 0;
+  if (sp) { earn(g.player.id, sp); g.sparks += sp; bumpChip(); }
   if (!correct && g.retry && !r.task.retry) g.queue.push(Object.assign({}, r.task, {retry:true}));
   g.idx++;
   renderDots(); hideFeedback();
@@ -1714,6 +1977,12 @@ function endRound(){
   if (!S.history[g.player.id]) S.history[g.player.id] = [];
   S.history[g.player.id].push({t:Date.now(), mode:g.mode, level:g.level, n:n, ok:ok.length, avg:avg, total:total, flash: isFlash ? g.flashMs : undefined});
   S.history[g.player.id] = S.history[g.player.id].slice(-60);
+  var pid = g.player.id, bonus = [];
+  bonus.push(g.sub === 'check' ? ['Lesecheck geschafft', 5] : ['Runde geschafft', 3]);
+  if (record) bonus.push(['Bestzeit', 5]);
+  if (n >= 5 && ok.length === n && g.sub !== 'check') bonus.push(['Alles richtig', 2]);
+  if (S.sparkDay[pid] !== todayKey()) { bonus.push(['Erste Runde heute', 2]); S.sparkDay[pid] = todayKey(); }
+  earn(pid, bonus.reduce(function(a, b){ return a + b[1]; }, 0));
   save();
 
   var stars = n ? 1 + (ok.length / n >= .8 ? 1 : 0) + (ok.length === n ? 1 : 0) : 1;
@@ -1768,8 +2037,34 @@ function endRound(){
     var tt = r.task.kind === 'math' ? r.task.label : r.task.plain;
     return '<div class="trow ' + (r.correct ? 'ok' : 'no') + '"><span class="tlabel" title="' + esc(tt) + '">' + label + extra + '</span><span class="tbar"><i style="width:' + Math.max(3, r.ms / max * 100).toFixed(1) + '%"></i></span><span class="ttime">' + (isFlash ? sec2(r.ms) : sec(r.ms)) + ' s</span></div>';
   }).join('');
+  renderSparkCard(g, bonus);
   G = null;
   show('done');
+  animateSparkCard();
+}
+var SPARK_ANIM = null;
+function renderSparkCard(g, bonus){
+  var before = levelInfo(g.sparkStart), after = levelInfo(sparksOf(g.player.id)), earned = after.total - before.total;
+  var chips = '<span class="schip">' + g.sparks + (g.sub === 'check' ? ' gelesene Wörter' : ' richtig') + ' <b>+' + g.sparks + '</b></span>' +
+    bonus.map(function(b){ return '<span class="schip">' + esc(b[0]) + ' <b>+' + b[1] + '</b></span>'; }).join('');
+  var up = after.level > before.level;
+  var html = '<div class="sparkhead"><div class="bulbwrap" id="doneBulb">' + bulbSVG(before.frac) + '</div><div class="sparkinfo">' +
+    '<div class="sparkbig">+' + earned + ' Funken</div><div class="schips">' + chips + '</div>' +
+    '<div class="sparknote">Noch <b>' + (after.need - after.into) + '</b> Funken bis zum nächsten Licht</div></div></div>';
+  if (up) html += '<div class="levelup"><div class="lutext">' + esc(cheerFor(before.level, after.level)) + '</div><div class="city">' + citySVG(after.level, before.level) + '</div></div>';
+  $('#sparkCard').innerHTML = html;
+  SPARK_ANIM = {from: before.frac, to: after.frac, up: up};
+}
+function animateSparkCard(){
+  var a = SPARK_ANIM, el = $('#doneBulb'); if (!a || !el) return;
+  var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduce) { setBulb(el, a.to, false); if (a.up) SFX.levelup(); return; }
+  setTimeout(function(){
+    if (!a.up) { setBulb(el, a.to, true); return; }
+    setBulb(el, 1, true);
+    setTimeout(function(){ SFX.levelup(); el.classList.add('burst'); }, 850);
+    setTimeout(function(){ setBulb(el, 0, false); el.classList.remove('burst'); requestAnimationFrame(function(){ requestAnimationFrame(function(){ setBulb(el, a.to, true); }); }); }, 1900);
+  }, 350);
 }
 function abortRound(){
   var g = G;
