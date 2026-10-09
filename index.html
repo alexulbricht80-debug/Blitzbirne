@@ -409,6 +409,12 @@ h2,h3{margin:0}
 .resetbtns{display:flex;flex-wrap:wrap;gap:8px}
 .resetbtns .btn{font-size:.9rem;padding:7px 14px}
 .resetbtns .btn.armed{background:var(--red);border-color:var(--red);color:var(--on-ink)}
+
+.sparkchip{position:relative}
+.sfloat{position:absolute;left:50%;top:-2px;transform:translateX(-50%);padding:1px 8px;border-radius:999px;background:#1a2a5e;color:#ffe27a;font-family:var(--f-clock);font-weight:600;font-size:.8rem;pointer-events:none;white-space:nowrap;animation:sfloat 1.2s ease-out forwards}
+.sfloat.big{font-size:1rem;background:#ffd84a;color:#1a2a5e}
+@keyframes sfloat{0%{opacity:0;transform:translate(-50%,0)}20%{opacity:1}100%{opacity:0;transform:translate(-50%,26px)}}
+@media (prefers-reduced-motion:reduce){.sfloat{display:none}}
 </style>
 </head>
 <body>
@@ -1038,7 +1044,22 @@ function demoLog(){
    Ist sie voll, geht in der Stadt des Kindes ein neues Licht an.
    ===================================================================== */
 var BULB_PATH = 'M24 4.5c-7.7 0-13.5 5.9-13.5 13.3 0 4.6 2.3 7.9 4.6 10.3 1.4 1.5 2.2 3 2.2 4.9v1.5h13.4V33c0-1.9.8-3.4 2.2-4.9 2.3-2.4 4.6-5.7 4.6-10.3C37.5 10.4 31.7 4.5 24 4.5z';
-var SPARK_RULES = [['Jede richtige Aufgabe', 1], ['Runde geschafft', 3], ['Neue Bestzeit', 5], ['Alles richtig', 2], ['Erste Runde am Tag', 2], ['Lesecheck: jedes gelesene Wort', 1], ['Lesecheck geschafft', 5]];
+var SPARK_RULES = [
+  ['Rechnen bis 10', 1], ['Rechnen bis 20 und Einmaleins', 2], ['Rechnen bis 100, Geteilt und Gemischt', 3],
+  ['Kurzes Wort', 1], ['Langes oder erfundenes Wort', 2], ['Kurzer Satz', 3], ['Langer Satz', 5],
+  ['Runde geschafft', 3], ['Neue Bestzeit', 5], ['Alles richtig', 2], ['Erste Runde am Tag', 2], ['Lesecheck geschafft', 5]
+];
+// Rechenstufen 1 bis 7: Plus bis 10, Plus/Minus bis 10, bis 20, bis 100, Einmaleins, Geteilt, Gemischt
+var MATH_SPARK = [1, 1, 2, 3, 2, 3, 3];
+var FREE_SPARK = {w1: 1, w2: 2, s1: 3, s2: 5};
+function sparkValue(g, t){
+  if (t.kind === 'math') return MATH_SPARK[(g.level || 1) - 1] || 1;
+  if (t.flash || t.type === 'sight') return 1;
+  if (g.sub && FREE_SPARK[g.sub]) return FREE_SPARK[g.sub];
+  if (t.type === 'sentence') return t.words.length <= 5 ? 3 : 5;
+  if (t.type === 'pseudo') return 2;
+  return (t.nsyl >= 3 || t.letters >= 7) ? 2 : 1;
+}
 var SVGID = 0;
 
 function needFor(level){ return Math.min(50, 20 + 5 * level); }
@@ -1213,7 +1234,7 @@ function cityCardHTML(p){
     (nm ? '<div class="citymile">Als Nächstes: ' + esc(nm.name) + ' in ' + (nm.inN === 1 ? '1 Licht' : nm.inN + ' Lichtern') + '</div>' : '') +
     '</div></div><div class="city">' + citySVG(lit) + '</div>' +
     '<details class="cityhow"><summary>So gibt es Funken</summary><ul>' + SPARK_RULES.map(function(r){ return '<li><span>' + esc(r[0]) + '</span><b>+' + r[1] + '</b></li>'; }).join('') + '</ul>' +
-    '<p>Bisher gesammelt: <b>' + total + '</b> Funken.</p></details>';
+    '<p>Im Lesecheck zählt jedes gelesene Wort, auch wenn es noch hakt. Bisher gesammelt: <b>' + total + '</b> Funken.</p></details>';
 }
 
 /* =====================================================================
@@ -1610,7 +1631,7 @@ function startRound(){
   else queue = freeQueue(sub, S.count, player.name);
   var g = G = {mode:mode, level:level, sub:sub, player:player, queue:queue, focus:focus, idx:0, results:[], timing:false, voiceOn:false, tries:0, typed:''};
   g.voiceOn = effectiveInput() === 'voice' && sub !== 'check';
-  g.sparkStart = sparksOf(player.id); g.sparks = 0; $('#sparkNum').textContent = '0';
+  g.sparkStart = sparksOf(player.id); g.sparks = 0; g.sparkItems = 0; $('#sparkNum').textContent = '0';
   g.colored = sub === 'check' ? false : S.syl;
   g.retry = S.retry && sub !== 'check' && sub !== 'flash';
   if (sub === 'flash') { g.flashMs = S.flash[player.id] || 1000; g.flashStart = g.flashMs; }
@@ -1943,9 +1964,12 @@ function logRead(g, r){
   if (S.log[pid].length > 4000) S.log[pid] = S.log[pid].slice(-4000);
   save();
 }
-function bumpChip(){
+function bumpChip(n){
   var c = $('#sparkChip'); $('#sparkNum').textContent = '+' + G.sparks;
   c.classList.remove('pop'); void c.offsetWidth; c.classList.add('pop');
+  var old = c.querySelector('.sfloat'); if (old) old.remove();
+  var f = document.createElement('span'); f.className = 'sfloat' + (n >= 3 ? ' big' : ''); f.textContent = '+' + n; c.appendChild(f);
+  setTimeout(function(){ if (f.parentNode) f.remove(); }, 1300);
   if (G.sub !== 'check') SFX.spark();
 }
 function commit(correct){
@@ -1954,8 +1978,8 @@ function commit(correct){
   try { speechSynthesis.cancel(); } catch (e) {}
   var r = g.pending; r.correct = correct; g.pending = null; g.marking = false; g.results.push(r);
   logRead(g, r);
-  var sp = (g.sub === 'check' || correct) ? 1 : 0;
-  if (sp) { earn(g.player.id, sp); g.sparks += sp; bumpChip(); }
+  var sp = (g.sub === 'check' || correct) ? sparkValue(g, r.task) : 0;
+  if (sp) { earn(g.player.id, sp); g.sparks += sp; g.sparkItems++; bumpChip(sp); }
   if (!correct && g.retry && !r.task.retry) g.queue.push(Object.assign({}, r.task, {retry:true}));
   g.idx++;
   renderDots(); hideFeedback();
@@ -2070,7 +2094,7 @@ function endRound(){
 var SPARK_ANIM = null;
 function renderSparkCard(g, bonus){
   var before = levelInfo(g.sparkStart), after = levelInfo(sparksOf(g.player.id)), earned = after.total - before.total;
-  var chips = '<span class="schip">' + g.sparks + (g.sub === 'check' ? ' gelesene Wörter' : ' richtig') + ' <b>+' + g.sparks + '</b></span>' +
+  var chips = '<span class="schip">' + g.sparkItems + (g.sub === 'check' ? ' gelesene Wörter' : ' richtig') + ' <b>+' + g.sparks + '</b></span>' +
     bonus.map(function(b){ return '<span class="schip">' + esc(b[0]) + ' <b>+' + b[1] + '</b></span>'; }).join('');
   var up = after.level > before.level;
   var html = '<div class="sparkhead"><div class="bulbwrap" id="doneBulb">' + bulbSVG(before.frac) + '</div><div class="sparkinfo">' +
