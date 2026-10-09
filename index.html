@@ -405,6 +405,10 @@ h2,h3{margin:0}
 .city .halo{opacity:0;animation:halo 1.4s ease-out 4}
 @keyframes halo{0%{transform:scale(.2);opacity:.75}100%{transform:scale(1.6);opacity:0}}
 @media (prefers-reduced-motion:reduce){.city .halo{animation:none!important;opacity:.25}}
+
+.resetbtns{display:flex;flex-wrap:wrap;gap:8px}
+.resetbtns .btn{font-size:.9rem;padding:7px 14px}
+.resetbtns .btn.armed{background:var(--red);border-color:var(--red);color:var(--on-ink)}
 </style>
 </head>
 <body>
@@ -465,6 +469,7 @@ h2,h3{margin:0}
       <div class="opt" data-for="read"><label class="opt-label" for="optCaps">Großbuchstaben</label><span class="switch"><input type="checkbox" id="optCaps"><span class="knob"></span></span></div>
       <div class="opt" data-for="retry"><label class="opt-label" for="optRetry">Fehler am Ende wiederholen</label><span class="switch"><input type="checkbox" id="optRetry"><span class="knob"></span></span></div>
       <div class="opt"><label class="opt-label" for="optSound">Töne</label><span class="switch"><input type="checkbox" id="optSound"><span class="knob"></span></span></div>
+      <div class="opt" id="resetRow"><span class="opt-label">Neu anfangen<span class="opt-hint" id="resetHint"></span></span><div class="resetbtns"><button class="btn" type="button" data-reset="city">Stadt dunkel</button><button class="btn danger" type="button" data-reset="all">Alles löschen</button></div></div>
     </div>
     <p class="voice-note" id="voiceNote"></p>
   </div>
@@ -1451,6 +1456,7 @@ function renderStart(){
   var p = curPlayer(), isRead = S.mode === 'read', lv = S.level[S.mode];
   if (isRead && !READ_SUBS.some(function(s){ return s.id === lv; })) lv = S.level.read = 'check';
   $('#cityCard').innerHTML = cityCardHTML(p);
+  $('#resetHint').textContent = 'Gilt nur für ' + p.name + ' und nur auf diesem Gerät. „Stadt dunkel“ setzt die Funken auf null. „Alles löschen“ entfernt zusätzlich Runden, Bestzeiten und Leseprofil.';
   $('#players').innerHTML = S.players.map(function(pl){
     var h = (S.history[pl.id] || []).length;
     var ini = (pl.name.trim().charAt(0) || '?').toUpperCase();
@@ -1563,6 +1569,25 @@ $('#nameForm').addEventListener('submit', function(e){
   save(); $('#nameForm').hidden = true; renderStart();
 });
 $('#goBtn').addEventListener('click', function(){ startRound(); });
+$('#resetRow').addEventListener('click', function(e){
+  var b = e.target.closest('[data-reset]'); if (!b) return;
+  var labels = {city:'Stadt dunkel', all:'Alles löschen'};
+  if (!b.classList.contains('armed')) {
+    $$('#resetRow [data-reset]').forEach(function(x){ x.classList.remove('armed'); x.textContent = labels[x.dataset.reset]; });
+    b.classList.add('armed'); b.textContent = 'Wirklich? Nochmal tippen';
+    clearTimeout(b._t); b._t = setTimeout(function(){ b.classList.remove('armed'); b.textContent = labels[b.dataset.reset]; }, 4000);
+    return;
+  }
+  clearTimeout(b._t); b.classList.remove('armed'); b.textContent = labels[b.dataset.reset];
+  var pid = curPlayer().id;
+  S.sparks[pid] = 0; delete S.sparkDay[pid];
+  if (b.dataset.reset === 'all') {
+    delete S.history[pid]; delete S.log[pid]; delete S.flash[pid]; delete S.lastCheck[pid];
+    Object.keys(S.best).forEach(function(k){ if (k.indexOf(pid + '|') === 0) delete S.best[k]; });
+  }
+  save(); renderStart();
+  $('#resetHint').textContent = b.dataset.reset === 'all' ? 'Erledigt. Für ' + curPlayer().name + ' beginnt alles von vorn.' : 'Erledigt. Die Stadt von ' + curPlayer().name + ' ist wieder dunkel.';
+});
 $('#profOpen').addEventListener('click', function(){ openProfile(false); });
 
 /* =====================================================================
