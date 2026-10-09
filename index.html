@@ -554,6 +554,16 @@ h2,h3{margin:0}
 .ballrow.ready .playbtns{flex-basis:100%}
 .ballrow.ready .playbtns .btn{flex:1}
 @media (max-width:460px){ .gamebar .who{display:none} .gamebar{gap:8px 10px} }
+
+/* Profimodus und große Tafeln */
+.modes.solo{grid-template-columns:minmax(0,1fr)}
+.namehint{flex-basis:100%;margin:0;color:var(--muted);font-size:.85rem}
+.btn.armed{background:var(--red);border-color:var(--red);color:var(--on-red)}
+.mgrid{grid-template-columns:2.4em repeat(var(--cols,9),minmax(0,1fr))}
+.mgwrap{overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px}
+.mgrid.big{grid-template-columns:2.4em repeat(var(--cols,19),minmax(34px,1fr));min-width:calc(2.4em + 19 * 37px);max-width:none}
+.mgrid.big .mg-c{font-size:.72rem}
+.viewopt{border-bottom:0;padding:0 0 4px}
 </style>
 </head>
 <body>
@@ -569,11 +579,7 @@ h2,h3{margin:0}
     <h2 class="label">Wer übt?</h2>
     <div class="players" id="players"></div>
     <button class="linkbtn" id="editNames" type="button">Namen ändern</button>
-    <form class="names" id="nameForm" hidden>
-      <label for="name1">Kind 1<input id="name1" maxlength="16" autocomplete="off"></label>
-      <label for="name2">Kind 2<input id="name2" maxlength="16" autocomplete="off"></label>
-      <button class="btn primary" type="submit">Speichern</button>
-    </form>
+    <form class="names" id="nameForm" hidden></form>
   </div>
 
   <div class="block">
@@ -726,7 +732,7 @@ var $$ = function(s, el){ return Array.prototype.slice.call((el || document).que
 var KEY = 'blitzheft.v1';
 var DEFAULTS = {
   players: [{id:'p1', name:'Kind 1'}, {id:'p2', name:'Kind 2'}],
-  current: 'p1', mode: 'math', level: {math: 1, read: 'check'}, count: 10,
+  current: 'p1', mode: 'math', level: {math: 1, read: 'check', adult: 13}, count: 10,
   input: 'voice', auto: true, code: 'Check', speak: true, syl: true, caps: false,
   retry: true, sound: true, history: {}, best: {},
   log: {}, flash: {}, lastCheck: {}, sparks: {}, sparkDay: {},
@@ -736,7 +742,7 @@ function clone(o){ return JSON.parse(JSON.stringify(o)); }
 function migrate(o){
   var base = clone(DEFAULTS);
   Object.keys(o || {}).forEach(function(k){ base[k] = o[k]; });
-  base.level = Object.assign({math: 1, read: 'check'}, (o && o.level) || {});
+  base.level = Object.assign({math: 1, read: 'check', adult: 13}, (o && o.level) || {});
   if (typeof base.level.read === 'number') base.level.read = ['w1', 'w2', 's1', 's2'][base.level.read - 1] || 'check';
   var hadSparks = o && o.sparks && typeof o.sparks === 'object';
   ['history', 'best', 'log', 'flash', 'lastCheck', 'sparks', 'sparkDay', 'avatars', 'balls', 'gameBest', 'headBest', 'mathLog'].forEach(function(k){ if (!base[k] || typeof base[k] !== 'object') base[k] = {}; });
@@ -1217,7 +1223,7 @@ var SPARK_RULES = [
   ['Runde geschafft', 3], ['Neue Bestzeit', 5], ['Alles richtig', 2], ['Erste Runde am Tag', 2], ['Lesecheck geschafft', 5]
 ];
 // Rechenstufen 1 bis 11: Plus bis 10, Plus/Minus bis 10, bis 20, bis 100, Einmaleins, Geteilt, Gemischt, gezielt bis 10, Zehnerübergang, über die 20, Schwächen
-var MATH_SPARK = [1, 1, 2, 3, 2, 3, 3, 1, 2, 3, 2];
+var MATH_SPARK = [1, 1, 2, 3, 2, 3, 3, 1, 2, 3, 2, 2, 3];
 var FREE_SPARK = {w1: 1, w2: 2, s1: 3, s2: 5};
 function sparkValue(g, t){
   if (t.kind === 'math') return MATH_SPARK[(g.level || 1) - 1] || 1;
@@ -1582,17 +1588,21 @@ function avatarSVG(o, opt){
 }
 
 /* =====================================================================
-   RECHNEN GEZIELT: jede Plus und Minus Aufgabe wird gemerkt.
-   Familien: bis 10, Zehnerübergang, über die 20.
-   Die Einspluseins Tafel zeigt als Ampel, was sitzt und was nicht.
+   RECHNEN GEZIELT: jede Aufgabe wird gemerkt.
+   Familien: bis 10, Zehnerübergang, über die 20, kleines und großes
+   Einmaleins. Die Tafeln zeigen Sekunden oder Aufgaben, gefärbt als Ampel.
    ===================================================================== */
 var MATH_GOAL = [
   {lv:8,  name:'Zahlenraum bis 10',     hint:'Alle Plus und Minus Aufgaben bis 10 werden nach und nach durchgerechnet. Was noch hakt, kommt häufiger dran.'},
   {lv:9,  name:'Zehnerübergang',        hint:'Alle Aufgaben über die Zehn, von 2 + 9 bis 9 + 9 und von 11 − 2 bis 18 − 9. Erst wird jede einmal gerechnet, danach kommen die langsamen und falschen öfter.'},
   {lv:10, name:'Über die 20',           hint:'Der gleiche Übergang eine Etage höher, zum Beispiel 17 + 5 oder 23 − 6. Zeigt, ob der Zehnerübergang schon übertragen wird.'},
-  {lv:11, name:'Schwächen trainieren',  hint:'Nimmt die Aufgaben, die laut Rechenprofil gerade am meisten haken, aus allen Bereichen. Dazwischen ein paar sichere zur Wiederholung.'}
+  {lv:12, name:'Einmaleins gezielt',    hint:'Alle 100 Aufgaben von 1 · 1 bis 10 · 10, auch die Tauschaufgaben einzeln. Erst kommt jede einmal dran, danach die langsamen öfter. Die Einmaleins Tafel zeigt die Zeiten.'},
+  {lv:11, name:'Schwächen trainieren',  hint:'Nimmt die Aufgaben, die laut Rechenprofil gerade am meisten haken, aus allen Bereichen. Dazwischen ein paar sichere zur Wiederholung.'},
+  {lv:13, name:'Großes Einmaleins',     adult:true, hint:'Alle 145 Aufgaben von 11 · 2 bis 20 · 20. Erst kommt jede einmal dran, danach die langsamen und falschen öfter. Die große Tafel zeigt, wie lange jede gedauert hat.'}
 ];
+var KID_GOALS = [8, 9, 10, 12, 11], ADULT_GOALS = [13, 11];
 function goalInfo(lv){ return MATH_GOAL.filter(function(x){ return x.lv === lv; })[0] || null; }
+function isAdult(p){ return !!(p && p.adult); }
 function famOf(a, op, b){
   if (b < 1) return null;
   if (op === '+') {
@@ -1605,10 +1615,13 @@ function famOf(a, op, b){
     if (a <= 10) return 'm10';
     if (a <= 18 && b <= 9 && r < 10) return 'mz';
     if (a >= 21 && a <= 28 && b <= 9 && r < 20) return 'm20';
+  } else if (op === '·') {
+    if (a <= 10 && b <= 10 && a >= 1) return 'e1';
+    if (Math.max(a, b) <= 20 && Math.min(a, b) >= 2) return 'e2';
   }
   return null;
 }
-var FAM_NAME = {p10:'Plus bis 10', m10:'Minus bis 10', pz:'Plus über die Zehn', mz:'Minus über die Zehn', p20:'Plus über die 20', m20:'Minus über die 20'};
+var FAM_NAME = {p10:'Plus bis 10', m10:'Minus bis 10', pz:'Plus über die Zehn', mz:'Minus über die Zehn', p20:'Plus über die 20', m20:'Minus über die 20', e1:'Kleines Einmaleins', e2:'Großes Einmaleins'};
 function factsFor(lv){
   var out = [], a, b, c, u, v;
   if (lv === 8) {
@@ -1620,18 +1633,33 @@ function factsFor(lv){
   } else if (lv === 10) {
     for (u = 1; u <= 9; u++) for (b = 11 - u; b <= 9; b++) out.push([10 + u, '+', b]);
     for (v = 1; v <= 8; v++) for (b = v + 1; b <= 9; b++) out.push([20 + v, '−', b]);
+  } else if (lv === 12) {
+    for (a = 1; a <= 10; a++) for (b = 1; b <= 10; b++) out.push([a, '·', b]);
+  } else if (lv === 13) {
+    for (a = 11; a <= 20; a++) for (b = 2; b <= a; b++) out.push([a, '·', b]);
   }
   return out;
+}
+// Großes Einmaleins: Aufgabe in zufälliger Reihenfolge zeigen, aber unter einem Schlüssel merken
+function factTask(f){
+  var a = f[0], op = f[1], b = f[2];
+  if (op === '·' && famOf(a, op, b) === 'e2') {
+    var hi = Math.max(a, b), lo = Math.min(a, b), t = Math.random() < 0.5 ? mk(hi, op, lo) : mk(lo, op, hi);
+    t.key = hi + op + lo; return t;
+  }
+  return mk(a, op, b);
 }
 function logMath(pid, r){
   var t = r.task; if (t.kind !== 'math' || !famOf(t.a, t.op, t.b)) return;
   if (!S.mathLog[pid]) S.mathLog[pid] = {};
-  var e = S.mathLog[pid][t.key] || {n: 0, ok: 0, e: [], ts: []};
+  var key = t.key;
+  if (t.op === '·' && famOf(t.a, t.op, t.b) === 'e2') key = Math.max(t.a, t.b) + '·' + Math.min(t.a, t.b);
+  var e = S.mathLog[pid][key] || {n: 0, ok: 0, e: [], ts: []};
   e.n++; if (r.correct) e.ok++;
   e.e.push(r.correct ? 1 : 0); if (e.e.length > 5) e.e = e.e.slice(-5);
   if (r.correct && r.ms > 0) { e.ts.push(Math.round(r.ms)); if (e.ts.length > 5) e.ts = e.ts.slice(-5); }
   e.last = Date.now();
-  S.mathLog[pid][t.key] = e; save();
+  S.mathLog[pid][key] = e; save();
 }
 function parseKey(k){ var m = k.match(/^(\d+)([+−·:])(\d+)$/); return m ? {a: +m[1], op: m[2], b: +m[3]} : null; }
 function mathProfile(pid){
@@ -1645,11 +1673,12 @@ function mathProfile(pid){
   });
   var famMed = {}; Object.keys(famT).forEach(function(f){ famMed[f] = median(famT[f]); });
   Object.keys(facts).forEach(function(k){
-    var f = facts[k], fm = famMed[f.fam];
+    var f = facts[k], fm = famMed[f.fam], big = f.fam === 'e2';
     f.ratio = (f.med && fm) ? f.med / fm : null;
-    f.weak = Math.min(4, f.err * 2.5 + (f.lastWrong ? 0.8 : 0) + (f.ratio ? Math.max(0, f.ratio - 1) * 1.5 : 1) + (f.med > 6000 ? 0.6 : 0));
-    if (f.err >= 0.34 || f.lastWrong || (f.ratio && f.ratio >= 1.6) || f.med > 8000) f.status = 'bad';
-    else if (f.err > 0 || (f.ratio && f.ratio >= 1.25) || f.med > 5000) f.status = 'warn';
+    var slow = big ? 15000 : 6000, vslow = big ? 25000 : 8000, mid = big ? 10000 : 5000;
+    f.weak = Math.min(4, f.err * 2.5 + (f.lastWrong ? 0.8 : 0) + (f.ratio ? Math.max(0, f.ratio - 1) * 1.5 : 1) + (f.med > slow ? 0.6 : 0));
+    if (f.err >= 0.34 || f.lastWrong || (f.ratio && f.ratio >= 1.6) || f.med > vslow) f.status = 'bad';
+    else if (f.err > 0 || (f.ratio && f.ratio >= 1.25) || f.med > mid) f.status = 'warn';
     else f.status = 'ok';
   });
   var list = Object.keys(facts).map(function(k){ return facts[k]; });
@@ -1657,10 +1686,10 @@ function mathProfile(pid){
   return {facts: facts, famMed: famMed, list: list, weak: weak, n: list.length};
 }
 function smartQueue(lv, n, pid){
-  var prof = mathProfile(pid), pool;
+  var prof = mathProfile(pid), pool, adult = isAdult(S.players.filter(function(q){ return q.id === pid; })[0]);
   if (lv === 11) {
-    pool = prof.list.map(function(f){ return [f.a, f.op, f.b]; });
-    if (pool.length < n) pool = pool.concat(factsFor(9), factsFor(8));
+    pool = prof.list.filter(function(f){ return adult ? f.fam === 'e2' : f.fam !== 'e2'; }).map(function(f){ return [f.a, f.op, f.b]; });
+    if (pool.length < n) pool = pool.concat(adult ? factsFor(13) : factsFor(9).concat(factsFor(8)));
   } else pool = factsFor(lv);
   var seen = {}, scored = pool.filter(function(f){ var k = f[0] + f[1] + f[2]; if (seen[k]) return false; seen[k] = 1; return true; }).map(function(f){
     var k = f[0] + f[1] + f[2], st = prof.facts[k];
@@ -1668,7 +1697,7 @@ function smartQueue(lv, n, pid){
     return {f: f, s: s + Math.random() * 0.7};
   }).sort(function(x, y){ return y.s - x.s; });
   var main = Math.ceil(n * 0.8), pick1 = scored.slice(0, main), rest = shuffle(scored.slice(main)).slice(0, n - main);
-  return shuffle(pick1.concat(rest)).slice(0, n).map(function(x){ return mk(x.f[0], x.f[1], x.f[2]); });
+  return shuffle(pick1.concat(rest)).slice(0, n).map(function(x){ return factTask(x.f); });
 }
 function coverage(pid, lv){
   var log = S.mathLog[pid] || {}, all = factsFor(lv), done = all.filter(function(f){ return log[f[0] + f[1] + f[2]]; }).length;
@@ -1677,28 +1706,49 @@ function coverage(pid, lv){
 
 /* ---------- Darstellung ---------- */
 function factLabel(k){ var p = parseKey(k); return p ? p.a + ' ' + p.op + ' ' + p.b : k; }
-function gridHTML(pid, prof, kind){
-  // kind: plus, minus, plus20, minus20. Zeilen a (1..9), Spalten b (1..9)
-  var head = '<div class="mg-c mg-h"></div>';
-  for (var b = 1; b <= 9; b++) head += '<div class="mg-c mg-h">' + (kind.indexOf('minus') === 0 ? '−' : '+') + b + '</div>';
-  var rows = '';
-  for (var a = 1; a <= 9; a++) {
-    var rowLabel = kind === 'plus' ? a : kind === 'plus20' ? 10 + a : '= ' + (kind === 'minus20' ? 10 + a : a);
-    rows += '<div class="mg-c mg-h">' + rowLabel + '</div>';
-    for (var bb = 1; bb <= 9; bb++) {
-      var k, over;
-      if (kind === 'plus') { k = a + '+' + bb; over = a + bb > 10; }
-      else if (kind === 'minus') { k = (a + bb) + '−' + bb; over = a + bb > 10; }
-      else if (kind === 'plus20') { k = (10 + a) + '+' + bb; over = a + bb > 10; }
-      else { k = (10 + a + bb) + '−' + bb; over = a + bb > 10; }
-      var p = parseKey(k), fam = famOf(p.a, p.op, p.b);
-      if (!fam || ((kind === 'plus20' || kind === 'minus20') && !over)) { rows += '<div class="mg-c mg-x"></div>'; continue; }
-      var f = prof.facts[k], st = f ? f.status : 'none';
+function secShort(ms){ var s = ms / 1000; return s >= 10 ? String(Math.round(s)) : s.toFixed(1).replace('.', ','); }
+var GRIDS = {
+  plus:    {rows: range(1, 9), cols: range(1, 9), colHead: function(b){ return '+' + b; }, rowHead: function(a){ return a; },
+            key: function(a, b){ return a + '+' + b; }, over: function(a, b){ return a + b > 10; }},
+  minus:   {rows: range(1, 9), cols: range(1, 9), colHead: function(b){ return '−' + b; }, rowHead: function(a){ return '= ' + a; },
+            key: function(a, b){ return (a + b) + '−' + b; }, over: function(a, b){ return a + b > 10; }},
+  plus20:  {rows: range(1, 9), cols: range(1, 9), colHead: function(b){ return '+' + b; }, rowHead: function(a){ return 10 + a; },
+            key: function(a, b){ return a + b > 10 ? (10 + a) + '+' + b : null; }, over: function(){ return true; }},
+  minus20: {rows: range(1, 9), cols: range(1, 9), colHead: function(b){ return '−' + b; }, rowHead: function(a){ return '= ' + (10 + a); },
+            key: function(a, b){ return a + b > 10 ? (10 + a + b) + '−' + b : null; }, over: function(){ return true; }},
+  mal:     {rows: range(1, 10), cols: range(1, 10), colHead: function(b){ return '·' + b; }, rowHead: function(a){ return a; },
+            key: function(a, b){ return a + '·' + b; }, over: function(a, b){ return a === b; }},
+  mal20:   {rows: range(11, 20), cols: range(2, 20), colHead: function(b){ return b; }, rowHead: function(a){ return a; }, big: true,
+            key: function(a, b){ return b <= a ? a + '·' + b : null; }, over: function(a, b){ return a === b; }}
+};
+function range(a, b){ var r = []; for (var i = a; i <= b; i++) r.push(i); return r; }
+function gridView(){ return S.gridView === 'task' ? 'task' : 'time'; }
+function gridHTML(prof, kind){
+  var G = GRIDS[kind], view = gridView(), html = '<div class="mg-c mg-h"></div>';
+  G.cols.forEach(function(b){ html += '<div class="mg-c mg-h">' + G.colHead(b) + '</div>'; });
+  G.rows.forEach(function(a){
+    html += '<div class="mg-c mg-h">' + G.rowHead(a) + '</div>';
+    G.cols.forEach(function(b){
+      var k = G.key(a, b);
+      if (!k) { html += '<div class="mg-c mg-x"></div>'; return; }
+      var p = parseKey(k), f = prof.facts[k], st = f ? f.status : 'none', over = G.over(a, b);
       var tip = factLabel(k) + (f ? ': ' + (f.med ? sec(f.med) + ' s' : 'noch nicht richtig') + (f.err ? ', ' + Math.round(f.err * 100) + ' % falsch' : '') : ': noch nicht gerechnet');
-      rows += '<div class="mg-c mg-' + st + (over ? ' mg-over' : '') + '" title="' + esc(tip) + '"><span>' + esc(kind.indexOf('minus') === 0 ? p.a + '−' + p.b : p.a + '+' + p.b) + '</span></div>';
-    }
-  }
-  return '<div class="mgrid">' + head + rows + '</div>';
+      var txt = view === 'time' ? (f ? (f.med ? secShort(f.med) : '?') : '') : (p.op === '·' ? p.a + '·' + p.b : p.a + p.op + p.b);
+      html += '<div class="mg-c mg-' + st + (over ? ' mg-over' : '') + '" title="' + esc(tip) + '"><span>' + esc(txt) + '</span></div>';
+    });
+  });
+  return '<div class="mgwrap"><div class="mgrid' + (G.big ? ' big' : '') + '" style="--cols:' + G.cols.length + '">' + html + '</div></div>';
+}
+function rowInsights(list, fam, label){
+  var by = {}, f = list.filter(function(x){ return x.fam === fam && x.med; });
+  if (f.length < 10) return [];
+  f.forEach(function(x){ [x.a, x.b].forEach(function(n, i){ if (i && x.a === x.b) return; (by[n] = by[n] || []).push(x.ratio || 1); }); });
+  var avg = Object.keys(by).filter(function(k){ return by[k].length >= 3; }).map(function(k){ return {k: +k, v: by[k].reduce(function(s, x){ return s + x; }, 0) / by[k].length}; }).sort(function(x, y){ return y.v - x.v; });
+  var out = [];
+  var top = avg.slice(0, 2).filter(function(x){ return x.v > 1.1; });
+  if (avg.length >= 3 && avg[0].v > 1.15) out.push(label + ': Die ' + top.map(function(x){ return x.k + 'er'; }).join(' und ') + (top.length > 1 ? ' Reihe dauern' : ' Reihe dauert') + ' am längsten.');
+  if (avg.length >= 3 && avg[avg.length - 1].v < 0.85) out.push(label + ': Die ' + avg[avg.length - 1].k + 'er Reihe sitzt schon richtig gut.');
+  return out;
 }
 function insightsFor(prof){
   var out = [], pz = prof.list.filter(function(f){ return f.fam === 'pz' && f.med; });
@@ -1713,18 +1763,29 @@ function insightsFor(prof){
   if (fm.pz && fm.mz && fm.mz / fm.pz > 1.3) out.push('Minus über die Zehn dauert deutlich länger als Plus über die Zehn. Das ist typisch und lohnt sich zu üben.');
   if (fm.pz && fm.p20 && fm.p20 / fm.pz > 1.4) out.push('Über die 20 ist noch deutlich langsamer als über die 10. Der Übergang wird noch nicht übertragen.');
   if (fm.pz && fm.p20 && fm.p20 / fm.pz <= 1.15) out.push('Über die 20 klappt fast so schnell wie über die 10. Der Übergang wird schon übertragen.');
+  out = out.concat(rowInsights(prof.list, 'e1', 'Einmaleins'), rowInsights(prof.list, 'e2', 'Großes Einmaleins'));
+  var e1 = prof.list.filter(function(f){ return f.fam === 'e1' && f.med && f.a !== f.b; }), gap = 0, pairs = 0;
+  e1.forEach(function(f){ var o = prof.facts[f.b + '·' + f.a]; if (o && o.med && f.a < f.b) { pairs++; if (Math.max(f.med, o.med) / Math.min(f.med, o.med) > 1.6) gap++; } });
+  if (pairs >= 6 && gap >= 2) out.push('Bei ' + gap + ' Tauschaufgaben ist eine Richtung deutlich schneller als die andere, zum Beispiel 3 · 7 und 7 · 3. Ein Blick in die Tafel lohnt sich.');
   return out;
 }
+function viewToggle(){
+  var v = gridView();
+  return '<div class="opt viewopt"><span class="opt-label">Tafeln zeigen</span><div class="seg" id="gridSeg"><button type="button" data-view="time" aria-pressed="' + (v === 'time') + '">Sekunden</button><button type="button" data-view="task" aria-pressed="' + (v === 'task') + '">Aufgaben</button></div></div>';
+}
+var LEGEND = '<div class="mlegend"><span class="mg-ok">sitzt</span><span class="mg-warn">unsicher</span><span class="mg-bad">hakt</span><span class="mg-none">noch nicht gerechnet</span></div>';
 function openMathProfile(){
-  var p = curPlayer(), prof = mathProfile(p.id);
+  var p = curPlayer(), prof = mathProfile(p.id), adult = isAdult(p);
   if ($('#screen-profile').hidden) PROF_FROM = $('#screen-done').hidden ? 'start' : 'done';
   $('#profTitle').textContent = 'Rechenprofil von ' + p.name;
   $('#profDemo').hidden = true;
   $('#profSub').textContent = prof.n ? prof.n + ' verschiedene Aufgaben gerechnet' : 'Noch keine Daten';
   var html = '';
   if (!prof.n) {
-    html += '<div class="pcard"><h3>So entsteht das Profil</h3><p>Jede Plus und Minus Aufgabe bis 30 wird gemerkt: ob sie richtig war und wie lange sie gedauert hat. Am schnellsten füllt sich das Bild mit den Stufen „Zahlenraum bis 10“ und „Zehnerübergang“. Dort kommen erst alle Aufgaben einmal dran, danach die schwierigen öfter.</p>' +
-      '<div class="rowbtns"><button class="btn primary" type="button" data-act="mlv" data-lv="9">Zehnerübergang üben</button><button class="btn" type="button" data-act="mlv" data-lv="8">Zahlenraum bis 10</button></div></div>';
+    html += adult
+      ? '<div class="pcard"><h3>So entsteht das Profil</h3><p>Jede Aufgabe des großen Einmaleins wird gemerkt: ob sie richtig war und wie lange sie gedauert hat. Erst kommt jede einmal dran, danach die langsamen öfter. Die große Tafel zeigt dann für jede Aufgabe die Sekunden.</p><div class="rowbtns"><button class="btn primary" type="button" data-act="mlv" data-lv="13">Großes Einmaleins üben</button></div></div>'
+      : '<div class="pcard"><h3>So entsteht das Profil</h3><p>Jede Plus, Minus und Mal Aufgabe wird gemerkt: ob sie richtig war und wie lange sie gedauert hat. Am schnellsten füllt sich das Bild mit den Stufen „Zehnerübergang“, „Zahlenraum bis 10“ und „Einmaleins gezielt“. Dort kommen erst alle Aufgaben einmal dran, danach die schwierigen öfter.</p>' +
+        '<div class="rowbtns"><button class="btn primary" type="button" data-act="mlv" data-lv="9">Zehnerübergang üben</button><button class="btn" type="button" data-act="mlv" data-lv="12">Einmaleins gezielt</button></div></div>';
   } else {
     var w = prof.weak.slice(0, 8);
     html += '<div class="pcard"><h3>Hakt gerade</h3>' + (w.length
@@ -1734,19 +1795,31 @@ function openMathProfile(){
     var ins = insightsFor(prof);
     if (ins.length) html += '<ul class="insights">' + ins.map(function(s){ return '<li>' + esc(s) + '</li>'; }).join('') + '</ul>';
     html += '</div>';
-    var cov = [8, 9, 10].map(function(lv){ var c = coverage(p.id, lv); return '<span class="covitem"><b>' + c.done + '</b> von ' + c.all + ' · ' + esc(goalInfo(lv).name) + '</span>'; }).join('');
-    html += '<div class="pcard"><h3>Schon gerechnet</h3><div class="cov">' + cov + '</div></div>';
-    var legend = '<div class="mlegend"><span class="mg-ok">sitzt</span><span class="mg-warn">unsicher</span><span class="mg-bad">hakt</span><span class="mg-none">noch nicht gerechnet</span><span class="mg-overkey">dicker Rand: über die Zehn</span></div>';
-    html += '<div class="pcard"><h3>Einspluseins</h3>' + gridHTML(p.id, prof, 'plus') + legend + '</div>';
-    html += '<div class="pcard"><h3>Einsminuseins</h3><p class="muted">Jede Zeile ist ein Ergebnis, jede Spalte die Zahl, die abgezogen wird.</p>' + gridHTML(p.id, prof, 'minus') + '</div>';
-    if (prof.list.some(function(f){ return f.fam === 'p20' || f.fam === 'm20'; })) {
-      html += '<div class="pcard"><h3>Über die 20</h3><p class="muted">Gleich aufgebaut wie die Tafeln oben, nur zehn höher. So siehst du, ob sich der Übergang überträgt.</p>' + gridHTML(p.id, prof, 'plus20') + '<div style="height:14px"></div>' + gridHTML(p.id, prof, 'minus20') + '</div>';
+    var levels = adult ? [13] : [8, 9, 10, 12];
+    var covs = levels.map(function(lv){ return {lv: lv, c: coverage(p.id, lv)}; }).filter(function(x){ return x.c.done > 0; });
+    if (covs.length) html += '<div class="pcard"><h3>Schon gerechnet</h3><div class="cov">' + covs.map(function(x){ return '<span class="covitem"><b>' + x.c.done + '</b> von ' + x.c.all + ' · ' + esc(goalInfo(x.lv).name) + '</span>'; }).join('') + '</div></div>';
+    html += '<div class="pcard">' + viewToggle() + '<p class="muted">In jeder Zelle steht die typische Zeit in Sekunden, die Farbe zeigt die Ampel. Ein Fragezeichen heißt: bisher nur falsch gerechnet.</p></div>';
+    var has = function(fams){ return prof.list.some(function(f){ return fams.indexOf(f.fam) >= 0; }); };
+    if (adult) {
+      html += '<div class="pcard"><h3>Großes Einmaleins</h3><p class="muted">Zeilen 11 bis 20, Spalten 2 bis 20. Tauschaufgaben wie 7 · 13 und 13 · 7 zählen zusammen.</p>' + gridHTML(prof, 'mal20') + LEGEND + '</div>';
+    } else {
+      if (has(['e1']) || !has(['p10', 'pz', 'm10', 'mz'])) html += '<div class="pcard"><h3>Einmaleins</h3><p class="muted">Dicker Rand: Quadratzahlen wie 7 · 7.</p>' + gridHTML(prof, 'mal') + LEGEND + '</div>';
+      if (has(['p10', 'pz', 'm10', 'mz', 'p20', 'm20'])) {
+        html += '<div class="pcard"><h3>Einspluseins</h3><p class="muted">Dicker Rand: über die Zehn.</p>' + gridHTML(prof, 'plus') + LEGEND + '</div>';
+        html += '<div class="pcard"><h3>Einsminuseins</h3><p class="muted">Jede Zeile ist ein Ergebnis, jede Spalte die Zahl, die abgezogen wird.</p>' + gridHTML(prof, 'minus') + '</div>';
+      }
+      if (has(['p20', 'm20'])) html += '<div class="pcard"><h3>Über die 20</h3><p class="muted">Gleich aufgebaut wie die Tafeln oben, nur zehn höher. So siehst du, ob sich der Übergang überträgt.</p>' + gridHTML(prof, 'plus20') + '<div style="height:14px"></div>' + gridHTML(prof, 'minus20') + '</div>';
     }
-    html += '<p class="muted">Die Ampel vergleicht jede Aufgabe mit den anderen Aufgaben derselben Art: Wer bei 7 + 8 doppelt so lange braucht wie sonst beim Zehnerübergang, bekommt Gelb oder Rot, auch wenn das Ergebnis stimmt.</p>';
+    html += '<p class="muted">Die Ampel vergleicht jede Aufgabe mit den anderen Aufgaben derselben Art: Wer bei ' + (adult ? '17 · 13' : '7 · 8') + ' doppelt so lange braucht wie sonst im ' + (adult ? 'großen ' : '') + 'Einmaleins, bekommt Gelb oder Rot, auch wenn das Ergebnis stimmt.</p>';
   }
   $('#profBody').innerHTML = html;
   show('profile');
 }
+$('#profBody').addEventListener('click', function(e){
+  var b = e.target.closest('#gridSeg [data-view]'); if (!b) return;
+  S.gridView = b.dataset.view; save();
+  var y = window.scrollY; openMathProfile(); window.scrollTo(0, y);
+});
 
 /* =====================================================================
    RECHNEN
@@ -1773,8 +1846,11 @@ var MATH = [
   {name:'Zahlenraum bis 10', goal:true, gen:function(){ var f = pick(factsFor(8)); return mk(f[0], f[1], f[2]); }},
   {name:'Zehnerübergang', goal:true, gen:function(){ var f = pick(factsFor(9)); return mk(f[0], f[1], f[2]); }},
   {name:'Über die 20', goal:true, gen:function(){ var f = pick(factsFor(10)); return mk(f[0], f[1], f[2]); }},
-  {name:'Schwächen trainieren', goal:true, gen:function(){ var f = pick(factsFor(9)); return mk(f[0], f[1], f[2]); }}
+  {name:'Schwächen trainieren', goal:true, gen:function(){ var f = pick(factsFor(9)); return mk(f[0], f[1], f[2]); }},
+  {name:'Einmaleins gezielt', goal:true, gen:function(){ var f = pick(factsFor(12)); return mk(f[0], f[1], f[2]); }},
+  {name:'Großes Einmaleins', goal:true, adult:true, gen:function(){ return factTask(pick(factsFor(13))); }}
 ];
+function levelKey(){ return isAdult(curPlayer()) ? 'adult' : S.mode; }
 function makeMathQueue(level, n, pid){
   if (level >= 8 && pid) return smartQueue(level, n, pid);
   var L = MATH[level - 1], out = [], seen = {};
@@ -1990,20 +2066,28 @@ function bestKey(pid, mode, level){ return pid + '|' + mode + '|' + level; }
 var STATUS_TXT = {bad:'Baustelle', warn:'unsicher', ok:'sitzt', none:'zu wenig Daten'};
 
 function renderStart(){
-  var p = curPlayer(), isRead = S.mode === 'read', lv = S.level[S.mode];
+  var p = curPlayer(), adult = isAdult(p);
+  if (adult && S.mode !== 'math') S.mode = 'math';
+  if (adult && ADULT_GOALS.indexOf(S.level.adult) < 0) S.level.adult = 13;
+  var isRead = S.mode === 'read', lv = S.level[levelKey()];
+  $('#modes').classList.toggle('solo', adult);
+  $('#modes [data-mode=read]').hidden = adult;
   if (isRead && !READ_SUBS.some(function(s){ return s.id === lv; })) lv = S.level.read = 'check';
   $('#cityCard').innerHTML = cityCardHTML(p);
   $('#resetHint').textContent = 'Gilt nur für ' + p.name + ' und nur auf diesem Gerät. „Stadt dunkel“ setzt die Funken auf null. „Alles löschen“ entfernt zusätzlich Runden, Bestzeiten und Leseprofil.';
   $('#players').innerHTML = S.players.map(function(pl){
     var h = (S.history[pl.id] || []).length;
-    return '<button class="player" type="button" data-id="' + pl.id + '" aria-pressed="' + (pl.id === S.current) + '"><span class="ini">' + avatarSVG(avOf(pl.id), {view: 'head'}) + '</span><span><span class="pname">' + esc(pl.name) + '</span><span class="psub">' + (h === 1 ? '1 Runde' : h + ' Runden') + '</span></span></button>';
+    return '<button class="player" type="button" data-id="' + pl.id + '" aria-pressed="' + (pl.id === S.current) + '"><span class="ini">' + avatarSVG(avOf(pl.id), {view: 'head'}) + '</span><span><span class="pname">' + esc(pl.name) + '</span><span class="psub">' + (pl.adult ? 'Profi · ' : '') + (h === 1 ? '1 Runde' : h + ' Runden') + '</span></span></button>';
   }).join('');
   $$('#modes .mode').forEach(function(b){ b.setAttribute('aria-pressed', b.dataset.mode === S.mode); });
 
   if (!isRead) {
     var mbtn = function(L, i){ return '<button class="level" type="button" data-level="' + (i + 1) + '" aria-pressed="' + (lv === i + 1) + '">' + (L.goal ? '' : '<span class="n">' + (i + 1) + '</span>') + esc(L.name) + '</button>'; };
-    $('#levels').innerHTML = '<div class="lvgroup"><span class="lvlabel">Gezielt üben</span><div class="levels">' + MATH.map(function(L, i){ return L.goal ? mbtn(L, i) : ''; }).join('') + '</div></div>' +
-      '<div class="lvgroup"><span class="lvlabel">Freies Rechnen</span><div class="levels">' + MATH.map(function(L, i){ return L.goal ? '' : mbtn(L, i); }).join('') + '</div></div>';
+    var grp = function(list){ return list.map(function(lvn){ return mbtn(MATH[lvn - 1], lvn - 1); }).join(''); };
+    $('#levels').innerHTML = adult
+      ? '<div class="lvgroup"><span class="lvlabel">Profimodus</span><div class="levels">' + grp(ADULT_GOALS) + '</div></div>'
+      : '<div class="lvgroup"><span class="lvlabel">Gezielt üben</span><div class="levels">' + grp(KID_GOALS) + '</div></div>' +
+        '<div class="lvgroup"><span class="lvlabel">Freies Rechnen</span><div class="levels">' + MATH.map(function(L, i){ return L.goal ? '' : mbtn(L, i); }).join('') + '</div></div>';
   } else {
     var groups = {};
     READ_SUBS.forEach(function(s){ (groups[s.group] = groups[s.group] || []).push(s); });
@@ -2016,14 +2100,14 @@ function renderStart(){
   var hint = $('#subHint'), gi = !isRead ? goalInfo(lv) : null;
   hint.hidden = !(isRead || gi);
   if (isRead) hint.textContent = subInfo(lv).hint;
-  else if (gi) { var cv = lv <= 10 ? coverage(p.id, lv) : null; hint.textContent = gi.hint + (cv ? ' Schon gerechnet: ' + cv.done + ' von ' + cv.all + '.' : ''); }
+  else if (gi) { var cv = lv !== 11 ? coverage(p.id, lv) : null; hint.textContent = gi.hint + (cv ? ' Schon gerechnet: ' + cv.done + ' von ' + cv.all + '.' : ''); }
 
   var prof = isRead ? readProfile(p.id) : null;
   $('#profMini').hidden = false;
   $('#profMini b').textContent = isRead ? 'Leseprofil' : 'Rechenprofil';
   if (!isRead) {
     var mp = mathProfile(p.id);
-    if (!mp.n) { $('#profMiniText').textContent = 'Noch keine Daten von ' + p.name + '. Mit „Zehnerübergang“ oder „Zahlenraum bis 10“ entsteht die Einspluseins Tafel.'; $('#profMiniPills').innerHTML = ''; }
+    if (!mp.n) { $('#profMiniText').textContent = 'Noch keine Daten von ' + p.name + '. ' + (adult ? 'Mit „Großes Einmaleins“ entsteht die große Tafel mit allen Zeiten.' : 'Mit „Zehnerübergang“ oder „Einmaleins gezielt“ entstehen die Tafeln mit allen Zeiten.'); $('#profMiniPills').innerHTML = ''; }
     else {
       $('#profMiniText').textContent = mp.n + ' verschiedene Aufgaben gerechnet. ' + (mp.weak.length ? 'Hakt gerade:' : 'Gerade hakt nichts.');
       $('#profMiniPills').innerHTML = mp.weak.slice(0, 4).map(function(f){ return '<span class="pill ' + f.status + '">' + esc(factLabel(f.key)) + '</span>'; }).join('');
@@ -2098,7 +2182,7 @@ $('#players').addEventListener('click', function(e){ var b = e.target.closest('.
 $('#modes').addEventListener('click', function(e){ var b = e.target.closest('.mode'); if (!b) return; S.mode = b.dataset.mode; save(); renderStart(); });
 $('#levels').addEventListener('click', function(e){
   var b = e.target.closest('.level'); if (!b) return;
-  S.level[S.mode] = S.mode === 'math' ? +b.dataset.level : b.dataset.level; save(); renderStart();
+  S.level[levelKey()] = S.mode === 'math' ? +b.dataset.level : b.dataset.level; save(); renderStart();
 });
 $('#segCount').addEventListener('click', function(e){ var b = e.target.closest('button'); if (!b) return; S.count = +b.dataset.count; save(); renderStart(); });
 $('#segInput').addEventListener('click', function(e){ var b = e.target.closest('button'); if (!b || b.disabled) return; S.input = b.dataset.input; save(); renderStart(); });
@@ -2112,14 +2196,40 @@ $('#cityCard').addEventListener('click', function(e){
   $('#' + pair[0]).addEventListener('change', function(e){ S[pair[1]] = e.target.checked; save(); });
 });
 $('#optCode').addEventListener('change', function(e){ S.code = e.target.value.trim() || 'Check'; e.target.value = S.code; save(); });
+function renderNameForm(blank){
+  var f = $('#nameForm'), kid = 0;
+  f.innerHTML = S.players.map(function(pl, i){
+    var lbl = pl.adult ? 'Profi' : 'Kind ' + (++kid);
+    return '<label for="pn' + i + '">' + lbl + '<input id="pn' + i + '" data-i="' + i + '" maxlength="16" autocomplete="off" placeholder="Name" value="' + (blank ? '' : esc(pl.name)) + '"></label>' +
+      (pl.adult ? '<button class="btn" type="button" data-rm="' + i + '">Entfernen</button>' : '');
+  }).join('') + '<button class="btn primary" type="submit">Speichern</button>' +
+    (S.players.some(function(pl){ return pl.adult; }) ? '' : '<button class="btn" type="button" id="addAdult">Erwachsene hinzufügen</button>') +
+    '<p class="namehint">Erwachsene üben im Profimodus das große Einmaleins.</p>';
+}
 $('#editNames').addEventListener('click', function(){
   var f = $('#nameForm'); f.hidden = !f.hidden;
-  if (!f.hidden) { $('#name1').value = S.players[0].name; $('#name2').value = S.players[1].name; $('#name1').focus(); }
+  if (!f.hidden) { renderNameForm(false); var i0 = $('#pn0'); if (i0) i0.focus(); }
+});
+$('#nameForm').addEventListener('click', function(e){
+  var t = e.target;
+  if (t.id === 'addAdult') {
+    var id = 'p' + (Date.now() % 100000);
+    S.players.push({id: id, name: 'Papa', adult: true}); S.current = id; save(); renderNameForm(false); renderStart();
+    var inp = $('#pn' + (S.players.length - 1)); if (inp) { inp.focus(); inp.select(); }
+  }
+  if (t.dataset && t.dataset.rm != null) {
+    if (!t.classList.contains('armed')) { t.classList.add('armed'); t.textContent = 'Wirklich entfernen?'; return; }
+    var rm = S.players.splice(+t.dataset.rm, 1)[0];
+    if (rm && S.current === rm.id) S.current = S.players[0].id;
+    save(); renderNameForm(false); renderStart();
+  }
 });
 $('#nameForm').addEventListener('submit', function(e){
   e.preventDefault();
-  S.players[0].name = $('#name1').value.trim() || DEFAULTS.players[0].name;
-  S.players[1].name = $('#name2').value.trim() || DEFAULTS.players[1].name;
+  $$('#nameForm input[data-i]').forEach(function(inp){
+    var i = +inp.dataset.i, pl = S.players[i]; if (!pl) return;
+    pl.name = inp.value.trim() || (pl.adult ? 'Profi' : (DEFAULTS.players[i] || {name: 'Kind'}).name);
+  });
   save(); $('#nameForm').hidden = true; renderStart();
 });
 $('#goBtn').addEventListener('click', function(){ startRound(); });
@@ -2155,7 +2265,7 @@ function show(which){
 }
 function startRound(){
   unlockAudio(); primeSpeech();
-  var mode = S.mode, level = S.level[mode], player = curPlayer();
+  var mode = S.mode, level = S.level[levelKey()], player = curPlayer();
   var sub = mode === 'read' ? level : null, queue, focus = null;
   if (mode === 'math') queue = makeMathQueue(level, S.count, player.id);
   else if (sub === 'check') { queue = checkQueue(player); save(); }
@@ -2584,7 +2694,7 @@ function endRound(){
   } else rec.hidden = true;
 
   var dr = $('#doneRead'), isRead = g.mode === 'read';
-  $('#doneProfileBtn').hidden = !(isRead || (g.mode === 'math' && g.level >= 8));
+  $('#doneProfileBtn').hidden = !(isRead || (g.mode === 'math' && (g.level >= 8 || g.level === 5)));
   $('#doneProfileBtn').textContent = isRead ? 'Leseprofil ansehen' : 'Rechenprofil ansehen';
   LAST_DONE_MODE = g.mode;
   dr.hidden = true;
@@ -2748,7 +2858,7 @@ $('#profBody').addEventListener('click', function(e){
   var b = e.target.closest('[data-act]'); if (!b) return;
   var act = b.dataset.act, msg = $('#dataMsg');
   if (act === 'check' || act === 'train') { S.mode = 'read'; S.level.read = act; save(); startRound(); }
-  else if (act === 'mlv') { S.mode = 'math'; S.level.math = +b.dataset.lv; save(); startRound(); }
+  else if (act === 'mlv') { S.mode = 'math'; S.level[levelKey()] = +b.dataset.lv; save(); startRound(); }
   else if (act === 'demo') openProfile(true);
   else if (act === 'copy') {
     var data = JSON.stringify(S);
@@ -2782,8 +2892,7 @@ if (document.fonts && document.fonts.ready) document.fonts.ready.then(function()
 
 renderStart();
 if (S.players[0].name === DEFAULTS.players[0].name && S.players[1].name === DEFAULTS.players[1].name && !(S.history.p1 || S.history.p2)) {
-  $('#nameForm').hidden = false; $('#name1').value = ''; $('#name2').value = '';
-  $('#name1').placeholder = 'Name'; $('#name2').placeholder = 'Name';
+  $('#nameForm').hidden = false; renderNameForm(true);
 }
 if (window.__BLITZ_PWA && 'serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
   window.addEventListener('load', function(){ try { navigator.serviceWorker.register('sw.js').catch(function(){}); } catch (e) {} });
