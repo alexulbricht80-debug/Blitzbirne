@@ -38,6 +38,8 @@
   --warnbg:#fcefd6;
   --on-ink:#fde100;
   --syl:#1f5fd1;
+  --on-good:#ffffff;
+  --on-red:#ffffff;
   --wmhl:#fde100;
   --shadow:0 1px 0 #dcdfe4, 0 16px 32px -22px rgba(0,0,0,.45);
   --f-hand:"Playpen Sans","Segoe Print","Comic Sans MS",system-ui,sans-serif;
@@ -50,7 +52,7 @@
     --ink:#fde100; --red:#ff8a80; --text:#f1f1f1; --muted:#a4a8af; --line:rgba(255,255,255,.14);
     --band:rgba(255,255,255,.05); --mark:#fde100; --on-mark:#16171b; --good:#7fd89e;
     --goodbg:rgba(127,216,158,.13); --badbg:rgba(255,138,128,.13); --warn:#efc56a; --warnbg:rgba(239,197,106,.13); --on-ink:#111111;
-    --syl:#7fb2ff; --wmhl:transparent;
+    --syl:#7fb2ff; --wmhl:transparent; --on-good:#0c0c0e; --on-red:#0c0c0e;
     --shadow:0 18px 36px -24px rgba(0,0,0,.9); color-scheme:dark;
   }
 }
@@ -59,7 +61,7 @@
   --ink:#fde100; --red:#ff8a80; --text:#f1f1f1; --muted:#a4a8af; --line:rgba(255,255,255,.14);
   --band:rgba(255,255,255,.05); --mark:#fde100; --on-mark:#16171b; --good:#7fd89e;
   --goodbg:rgba(127,216,158,.13); --badbg:rgba(255,138,128,.13); --warn:#efc56a; --warnbg:rgba(239,197,106,.13); --on-ink:#111111;
-  --syl:#7fb2ff; --wmhl:transparent;
+  --syl:#7fb2ff; --wmhl:transparent; --on-good:#0c0c0e; --on-red:#0c0c0e;
   --shadow:0 18px 36px -24px rgba(0,0,0,.9); color-scheme:dark;
 }
 [hidden]{display:none!important}
@@ -512,6 +514,46 @@ h2,h3{margin:0}
   .figbtn svg{width:40px;height:40px}
   .citytitle{font-size:1.15rem}
 }
+
+/* Entscheidung nach Stopp: an der Stelle des Stopp Knopfs */
+.cue{font-size:1.08rem}
+.cue.good{color:var(--good);font-weight:800}
+.cue.bad{color:var(--red);font-weight:800}
+.cue.ask{color:var(--text);font-weight:700}
+.decide{display:grid;grid-template-columns:repeat(var(--n,2),minmax(0,1fr)) auto;gap:10px;margin-top:16px}
+.dbtn{height:64px;border-radius:999px;border:0;font-family:var(--f-hand);font-weight:800;font-size:1.35rem;background:var(--ink);color:var(--on-ink);box-shadow:0 4px 0 rgba(0,0,0,.18);padding-inline:12px}
+.dbtn:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(0,0,0,.18)}
+.dbtn.yes{background:var(--good);color:var(--on-good)}
+.dbtn.no{background:var(--red);color:var(--on-red)}
+.dbtn.ghost{background:var(--sheet);color:var(--text);border:1.5px solid var(--line);box-shadow:none}
+.dbtn.icon{width:64px;padding:0;display:grid;place-items:center}
+.dbtn.icon svg{width:28px;height:28px}
+
+.playbtns{display:flex;gap:8px;flex-wrap:wrap}
+
+/* Rechenprofil: Einspluseins Tafel als Ampel */
+.mgrid{display:grid;grid-template-columns:2.4em repeat(9,minmax(0,1fr));gap:3px;max-width:520px;font-variant-numeric:tabular-nums}
+.mg-c{aspect-ratio:1/1;display:grid;place-items:center;border-radius:6px;font-size:clamp(.5rem,2.3vw,.74rem);font-weight:700;line-height:1;min-width:0;overflow:hidden}
+.mg-c span{white-space:nowrap}
+.mg-h{background:none;color:var(--muted);font-weight:700;font-size:clamp(.6rem,2.6vw,.82rem)}
+.mg-x{background:none}
+.mg-none{background:var(--band);color:var(--muted);border:1px dashed var(--line)}
+.mg-ok{background:var(--goodbg);color:var(--good)}
+.mg-warn{background:var(--warnbg);color:var(--warn)}
+.mg-bad{background:var(--badbg);color:var(--red)}
+.mg-over{box-shadow:inset 0 0 0 2px currentColor}
+.mg-none.mg-over{box-shadow:none;border:2px dashed var(--rule)}
+.mlegend{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;font-size:.8rem}
+.mlegend span{padding:3px 10px;border-radius:999px;font-weight:700}
+.mlegend .mg-none{border:1px dashed var(--line)}
+.mlegend .mg-overkey{background:var(--band);color:var(--muted);font-weight:400}
+.insights{margin:12px 0 0;padding-left:1.2em;display:grid;gap:4px}
+.cov{display:flex;flex-wrap:wrap;gap:8px}
+.covitem{padding:6px 12px;border-radius:12px;background:var(--band);font-size:.9rem}
+.covitem b{font-family:var(--f-clock)}
+.ballrow.ready .playbtns{flex-basis:100%}
+.ballrow.ready .playbtns .btn{flex:1}
+@media (max-width:460px){ .gamebar .who{display:none} .gamebar{gap:8px 10px} }
 </style>
 </head>
 <body>
@@ -571,7 +613,7 @@ h2,h3{margin:0}
       <div class="opt" data-for="read"><label class="opt-label" for="optSyl">Silben färben<span class="opt-hint">Blau und rot mit Silbenbögen, wie in der Schule. Im Lesecheck immer aus.</span></label><span class="switch"><input type="checkbox" id="optSyl"><span class="knob"></span></span></div>
       <div class="opt" data-for="read"><label class="opt-label" for="optCaps">Großbuchstaben</label><span class="switch"><input type="checkbox" id="optCaps"><span class="knob"></span></span></div>
       <div class="opt" data-for="retry"><label class="opt-label" for="optRetry">Fehler am Ende wiederholen</label><span class="switch"><input type="checkbox" id="optRetry"><span class="knob"></span></span></div>
-      <div class="opt"><label class="opt-label" for="optGame">Minispiel Dribbling<span class="opt-hint">Jede geschaffte Runde bringt einen Ball, drei Bälle sind ein Spiel von einer Minute</span></label><span class="switch"><input type="checkbox" id="optGame"><span class="knob"></span></span></div>
+      <div class="opt"><label class="opt-label" for="optGame">Minispiele<span class="opt-hint">Jede geschaffte Runde bringt einen Ball. Drei Bälle sind ein Spiel von einer Minute, Dribbling oder Kopfball.</span></label><span class="switch"><input type="checkbox" id="optGame"><span class="knob"></span></span></div>
       <div class="opt"><label class="opt-label" for="optSound">Töne</label><span class="switch"><input type="checkbox" id="optSound"><span class="knob"></span></span></div>
       <div class="opt" id="resetRow"><span class="opt-label">Neu anfangen<span class="opt-hint" id="resetHint"></span></span><div class="resetbtns"><button class="btn" type="button" data-reset="city">Stadt dunkel</button><button class="btn danger" type="button" data-reset="all">Alles löschen</button></div></div>
     </div>
@@ -612,6 +654,7 @@ h2,h3{margin:0}
     <button type="button" class="del" data-k="del">Löschen</button><button type="button" data-k="0">0</button><span></span>
   </div>
   <button class="stop" id="stopBtn" type="button" disabled>Stopp <kbd>Leertaste</kbd></button>
+  <div class="decide" id="decide" hidden></div>
 </section>
 
 <section id="screen-done" hidden>
@@ -687,7 +730,7 @@ var DEFAULTS = {
   input: 'voice', auto: true, code: 'Check', speak: true, syl: true, caps: false,
   retry: true, sound: true, history: {}, best: {},
   log: {}, flash: {}, lastCheck: {}, sparks: {}, sparkDay: {},
-  avatars: {}, balls: {}, gameBest: {}, gameOn: true
+  avatars: {}, balls: {}, gameBest: {}, headBest: {}, gameOn: true, mathLog: {}
 };
 function clone(o){ return JSON.parse(JSON.stringify(o)); }
 function migrate(o){
@@ -696,7 +739,7 @@ function migrate(o){
   base.level = Object.assign({math: 1, read: 'check'}, (o && o.level) || {});
   if (typeof base.level.read === 'number') base.level.read = ['w1', 'w2', 's1', 's2'][base.level.read - 1] || 'check';
   var hadSparks = o && o.sparks && typeof o.sparks === 'object';
-  ['history', 'best', 'log', 'flash', 'lastCheck', 'sparks', 'sparkDay', 'avatars', 'balls', 'gameBest'].forEach(function(k){ if (!base[k] || typeof base[k] !== 'object') base[k] = {}; });
+  ['history', 'best', 'log', 'flash', 'lastCheck', 'sparks', 'sparkDay', 'avatars', 'balls', 'gameBest', 'headBest', 'mathLog'].forEach(function(k){ if (!base[k] || typeof base[k] !== 'object') base[k] = {}; });
   if (!hadSparks) Object.keys(base.history).forEach(function(pid){
     base.sparks[pid] = (base.history[pid] || []).reduce(function(a, h){ return a + (h.ok || 0) + 3; }, 0);
   });
@@ -1173,8 +1216,8 @@ var SPARK_RULES = [
   ['Kurzes Wort', 1], ['Langes oder erfundenes Wort', 2], ['Kurzer Satz', 3], ['Langer Satz', 5],
   ['Runde geschafft', 3], ['Neue Bestzeit', 5], ['Alles richtig', 2], ['Erste Runde am Tag', 2], ['Lesecheck geschafft', 5]
 ];
-// Rechenstufen 1 bis 7: Plus bis 10, Plus/Minus bis 10, bis 20, bis 100, Einmaleins, Geteilt, Gemischt
-var MATH_SPARK = [1, 1, 2, 3, 2, 3, 3];
+// Rechenstufen 1 bis 11: Plus bis 10, Plus/Minus bis 10, bis 20, bis 100, Einmaleins, Geteilt, Gemischt, gezielt bis 10, Zehnerübergang, über die 20, Schwächen
+var MATH_SPARK = [1, 1, 2, 3, 2, 3, 3, 1, 2, 3, 2];
 var FREE_SPARK = {w1: 1, w2: 2, s1: 3, s2: 5};
 function sparkValue(g, t){
   if (t.kind === 'math') return MATH_SPARK[(g.level || 1) - 1] || 1;
@@ -1397,12 +1440,13 @@ function setBulb(el, frac, animate){
 /* ---------- Karte auf der Startseite ---------- */
 function ballRowHTML(pid){
   if (S.gameOn === false) return '';
-  var b = ballsOf(pid), best = (S.gameBest && S.gameBest[pid]) || 0, ready = b >= BALLS_NEEDED;
+  var b = ballsOf(pid), ready = b >= BALLS_NEEDED, bd = (S.gameBest && S.gameBest[pid]) || 0, bh = (S.headBest && S.headBest[pid]) || 0;
   var icons = ''; for (var i = 0; i < BALLS_NEEDED; i++) icons += ballIcon(i < b);
+  var rec = [bd ? 'Dribbling ' + bd : '', bh ? 'Kopfball ' + bh : ''].filter(Boolean).join(' · ');
   return '<div class="ballrow' + (ready ? ' ready' : '') + '"><div class="balls">' + icons + '</div><div class="balltext"><b>' +
-    (ready ? 'Drei Bälle! Einmal Dribbling spielen.' : 'Noch ' + (BALLS_NEEDED - b) + (BALLS_NEEDED - b === 1 ? ' Runde' : ' Runden') + ' bis zum nächsten Dribbling') + '</b>' +
-    '<span>Jede geschaffte Runde bringt einen Ball' + (best ? ' · Rekord ' + best : '') + '</span></div>' +
-    (ready ? '<button class="btn play" type="button" data-act="game">Spielen</button>' : '') + '</div>';
+    (ready ? 'Drei Bälle! Such dir ein Spiel aus.' : 'Noch ' + (BALLS_NEEDED - b) + (BALLS_NEEDED - b === 1 ? ' Runde' : ' Runden') + ' bis zum nächsten Spiel') + '</b>' +
+    '<span>' + (rec ? 'Rekorde: ' + rec : 'Jede geschaffte Runde bringt einen Ball') + '</span></div>' +
+    (ready ? '<div class="playbtns"><button class="btn play" type="button" data-act="game" data-kind="dribble">Dribbling</button><button class="btn play" type="button" data-act="game" data-kind="header">Kopfball</button></div>' : '') + '</div>';
 }
 function cityCardHTML(p){
   var total = sparksOf(p.id), lv = levelInfo(total), lit = lv.level, nm = nextMilestone(lit);
@@ -1415,7 +1459,7 @@ function cityCardHTML(p){
     '</div><button class="figbtn" type="button" data-act="figure" aria-label="Figur gestalten">' + avatarSVG(avOf(p.id), {view: 'head'}) + '<span>Figur</span></button></div>' +
     '<div class="city">' + citySVG(lit, null, avOf(p.id)) + '</div>' + ballRowHTML(p.id) +
     '<details class="cityhow"><summary>So gibt es Funken und Bälle</summary><ul>' + SPARK_RULES.map(function(r){ return '<li><span>' + esc(r[0]) + '</span><b>+' + r[1] + '</b></li>'; }).join('') + '</ul>' +
-    '<p>Im Lesecheck zählt jedes gelesene Wort, auch wenn es noch hakt. Jede geschaffte Runde bringt einen Ball, mit drei Bällen gibt es ein Dribbling. Bisher gesammelt: <b>' + total + '</b> Funken.</p></details>';
+    '<p>Im Lesecheck zählt jedes gelesene Wort, auch wenn es noch hakt. Jede geschaffte Runde bringt einen Ball, mit drei Bällen gibt es ein Spiel: Dribbling oder Kopfball. Bisher gesammelt: <b>' + total + '</b> Funken.</p></details>';
 }
 
 /* =====================================================================
@@ -1538,6 +1582,173 @@ function avatarSVG(o, opt){
 }
 
 /* =====================================================================
+   RECHNEN GEZIELT: jede Plus und Minus Aufgabe wird gemerkt.
+   Familien: bis 10, Zehnerübergang, über die 20.
+   Die Einspluseins Tafel zeigt als Ampel, was sitzt und was nicht.
+   ===================================================================== */
+var MATH_GOAL = [
+  {lv:8,  name:'Zahlenraum bis 10',     hint:'Alle Plus und Minus Aufgaben bis 10 werden nach und nach durchgerechnet. Was noch hakt, kommt häufiger dran.'},
+  {lv:9,  name:'Zehnerübergang',        hint:'Alle Aufgaben über die Zehn, von 2 + 9 bis 9 + 9 und von 11 − 2 bis 18 − 9. Erst wird jede einmal gerechnet, danach kommen die langsamen und falschen öfter.'},
+  {lv:10, name:'Über die 20',           hint:'Der gleiche Übergang eine Etage höher, zum Beispiel 17 + 5 oder 23 − 6. Zeigt, ob der Zehnerübergang schon übertragen wird.'},
+  {lv:11, name:'Schwächen trainieren',  hint:'Nimmt die Aufgaben, die laut Rechenprofil gerade am meisten haken, aus allen Bereichen. Dazwischen ein paar sichere zur Wiederholung.'}
+];
+function goalInfo(lv){ return MATH_GOAL.filter(function(x){ return x.lv === lv; })[0] || null; }
+function famOf(a, op, b){
+  if (b < 1) return null;
+  if (op === '+') {
+    if (a >= 1 && a + b <= 10) return 'p10';
+    if (a <= 9 && b <= 9) return 'pz';
+    if (a >= 11 && a <= 19 && b <= 9 && a + b > 20) return 'p20';
+  } else if (op === '−') {
+    var r = a - b;
+    if (r < 1) return null;
+    if (a <= 10) return 'm10';
+    if (a <= 18 && b <= 9 && r < 10) return 'mz';
+    if (a >= 21 && a <= 28 && b <= 9 && r < 20) return 'm20';
+  }
+  return null;
+}
+var FAM_NAME = {p10:'Plus bis 10', m10:'Minus bis 10', pz:'Plus über die Zehn', mz:'Minus über die Zehn', p20:'Plus über die 20', m20:'Minus über die 20'};
+function factsFor(lv){
+  var out = [], a, b, c, u, v;
+  if (lv === 8) {
+    for (a = 1; a <= 9; a++) for (b = 1; a + b <= 10; b++) out.push([a, '+', b]);
+    for (c = 2; c <= 10; c++) for (b = 1; b < c; b++) out.push([c, '−', b]);
+  } else if (lv === 9) {
+    for (a = 2; a <= 9; a++) for (b = 11 - a; b <= 9; b++) out.push([a, '+', b]);
+    for (c = 11; c <= 18; c++) for (b = c - 9; b <= 9; b++) out.push([c, '−', b]);
+  } else if (lv === 10) {
+    for (u = 1; u <= 9; u++) for (b = 11 - u; b <= 9; b++) out.push([10 + u, '+', b]);
+    for (v = 1; v <= 8; v++) for (b = v + 1; b <= 9; b++) out.push([20 + v, '−', b]);
+  }
+  return out;
+}
+function logMath(pid, r){
+  var t = r.task; if (t.kind !== 'math' || !famOf(t.a, t.op, t.b)) return;
+  if (!S.mathLog[pid]) S.mathLog[pid] = {};
+  var e = S.mathLog[pid][t.key] || {n: 0, ok: 0, e: [], ts: []};
+  e.n++; if (r.correct) e.ok++;
+  e.e.push(r.correct ? 1 : 0); if (e.e.length > 5) e.e = e.e.slice(-5);
+  if (r.correct && r.ms > 0) { e.ts.push(Math.round(r.ms)); if (e.ts.length > 5) e.ts = e.ts.slice(-5); }
+  e.last = Date.now();
+  S.mathLog[pid][t.key] = e; save();
+}
+function parseKey(k){ var m = k.match(/^(\d+)([+−·:])(\d+)$/); return m ? {a: +m[1], op: m[2], b: +m[3]} : null; }
+function mathProfile(pid){
+  var log = S.mathLog[pid] || {}, facts = {}, famT = {};
+  Object.keys(log).forEach(function(k){
+    var p = parseKey(k); if (!p) return;
+    var fam = famOf(p.a, p.op, p.b); if (!fam) return;
+    var e = log[k], med = median(e.ts);
+    facts[k] = {key: k, a: p.a, op: p.op, b: p.b, fam: fam, n: e.n, med: med, err: e.e.length ? e.e.filter(function(x){ return !x; }).length / e.e.length : 0, lastWrong: e.e.length && !e.e[e.e.length - 1]};
+    if (med) (famT[fam] = famT[fam] || []).push(med);
+  });
+  var famMed = {}; Object.keys(famT).forEach(function(f){ famMed[f] = median(famT[f]); });
+  Object.keys(facts).forEach(function(k){
+    var f = facts[k], fm = famMed[f.fam];
+    f.ratio = (f.med && fm) ? f.med / fm : null;
+    f.weak = Math.min(4, f.err * 2.5 + (f.lastWrong ? 0.8 : 0) + (f.ratio ? Math.max(0, f.ratio - 1) * 1.5 : 1) + (f.med > 6000 ? 0.6 : 0));
+    if (f.err >= 0.34 || f.lastWrong || (f.ratio && f.ratio >= 1.6) || f.med > 8000) f.status = 'bad';
+    else if (f.err > 0 || (f.ratio && f.ratio >= 1.25) || f.med > 5000) f.status = 'warn';
+    else f.status = 'ok';
+  });
+  var list = Object.keys(facts).map(function(k){ return facts[k]; });
+  var weak = list.filter(function(f){ return f.status !== 'ok'; }).sort(function(x, y){ return y.weak - x.weak; });
+  return {facts: facts, famMed: famMed, list: list, weak: weak, n: list.length};
+}
+function smartQueue(lv, n, pid){
+  var prof = mathProfile(pid), pool;
+  if (lv === 11) {
+    pool = prof.list.map(function(f){ return [f.a, f.op, f.b]; });
+    if (pool.length < n) pool = pool.concat(factsFor(9), factsFor(8));
+  } else pool = factsFor(lv);
+  var seen = {}, scored = pool.filter(function(f){ var k = f[0] + f[1] + f[2]; if (seen[k]) return false; seen[k] = 1; return true; }).map(function(f){
+    var k = f[0] + f[1] + f[2], st = prof.facts[k];
+    var s = st ? st.weak : (lv === 11 ? 0.5 : 2.6);
+    return {f: f, s: s + Math.random() * 0.7};
+  }).sort(function(x, y){ return y.s - x.s; });
+  var main = Math.ceil(n * 0.8), pick1 = scored.slice(0, main), rest = shuffle(scored.slice(main)).slice(0, n - main);
+  return shuffle(pick1.concat(rest)).slice(0, n).map(function(x){ return mk(x.f[0], x.f[1], x.f[2]); });
+}
+function coverage(pid, lv){
+  var log = S.mathLog[pid] || {}, all = factsFor(lv), done = all.filter(function(f){ return log[f[0] + f[1] + f[2]]; }).length;
+  return {done: done, all: all.length};
+}
+
+/* ---------- Darstellung ---------- */
+function factLabel(k){ var p = parseKey(k); return p ? p.a + ' ' + p.op + ' ' + p.b : k; }
+function gridHTML(pid, prof, kind){
+  // kind: plus, minus, plus20, minus20. Zeilen a (1..9), Spalten b (1..9)
+  var head = '<div class="mg-c mg-h"></div>';
+  for (var b = 1; b <= 9; b++) head += '<div class="mg-c mg-h">' + (kind.indexOf('minus') === 0 ? '−' : '+') + b + '</div>';
+  var rows = '';
+  for (var a = 1; a <= 9; a++) {
+    var rowLabel = kind === 'plus' ? a : kind === 'plus20' ? 10 + a : '= ' + (kind === 'minus20' ? 10 + a : a);
+    rows += '<div class="mg-c mg-h">' + rowLabel + '</div>';
+    for (var bb = 1; bb <= 9; bb++) {
+      var k, over;
+      if (kind === 'plus') { k = a + '+' + bb; over = a + bb > 10; }
+      else if (kind === 'minus') { k = (a + bb) + '−' + bb; over = a + bb > 10; }
+      else if (kind === 'plus20') { k = (10 + a) + '+' + bb; over = a + bb > 10; }
+      else { k = (10 + a + bb) + '−' + bb; over = a + bb > 10; }
+      var p = parseKey(k), fam = famOf(p.a, p.op, p.b);
+      if (!fam || ((kind === 'plus20' || kind === 'minus20') && !over)) { rows += '<div class="mg-c mg-x"></div>'; continue; }
+      var f = prof.facts[k], st = f ? f.status : 'none';
+      var tip = factLabel(k) + (f ? ': ' + (f.med ? sec(f.med) + ' s' : 'noch nicht richtig') + (f.err ? ', ' + Math.round(f.err * 100) + ' % falsch' : '') : ': noch nicht gerechnet');
+      rows += '<div class="mg-c mg-' + st + (over ? ' mg-over' : '') + '" title="' + esc(tip) + '"><span>' + esc(kind.indexOf('minus') === 0 ? p.a + '−' + p.b : p.a + '+' + p.b) + '</span></div>';
+    }
+  }
+  return '<div class="mgrid">' + head + rows + '</div>';
+}
+function insightsFor(prof){
+  var out = [], pz = prof.list.filter(function(f){ return f.fam === 'pz' && f.med; });
+  if (pz.length >= 8) {
+    var byB = {};
+    pz.forEach(function(f){ (byB[f.a] = byB[f.a] || []).push(f.ratio || 1); if (f.b !== f.a) (byB[f.b] = byB[f.b] || []).push(f.ratio || 1); });
+    var avg = Object.keys(byB).filter(function(k){ return byB[k].length >= 2; }).map(function(k){ return {k: +k, v: byB[k].reduce(function(s, x){ return s + x; }, 0) / byB[k].length}; }).sort(function(x, y){ return y.v - x.v; });
+    if (avg.length >= 3 && avg[0].v > 1.15) out.push('Beim Zehnerübergang dauern die Aufgaben mit ' + avg.slice(0, 2).filter(function(x){ return x.v > 1.1; }).map(function(x){ return x.k; }).join(' und ') + ' am längsten.');
+    if (avg.length >= 3 && avg[avg.length - 1].v < 0.9) out.push('Aufgaben mit ' + avg[avg.length - 1].k + ' sitzen beim Zehnerübergang schon gut.');
+  }
+  var fm = prof.famMed;
+  if (fm.pz && fm.mz && fm.mz / fm.pz > 1.3) out.push('Minus über die Zehn dauert deutlich länger als Plus über die Zehn. Das ist typisch und lohnt sich zu üben.');
+  if (fm.pz && fm.p20 && fm.p20 / fm.pz > 1.4) out.push('Über die 20 ist noch deutlich langsamer als über die 10. Der Übergang wird noch nicht übertragen.');
+  if (fm.pz && fm.p20 && fm.p20 / fm.pz <= 1.15) out.push('Über die 20 klappt fast so schnell wie über die 10. Der Übergang wird schon übertragen.');
+  return out;
+}
+function openMathProfile(){
+  var p = curPlayer(), prof = mathProfile(p.id);
+  if ($('#screen-profile').hidden) PROF_FROM = $('#screen-done').hidden ? 'start' : 'done';
+  $('#profTitle').textContent = 'Rechenprofil von ' + p.name;
+  $('#profDemo').hidden = true;
+  $('#profSub').textContent = prof.n ? prof.n + ' verschiedene Aufgaben gerechnet' : 'Noch keine Daten';
+  var html = '';
+  if (!prof.n) {
+    html += '<div class="pcard"><h3>So entsteht das Profil</h3><p>Jede Plus und Minus Aufgabe bis 30 wird gemerkt: ob sie richtig war und wie lange sie gedauert hat. Am schnellsten füllt sich das Bild mit den Stufen „Zahlenraum bis 10“ und „Zehnerübergang“. Dort kommen erst alle Aufgaben einmal dran, danach die schwierigen öfter.</p>' +
+      '<div class="rowbtns"><button class="btn primary" type="button" data-act="mlv" data-lv="9">Zehnerübergang üben</button><button class="btn" type="button" data-act="mlv" data-lv="8">Zahlenraum bis 10</button></div></div>';
+  } else {
+    var w = prof.weak.slice(0, 8);
+    html += '<div class="pcard"><h3>Hakt gerade</h3>' + (w.length
+      ? '<div class="pills">' + w.map(function(f){ return '<span class="pill ' + f.status + '">' + esc(factLabel(f.key)) + '</span>'; }).join('') + '</div><p class="muted">Diese Aufgaben kommen in „Schwächen trainieren“ zuerst dran.</p>'
+      : '<p>Gerade hakt nichts. Super!</p>') +
+      '<div class="rowbtns"><button class="btn primary" type="button" data-act="mlv" data-lv="11">Schwächen trainieren</button></div>';
+    var ins = insightsFor(prof);
+    if (ins.length) html += '<ul class="insights">' + ins.map(function(s){ return '<li>' + esc(s) + '</li>'; }).join('') + '</ul>';
+    html += '</div>';
+    var cov = [8, 9, 10].map(function(lv){ var c = coverage(p.id, lv); return '<span class="covitem"><b>' + c.done + '</b> von ' + c.all + ' · ' + esc(goalInfo(lv).name) + '</span>'; }).join('');
+    html += '<div class="pcard"><h3>Schon gerechnet</h3><div class="cov">' + cov + '</div></div>';
+    var legend = '<div class="mlegend"><span class="mg-ok">sitzt</span><span class="mg-warn">unsicher</span><span class="mg-bad">hakt</span><span class="mg-none">noch nicht gerechnet</span><span class="mg-overkey">dicker Rand: über die Zehn</span></div>';
+    html += '<div class="pcard"><h3>Einspluseins</h3>' + gridHTML(p.id, prof, 'plus') + legend + '</div>';
+    html += '<div class="pcard"><h3>Einsminuseins</h3><p class="muted">Jede Zeile ist ein Ergebnis, jede Spalte die Zahl, die abgezogen wird.</p>' + gridHTML(p.id, prof, 'minus') + '</div>';
+    if (prof.list.some(function(f){ return f.fam === 'p20' || f.fam === 'm20'; })) {
+      html += '<div class="pcard"><h3>Über die 20</h3><p class="muted">Gleich aufgebaut wie die Tafeln oben, nur zehn höher. So siehst du, ob sich der Übergang überträgt.</p>' + gridHTML(p.id, prof, 'plus20') + '<div style="height:14px"></div>' + gridHTML(p.id, prof, 'minus20') + '</div>';
+    }
+    html += '<p class="muted">Die Ampel vergleicht jede Aufgabe mit den anderen Aufgaben derselben Art: Wer bei 7 + 8 doppelt so lange braucht wie sonst beim Zehnerübergang, bekommt Gelb oder Rot, auch wenn das Ergebnis stimmt.</p>';
+  }
+  $('#profBody').innerHTML = html;
+  show('profile');
+}
+
+/* =====================================================================
    RECHNEN
    ===================================================================== */
 var OPWORD = {'+':'plus', '−':'minus', '·':'mal', ':':'geteilt durch'};
@@ -1558,9 +1769,14 @@ var MATH = [
   }},
   {name:'Einmaleins', gen:function(){ return mk(rnd(2, 10), '·', rnd(1, 10)); }},
   {name:'Geteilt', gen:function(){ var b = rnd(2, 10), q = rnd(1, 10); return mk(b * q, ':', b); }},
-  {name:'Alles gemischt', gen:function(){ return MATH[pick([2, 3, 4, 5])].gen(); }}
+  {name:'Alles gemischt', gen:function(){ return MATH[pick([2, 3, 4, 5])].gen(); }},
+  {name:'Zahlenraum bis 10', goal:true, gen:function(){ var f = pick(factsFor(8)); return mk(f[0], f[1], f[2]); }},
+  {name:'Zehnerübergang', goal:true, gen:function(){ var f = pick(factsFor(9)); return mk(f[0], f[1], f[2]); }},
+  {name:'Über die 20', goal:true, gen:function(){ var f = pick(factsFor(10)); return mk(f[0], f[1], f[2]); }},
+  {name:'Schwächen trainieren', goal:true, gen:function(){ var f = pick(factsFor(9)); return mk(f[0], f[1], f[2]); }}
 ];
-function makeMathQueue(level, n){
+function makeMathQueue(level, n, pid){
+  if (level >= 8 && pid) return smartQueue(level, n, pid);
   var L = MATH[level - 1], out = [], seen = {};
   for (var i = 0; i < n; i++) {
     var t, tries = 0;
@@ -1785,9 +2001,9 @@ function renderStart(){
   $$('#modes .mode').forEach(function(b){ b.setAttribute('aria-pressed', b.dataset.mode === S.mode); });
 
   if (!isRead) {
-    $('#levels').innerHTML = '<div class="levels">' + MATH.map(function(L, i){
-      return '<button class="level" type="button" data-level="' + (i + 1) + '" aria-pressed="' + (lv === i + 1) + '"><span class="n">' + (i + 1) + '</span>' + esc(L.name) + '</button>';
-    }).join('') + '</div>';
+    var mbtn = function(L, i){ return '<button class="level" type="button" data-level="' + (i + 1) + '" aria-pressed="' + (lv === i + 1) + '">' + (L.goal ? '' : '<span class="n">' + (i + 1) + '</span>') + esc(L.name) + '</button>'; };
+    $('#levels').innerHTML = '<div class="lvgroup"><span class="lvlabel">Gezielt üben</span><div class="levels">' + MATH.map(function(L, i){ return L.goal ? mbtn(L, i) : ''; }).join('') + '</div></div>' +
+      '<div class="lvgroup"><span class="lvlabel">Freies Rechnen</span><div class="levels">' + MATH.map(function(L, i){ return L.goal ? '' : mbtn(L, i); }).join('') + '</div></div>';
   } else {
     var groups = {};
     READ_SUBS.forEach(function(s){ (groups[s.group] = groups[s.group] || []).push(s); });
@@ -1797,10 +2013,22 @@ function renderStart(){
       }).join('') + '</div></div>';
     }).join('');
   }
-  var hint = $('#subHint'); hint.hidden = !isRead; if (isRead) hint.textContent = subInfo(lv).hint;
+  var hint = $('#subHint'), gi = !isRead ? goalInfo(lv) : null;
+  hint.hidden = !(isRead || gi);
+  if (isRead) hint.textContent = subInfo(lv).hint;
+  else if (gi) { var cv = lv <= 10 ? coverage(p.id, lv) : null; hint.textContent = gi.hint + (cv ? ' Schon gerechnet: ' + cv.done + ' von ' + cv.all + '.' : ''); }
 
   var prof = isRead ? readProfile(p.id) : null;
-  $('#profMini').hidden = !isRead;
+  $('#profMini').hidden = false;
+  $('#profMini b').textContent = isRead ? 'Leseprofil' : 'Rechenprofil';
+  if (!isRead) {
+    var mp = mathProfile(p.id);
+    if (!mp.n) { $('#profMiniText').textContent = 'Noch keine Daten von ' + p.name + '. Mit „Zehnerübergang“ oder „Zahlenraum bis 10“ entsteht die Einspluseins Tafel.'; $('#profMiniPills').innerHTML = ''; }
+    else {
+      $('#profMiniText').textContent = mp.n + ' verschiedene Aufgaben gerechnet. ' + (mp.weak.length ? 'Hakt gerade:' : 'Gerade hakt nichts.');
+      $('#profMiniPills').innerHTML = mp.weak.slice(0, 4).map(function(f){ return '<span class="pill ' + f.status + '">' + esc(factLabel(f.key)) + '</span>'; }).join('');
+    }
+  }
   if (isRead) {
     if (!prof.n) {
       $('#profMiniText').textContent = 'Noch keine Daten von ' + p.name + '. Der Lesecheck zeigt, an welchen Bausteinen das Training arbeiten soll.';
@@ -1878,7 +2106,7 @@ $('#optGame').addEventListener('change', function(e){ S.gameOn = e.target.checke
 $('#cityCard').addEventListener('click', function(e){
   var b = e.target.closest('[data-act]'); if (!b) return;
   if (b.dataset.act === 'figure') openFigure();
-  if (b.dataset.act === 'game') startGame();
+  if (b.dataset.act === 'game') startGame(b.dataset.kind);
 });
 [['optAuto','auto'],['optSpeak','speak'],['optSyl','syl'],['optCaps','caps'],['optRetry','retry'],['optSound','sound']].forEach(function(pair){
   $('#' + pair[0]).addEventListener('change', function(e){ S[pair[1]] = e.target.checked; save(); });
@@ -1908,13 +2136,13 @@ $('#resetRow').addEventListener('click', function(e){
   var pid = curPlayer().id;
   S.sparks[pid] = 0; delete S.sparkDay[pid];
   if (b.dataset.reset === 'all') {
-    delete S.history[pid]; delete S.log[pid]; delete S.flash[pid]; delete S.lastCheck[pid]; delete S.balls[pid]; delete S.gameBest[pid];
+    delete S.history[pid]; delete S.log[pid]; delete S.flash[pid]; delete S.lastCheck[pid]; delete S.balls[pid]; delete S.gameBest[pid]; delete S.headBest[pid]; delete S.mathLog[pid];
     Object.keys(S.best).forEach(function(k){ if (k.indexOf(pid + '|') === 0) delete S.best[k]; });
   }
   save(); renderStart();
   $('#resetHint').textContent = b.dataset.reset === 'all' ? 'Erledigt. Für ' + curPlayer().name + ' beginnt alles von vorn.' : 'Erledigt. Die Stadt von ' + curPlayer().name + ' ist wieder dunkel.';
 });
-$('#profOpen').addEventListener('click', function(){ openProfile(false); });
+$('#profOpen').addEventListener('click', function(){ if (S.mode === 'math') openMathProfile(); else openProfile(false); });
 
 /* =====================================================================
    SPIELABLAUF
@@ -1929,7 +2157,7 @@ function startRound(){
   unlockAudio(); primeSpeech();
   var mode = S.mode, level = S.level[mode], player = curPlayer();
   var sub = mode === 'read' ? level : null, queue, focus = null;
-  if (mode === 'math') queue = makeMathQueue(level, S.count);
+  if (mode === 'math') queue = makeMathQueue(level, S.count, player.id);
   else if (sub === 'check') { queue = checkQueue(player); save(); }
   else if (sub === 'train') { var tq = trainQueue(player, S.count); queue = tq.items; focus = tq.focus; }
   else if (sub === 'flash') queue = flashQueue(S.count);
@@ -1982,7 +2210,7 @@ function cueText(){
   }
   return t.kind === 'math' ? 'Tippe die Antwort ein. Oder sag sie laut und drück Stopp.' : 'Lies laut vor und drück dann Stopp.';
 }
-function setCue(s){ $('#cue').textContent = s; }
+function setCue(s, kind){ var c = $('#cue'); c.textContent = s; c.className = 'cue' + (kind ? ' ' + kind : ''); }
 function setClock(ms, state){ $('#clockNum').textContent = clockText(ms); $('#clock').className = 'clock ' + (state || ''); }
 function setListen(state, msg){
   var el = $('#listen'), txt = '';
@@ -2144,7 +2372,7 @@ function finish(res){
     fillAnswer(String(t.ans), 'wrong'); setClock(ms, 'bad'); SFX.bad(); setCue('');
     showFeedback('bad', res.said + ' stimmt nicht. Richtig ist ' + t.ans + '.', [
       {label:'Weiter', cls:'primary', fn:function(){ commit(false); }},
-      {label:'War doch richtig', fn:function(){ commit(true); }}
+      {label:'War doch richtig', cls:'ghost', fn:function(){ commit(true); }}
     ]);
   } else {
     setClock(ms, ''); setCue('');
@@ -2161,27 +2389,18 @@ function finish(res){
 /* ---------- Fehler antippen ---------- */
 var ERR_TYPES = [['vt', 'vertauscht'], ['lk', 'lang oder kurz'], ['ger', 'geraten'], ['aus', 'ausgelassen'], ['sk', 'selbst verbessert']];
 function startMarking(g){
-  g.marking = true; g.errSyl = {}; g.errType = '';
+  g.marking = true; g.errSyl = {};
   var rt = $('#rtext'); if (rt) rt.classList.add('markable');
   showMark(g);
 }
 function showMark(g){
   var t = g.task, keys = Object.keys(g.errSyl).map(Number).sort(function(a, b){ return a - b; });
-  var hasErr = keys.length > 0 || (g.errType && g.errType !== 'sk');
-  var fb = $('#feedback'); fb.className = 'fb ask mark'; fb.hidden = false;
-  $('#fbMsg').textContent = keys.length ? 'Gehakt bei: ' + keys.map(function(i){ return t.sylText[i]; }).join(', ') : 'Wo hat es gehakt? Silbe im Wort antippen.';
-  var chips = $('#fbChips'); chips.hidden = false;
-  chips.innerHTML = ERR_TYPES.map(function(e){
-    return '<button type="button" class="chip' + (e[0] === 'sk' ? ' sk' : '') + '" data-et="' + e[0] + '" aria-pressed="' + (g.errType === e[0]) + '">' + e[1] + '</button>';
-  }).join('');
-  var box = $('#fbActions'); box.innerHTML = '';
-  [{label:'Alles richtig', cls: hasErr ? '' : 'yes', fn:function(){ commitRead(true); }},
-   {label:'Mit Fehler weiter', cls: hasErr ? 'primary' : 'no', fn:function(){ commitRead(false); }},
-   {label:'Anhören', fn:function(){ say(t.plain); }}].forEach(function(a){
-    var b = document.createElement('button');
-    b.type = 'button'; b.className = 'btn ' + (a.cls || ''); b.textContent = a.label;
-    b.addEventListener('click', a.fn); box.appendChild(b);
-  });
+  setCue(keys.length ? 'Gehakt bei: ' + keys.map(function(i){ return t.sylText[i]; }).join(', ') : 'Alles richtig? Sonst die Silbe antippen, die gehakt hat.', keys.length ? 'bad' : 'ask');
+  showFeedback('ask', '', [
+    {label:'Richtig', cls: keys.length ? 'ghost' : 'yes', fn:function(){ commitRead(true); }},
+    {label:'Fehler', cls: 'no', fn:function(){ commitRead(false); }},
+    {label:'', icon:'speak', cls:'ghost icon', aria:'Anhören', fn:function(){ say(t.plain); }}
+  ]);
 }
 $('#sheet').addEventListener('click', function(e){
   var g = G; if (!g || !g.marking) return;
@@ -2191,17 +2410,10 @@ $('#sheet').addEventListener('click', function(e){
   s.classList.toggle('err', !!g.errSyl[i]);
   showMark(g);
 });
-$('#fbChips').addEventListener('click', function(e){
-  var g = G; if (!g || !g.marking) return;
-  var c = e.target.closest('.chip'); if (!c) return;
-  g.errType = g.errType === c.dataset.et ? '' : c.dataset.et;
-  showMark(g);
-});
 function commitRead(ok){
   var g = G; if (!g || !g.pending) return;
   var keys = Object.keys(g.errSyl || {}).map(Number).sort(function(a, b){ return a - b; });
-  if (!ok && !keys.length && g.errType === 'sk') ok = true;
-  g.pending.es = ok ? [] : keys; g.pending.et = g.errType || '';
+  g.pending.es = ok ? [] : keys; g.pending.et = '';
   g.marking = false;
   if (ok) SFX.good(); else SFX.bad();
   commit(ok);
@@ -2247,19 +2459,25 @@ function flashResult(ok){
 }
 
 /* ---------- Ergebnis festhalten ---------- */
+var SPEAK_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9 h4 l5 -4 v14 l-5 -4 H4 Z" fill="currentColor"/><path d="M16 8.5 q2 3.5 0 7 M18.5 6 q4 6 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
 function showFeedback(kind, msg, actions){
-  var fb = $('#feedback');
-  fb.className = 'fb ' + kind; fb.hidden = false;
-  $('#fbMsg').textContent = msg;
-  $('#fbChips').hidden = true; $('#fbChips').innerHTML = '';
-  var box = $('#fbActions'); box.innerHTML = '';
+  if (msg) setCue(msg, kind);
+  var box = $('#decide'); box.innerHTML = '';
+  var main = actions.filter(function(a){ return !a.icon; }).length;
+  box.style.setProperty('--n', main);
   actions.forEach(function(a){
     var b = document.createElement('button');
-    b.type = 'button'; b.className = 'btn ' + (a.cls || ''); b.textContent = a.label;
+    b.type = 'button'; b.className = 'dbtn ' + (a.cls || '');
+    if (a.icon) { b.innerHTML = SPEAK_ICON; b.setAttribute('aria-label', a.aria || ''); } else b.textContent = a.label;
     b.addEventListener('click', a.fn); box.appendChild(b);
   });
+  $('#stopBtn').hidden = true; box.hidden = false;
 }
-function hideFeedback(){ $('#feedback').hidden = true; }
+function hideFeedback(){
+  var box = $('#decide'); box.hidden = true; box.innerHTML = '';
+  $('#stopBtn').hidden = !!(G && G.sub === 'flash');
+  var c = $('#cue'); c.className = 'cue';
+}
 function logRead(g, r){
   var t = r.task, pid = g.player.id;
   if (t.kind !== 'read') return;
@@ -2283,6 +2501,7 @@ function commit(correct){
   try { speechSynthesis.cancel(); } catch (e) {}
   var r = g.pending; r.correct = correct; g.pending = null; g.marking = false; g.results.push(r);
   logRead(g, r);
+  if (r.task.kind === 'math') logMath(g.player.id, r);
   var sp = (g.sub === 'check' || correct) ? sparkValue(g, r.task) : 0;
   if (sp) { earn(g.player.id, sp); g.sparks += sp; g.sparkItems++; bumpChip(sp); }
   if (!correct && g.retry && !r.task.retry) g.queue.push(Object.assign({}, r.task, {retry:true}));
@@ -2365,7 +2584,9 @@ function endRound(){
   } else rec.hidden = true;
 
   var dr = $('#doneRead'), isRead = g.mode === 'read';
-  $('#doneProfileBtn').hidden = !isRead;
+  $('#doneProfileBtn').hidden = !(isRead || (g.mode === 'math' && g.level >= 8));
+  $('#doneProfileBtn').textContent = isRead ? 'Leseprofil ansehen' : 'Rechenprofil ansehen';
+  LAST_DONE_MODE = g.mode;
   dr.hidden = true;
   if (isRead && (g.sub === 'train' || g.sub === 'check')) {
     var prof = readProfile(g.player.id);
@@ -2410,8 +2631,8 @@ function renderSparkCard(g, bonus){
     var nb = ballsOf(g.player.id), icons = '';
     for (var i = 0; i < BALLS_NEEDED; i++) icons += ballIcon(i < nb);
     html += '<div class="ballrow' + (nb >= BALLS_NEEDED ? ' ready' : '') + '"><div class="balls">' + icons + '</div><div class="balltext"><b>' +
-      (nb >= BALLS_NEEDED ? (g.ballNew ? 'Dritter Ball! Du darfst einmal Dribbling spielen.' : 'Drei Bälle! Erst spielen, dann gibt es neue.') : '+1 Ball · noch ' + (BALLS_NEEDED - nb) + (BALLS_NEEDED - nb === 1 ? ' Runde' : ' Runden') + ' bis zum Dribbling') + '</b></div>' +
-      (nb >= BALLS_NEEDED ? '<button class="btn play" type="button" id="donePlay">Spielen</button>' : '') + '</div>';
+      (nb >= BALLS_NEEDED ? (g.ballNew ? 'Dritter Ball! Such dir ein Spiel aus.' : 'Drei Bälle! Erst spielen, dann gibt es neue.') : '+1 Ball · noch ' + (BALLS_NEEDED - nb) + (BALLS_NEEDED - nb === 1 ? ' Runde' : ' Runden') + ' bis zum nächsten Spiel') + '</b></div>' +
+      (nb >= BALLS_NEEDED ? '<div class="playbtns"><button class="btn play" type="button" data-kind="dribble">Dribbling</button><button class="btn play" type="button" data-kind="header">Kopfball</button></div>' : '') + '</div>';
   }
   if (up) {
     var unl = unlockedBetween(before.level, after.level);
@@ -2420,7 +2641,7 @@ function renderSparkCard(g, bonus){
       '<div class="city">' + citySVG(after.level, before.level, avOf(g.player.id), true) + '</div></div>';
   }
   $('#sparkCard').innerHTML = html;
-  var dp = $('#donePlay'); if (dp) dp.addEventListener('click', function(){ startGame(); });
+  $$('#sparkCard .playbtns .btn').forEach(function(b){ b.addEventListener('click', function(){ startGame(b.dataset.kind); }); });
   SPARK_ANIM = {from: before.frac, to: after.frac, up: up};
 }
 function animateSparkCard(){
@@ -2453,7 +2674,8 @@ $('#quitBtn').addEventListener('click', function(){
 });
 $('#againBtn').addEventListener('click', function(){ startRound(); });
 $('#homeBtn').addEventListener('click', function(){ show('start'); renderStart(); });
-$('#doneProfileBtn').addEventListener('click', function(){ openProfile(false); });
+var LAST_DONE_MODE = 'read';
+$('#doneProfileBtn').addEventListener('click', function(){ if (LAST_DONE_MODE === 'math') openMathProfile(); else openProfile(false); });
 
 /* =====================================================================
    LESEPROFIL
@@ -2526,6 +2748,7 @@ $('#profBody').addEventListener('click', function(e){
   var b = e.target.closest('[data-act]'); if (!b) return;
   var act = b.dataset.act, msg = $('#dataMsg');
   if (act === 'check' || act === 'train') { S.mode = 'read'; S.level.read = act; save(); startRound(); }
+  else if (act === 'mlv') { S.mode = 'math'; S.level.math = +b.dataset.lv; save(); startRound(); }
   else if (act === 'demo') openProfile(true);
   else if (act === 'copy') {
     var data = JSON.stringify(S);
@@ -2550,8 +2773,8 @@ document.addEventListener('keydown', function(e){
     if (e.code === 'Space' || e.key === 'Enter') { e.preventDefault(); finish({method:'tap', correct:null}); }
     else if (/^[0-9]$/.test(e.key)) padPress(e.key);
     else if (e.key === 'Backspace') { e.preventDefault(); padPress('del'); }
-  } else if (e.key === 'Enter' && !$('#feedback').hidden) {
-    e.preventDefault(); var b = $('#fbActions .btn'); if (b) b.click();
+  } else if (e.key === 'Enter' && !$('#decide').hidden) {
+    e.preventDefault(); var b = $('#decide .dbtn'); if (b) b.click();
   }
 });
 window.addEventListener('resize', function(){ if (G && G.task) { if (G.task.kind === 'math') layoutMath(); else if (G.task.kind === 'read') layoutRead(); } });
@@ -2643,12 +2866,19 @@ $('#figOpts').addEventListener('change', function(e){
 $('#figBack').addEventListener('click', function(){ show('start'); renderStart(); });
 
 /* =====================================================================
-   MINISPIEL DRIBBLING
-   Die eigene Figur läuft übers Feld. Links und rechts den Gegnern
-   ausweichen und Bälle einsammeln. 60 Sekunden, drei Herzen.
+   MINISPIELE: DRIBBLING UND KOPFBALL
+   Dribbling: links und rechts den Gegnern ausweichen, Bälle einsammeln.
+   Kopfball: die große Figur unten hin und her schieben, der Ball springt
+   vom Kopf. Ab und zu ein zweiter Ball, rote Bälle nicht köpfen,
+   goldene Sterne bringen drei Punkte. Beide: 60 Sekunden, drei Herzen.
    ===================================================================== */
 var GAME = null;
 var GAME_SECONDS = 60;
+var GAMES = {
+  dribble: {name:'Dribbling', unit:['Ball gesammelt', 'Bälle gesammelt'], hint:'Links und rechts tippen'},
+  header:  {name:'Kopfball',  unit:['Kopfball', 'Kopfbälle'],             hint:'Figur hin und her schieben'}
+};
+function bestOf(kind, pid){ var b = kind === 'header' ? S.headBest : S.gameBest; return (b && b[pid]) || 0; }
 function svgImage(svg){
   return new Promise(function(resolve){
     var img = new Image(), done = false, url;
@@ -2662,7 +2892,8 @@ function svgImage(svg){
 function heartSVG(full){
   return '<svg viewBox="0 0 24 24" class="heart' + (full ? '' : ' empty') + '" aria-hidden="true"><path d="M12 21 C5 15.5 2 12.3 2 8.4 2 5.4 4.4 3 7.3 3 9.2 3 11 4 12 5.6 13 4 14.8 3 16.7 3 19.6 3 22 5.4 22 8.4 22 12.3 19 15.5 12 21 Z"/></svg>';
 }
-function startGame(){
+function startGame(kind){
+  kind = kind === 'header' ? 'header' : 'dribble';
   var p = curPlayer();
   if (ballsOf(p.id) < BALLS_NEEDED) return;
   unlockAudio();
@@ -2673,20 +2904,24 @@ function startGame(){
     {skin:0, hair:'kurz', hairColor:'rot', kit1:'rot', kit2:'weiss', pattern:'einfarbig', num:6, pants:'weiss', socks:'rot'},
     {skin:3, hair:'locken', hairColor:'schwarz', kit1:'weiss', kit2:'gruen', pattern:'querbalken', num:5, pants:'gruen', socks:'weiss'}
   ];
-  var g = GAME = {pid: p.id, name: p.name, lane: 1, px: 1, objs: [], score: 0, hearts: 3, t: 0, spawn: 0.6, inv: 0, state: 'load', count: 3, last: 0, hit: 0, paused: false};
+  var g = GAME = {kind: kind, pid: p.id, name: p.name, lane: 1, px: 1, objs: [], score: 0, hearts: 3, t: 0, spawn: 0.6, inv: 0,
+                  state: 'load', count: 3, last: 0, hit: 0, paused: false, dir: 0, target: null, balls: [], extras: [], extraT: 8, pops: []};
   show('game');
-  $('#gameWho').textContent = p.name;
+  $('#gameWho').textContent = GAMES[kind].name;
   $('#gameOver').hidden = true;
+  $('#screen-game').dataset.kind = kind;
   renderHud();
   var cv = $('#gameCanvas');
   g.ctx = cv.getContext('2d');
   sizeGame();
-  Promise.all([svgImage(avatarSVG(av, {pose: 'stand'})), svgImage(avatarSVG(av, {pose: 'cheer'}))].concat(foes.map(function(f){ return svgImage(avatarSVG(f, {pose: 'stand'})); }))).then(function(imgs){
+  if (kind === 'header') { g.hx = g.w / 2; }
+  var imgs = [svgImage(avatarSVG(av, {pose: 'stand'})), svgImage(avatarSVG(av, {pose: 'cheer'}))];
+  if (kind === 'dribble') imgs = imgs.concat(foes.map(function(f){ return svgImage(avatarSVG(f, {pose: 'stand'})); }));
+  Promise.all(imgs).then(function(list){
     if (GAME !== g) return;
-    g.me = imgs[0]; g.meCheer = imgs[1]; g.foes = imgs.slice(2);
+    g.me = list[0]; g.meCheer = list[1]; g.foes = list.slice(2);
     g.state = 'count'; g.count = 3; g.last = performance.now();
-    SFX.tick();
-    requestWake();
+    SFX.tick(); requestWake();
     g.raf = requestAnimationFrame(loop);
   });
 }
@@ -2694,8 +2929,10 @@ function sizeGame(){
   var g = GAME; if (!g) return;
   var cv = $('#gameCanvas'), wrap = cv.parentNode, dpr = Math.min(2, window.devicePixelRatio || 1);
   var w = wrap.clientWidth, h = Math.round(Math.min(620, Math.max(360, window.innerHeight * 0.62)));
+  var ow = g.w;
   cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); cv.style.height = h + 'px';
   g.w = w; g.h = h; g.dpr = dpr;
+  if (ow && g.hx != null) g.hx = g.hx / ow * w;
 }
 function laneX(i){ var g = GAME; return g.w * (0.2 + 0.3 * i); }
 function renderHud(){
@@ -2707,65 +2944,43 @@ function renderHud(){
 }
 function move(dir){
   var g = GAME; if (!g || g.state !== 'run' || g.paused) return;
-  g.lane = Math.max(0, Math.min(2, g.lane + dir));
+  if (g.kind === 'dribble') g.lane = Math.max(0, Math.min(2, g.lane + dir));
+  else { g.dir = dir; g.target = null; }
 }
+function stopMove(){ var g = GAME; if (g && g.kind === 'header') g.dir = 0; }
+function loseHeart(){
+  var g = GAME;
+  g.hearts--; g.inv = 1.3; g.hit = 0.35; SFX.bad(); renderHud();
+  if (g.hearts <= 0) endGame('hearts');
+}
+
+/* ---------- Dribbling ---------- */
 function spawnRow(){
   var g = GAME, lanes = shuffle([0, 1, 2]), two = g.t > 15 && Math.random() < 0.25 + g.t / 240;
   var nDef = two ? 2 : 1;
   for (var i = 0; i < nDef; i++) g.objs.push({type: 'def', lane: lanes[i], y: -0.12, img: pick(g.foes)});
   if (Math.random() < (two ? 0.75 : 0.55)) g.objs.push({type: Math.random() < 0.1 ? 'gold' : 'ball', lane: lanes[2], y: -0.12 - Math.random() * 0.1});
 }
-function loop(now){
-  var g = GAME; if (!g) return;
-  var dt = Math.min(0.05, (now - g.last) / 1000); g.last = now;
-  if (g.paused) { draw(); g.raf = requestAnimationFrame(loop); return; }
-  if (g.state === 'count') {
-    var before = Math.ceil(g.count); g.count -= dt;
-    if (g.count <= 0) { g.state = 'run'; SFX.go(); }
-    else if (Math.ceil(g.count) !== before) SFX.tick();
-  } else if (g.state === 'run') {
-    g.t += dt;
-    var speed = 0.36 + 0.26 * Math.min(1, g.t / GAME_SECONDS);
-    g.spawn -= dt;
-    if (g.spawn <= 0) { spawnRow(); g.spawn = Math.max(0.68, 1.25 - g.t / 100); }
-    g.px += (g.lane - g.px) * Math.min(1, dt * 14);
-    if (g.inv > 0) g.inv -= dt;
-    var pxPos = laneX(0) + (laneX(1) - laneX(0)) * g.px;
-    g.objs.forEach(function(o){
-      o.y += speed * dt;
-      if (o.gone) return;
-      var near = Math.abs(o.y - 0.8) < (o.type === 'def' ? 0.06 : 0.08) && Math.abs(laneX(o.lane) - pxPos) < g.w * 0.12;
-      if (!near) return;
-      if (o.type === 'def') {
-        if (g.inv > 0) return;
-        o.gone = true; g.hearts--; g.inv = 1.3; g.hit = 0.35; SFX.bad();
-        if (g.hearts <= 0) endGame('hearts');
-      } else { o.gone = true; g.score += o.type === 'gold' ? 3 : 1; o.pop = 0.4; SFX.spark(); }
-      renderHud();
-    });
-    g.objs = g.objs.filter(function(o){ return o.y < 1.2 && !(o.gone && o.type === 'def') && !(o.gone && !(o.pop > 0)); });
-    g.objs.forEach(function(o){ if (o.pop > 0) o.pop -= dt; });
-    if (g.hit > 0) g.hit -= dt;
-    if (g.t >= GAME_SECONDS) endGame('time');
-    if (Math.floor(g.t * 4) !== Math.floor((g.t - dt) * 4)) renderHud();
-  }
-  draw();
-  if (GAME === g && g.state !== 'over') g.raf = requestAnimationFrame(loop);
+function updateDribble(dt){
+  var g = GAME;
+  var speed = 0.36 + 0.26 * Math.min(1, g.t / GAME_SECONDS);
+  g.spawn -= dt;
+  if (g.spawn <= 0) { spawnRow(); g.spawn = Math.max(0.68, 1.25 - g.t / 100); }
+  g.px += (g.lane - g.px) * Math.min(1, dt * 14);
+  var pxPos = laneX(0) + (laneX(1) - laneX(0)) * g.px;
+  g.objs.forEach(function(o){
+    o.y += speed * dt;
+    if (o.gone || g.state !== 'run') return;
+    var near = Math.abs(o.y - 0.8) < (o.type === 'def' ? 0.06 : 0.08) && Math.abs(laneX(o.lane) - pxPos) < g.w * 0.12;
+    if (!near) return;
+    if (o.type === 'def') { if (g.inv > 0) return; o.gone = true; loseHeart(); }
+    else { o.gone = true; g.score += o.type === 'gold' ? 3 : 1; o.pop = 0.4; SFX.spark(); renderHud(); }
+  });
+  g.objs = g.objs.filter(function(o){ return o.y < 1.2 && !(o.gone && o.type === 'def') && !(o.gone && !(o.pop > 0)); });
+  g.objs.forEach(function(o){ if (o.pop > 0) o.pop -= dt; });
 }
-function drawBall(ctx, x, y, r, gold){
-  ctx.save();
-  ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fillStyle = gold ? '#fde100' : '#ffffff'; ctx.fill();
-  ctx.lineWidth = Math.max(1, r * 0.1); ctx.strokeStyle = '#1b1b1f'; ctx.stroke();
-  ctx.beginPath();
-  for (var i = 0; i < 5; i++) { var a = -Math.PI / 2 + i * Math.PI * 2 / 5; ctx[i ? 'lineTo' : 'moveTo'](x + Math.cos(a) * r * 0.38, y + Math.sin(a) * r * 0.38); }
-  ctx.closePath(); ctx.fillStyle = '#1b1b1f'; ctx.fill();
-  for (var j = 0; j < 5; j++) { var b = -Math.PI / 2 + j * Math.PI * 2 / 5; ctx.beginPath(); ctx.moveTo(x + Math.cos(b) * r * 0.38, y + Math.sin(b) * r * 0.38); ctx.lineTo(x + Math.cos(b) * r * 0.95, y + Math.sin(b) * r * 0.95); ctx.stroke(); }
-  ctx.restore();
-}
-function draw(){
+function drawDribble(){
   var g = GAME, ctx = g.ctx, w = g.w, h = g.h;
-  ctx.setTransform(g.dpr, 0, 0, g.dpr, 0, 0);
-  // Rasen mit Streifen
   var stripe = h / 6, off = (g.t * (0.36 + 0.26 * Math.min(1, g.t / GAME_SECONDS)) * h) % (stripe * 2);
   ctx.fillStyle = '#2f8f47'; ctx.fillRect(0, 0, w, h);
   ctx.fillStyle = '#359e4f';
@@ -2773,62 +2988,212 @@ function draw(){
   ctx.strokeStyle = 'rgba(255,255,255,.8)'; ctx.lineWidth = 3;
   ctx.beginPath(); ctx.moveTo(w * 0.04, 0); ctx.lineTo(w * 0.04, h); ctx.moveTo(w * 0.96, 0); ctx.lineTo(w * 0.96, h); ctx.stroke();
   var size = Math.min(h * 0.17, w * 0.2 * 170 / 120), aw = size * 120 / 170;
-  // Gegner und Bälle
   g.objs.forEach(function(o){
     var x = laneX(o.lane), yy = o.y * h;
     if (o.type === 'def') { if (o.img) ctx.drawImage(o.img, x - aw * 0.46, yy - size * 0.5, aw * 0.92, size * 0.92); }
-    else if (!o.gone) drawBall(ctx, x, yy, size * 0.16, o.type === 'gold');
-    else if (o.pop > 0) { ctx.save(); ctx.globalAlpha = o.pop / 0.4; ctx.fillStyle = '#fde100'; ctx.font = '800 ' + Math.round(size * 0.22) + 'px Arial, sans-serif'; ctx.textAlign = 'center'; ctx.fillText(o.type === 'gold' ? '+3' : '+1', x, yy - (0.4 - o.pop) * 80); ctx.restore(); }
+    else if (!o.gone) drawBall(ctx, x, yy, size * 0.16, o.type === 'gold' ? 'gold' : '');
+    else if (o.pop > 0) popText(ctx, x, yy - (0.4 - o.pop) * 80, o.type === 'gold' ? '+3' : '+1', o.pop / 0.4, size * 0.22);
   });
-  // Spielerfigur
   var px = laneX(0) + (laneX(1) - laneX(0)) * g.px, py = 0.8 * h, bob = g.state === 'run' ? Math.sin(g.t * 14) * 3 : 0;
-  ctx.fillStyle = 'rgba(0,0,0,.18)'; ctx.beginPath(); ctx.ellipse(px, py + size * 0.47, aw * 0.38, size * 0.06, 0, 0, Math.PI * 2); ctx.fill();
-  var blink = g.inv > 0 && Math.floor(g.inv * 10) % 2 === 0;
+  shadow(ctx, px, py + size * 0.47, aw * 0.38, size * 0.06);
   var img = g.state === 'over' && g.meCheer ? g.meCheer : g.me;
-  if (img && !blink) ctx.drawImage(img, px - aw / 2, py - size / 2 + bob, aw, size);
-  if (g.state === 'run') drawBall(ctx, px + aw * 0.22, py + size * 0.42 + Math.abs(bob), size * 0.1, false);
+  if (img && !blinking(g)) ctx.drawImage(img, px - aw / 2, py - size / 2 + bob, aw, size);
+  if (g.state === 'run') drawBall(ctx, px + aw * 0.22, py + size * 0.42 + Math.abs(bob), size * 0.1, '');
+}
+
+/* ---------- Kopfball ---------- */
+function hdGeom(){
+  var g = GAME, size = Math.min(g.h * 0.32, g.w * 0.42 * 170 / 120), aw = size * 120 / 170;
+  var top = g.h - size - 6;
+  return {size: size, aw: aw, top: top, headX: g.hx, headY: top + size * 50 / 170, headR: size * 30 / 170 * 1.15, R: Math.max(16, size * 0.13)};
+}
+function newBall(type){
+  var g = GAME, G2 = hdGeom();
+  var x = type === 'red' ? G2.R + Math.random() * (g.w - 2 * G2.R) : g.w * (0.3 + Math.random() * 0.4);
+  return {type: type || 'ball', x: x, y: -G2.R * 2, vx: type === 'ball' ? (Math.random() - 0.5) * g.w * 0.25 : 0, vy: type === 'red' ? g.h * 0.35 : g.h * 0.15, cool: 0, wait: 0};
+}
+function updateHeader(dt){
+  var g = GAME, w = g.w, h = g.h, G2 = hdGeom();
+  if (!g.balls.length && g.state === 'run' && !g.started) { g.balls.push(newBall('ball')); g.started = true; }
+  // Figur bewegen
+  var speed = w * 1.25;
+  if (g.target != null) g.hx += Math.max(-speed * dt, Math.min(speed * dt, g.target - g.hx));
+  else if (g.dir) g.hx += g.dir * speed * dt;
+  g.hx = Math.max(G2.aw * 0.4, Math.min(w - G2.aw * 0.4, g.hx));
+  var grav = h * 0.95;
+  if (g.score >= 8 && g.balls.filter(function(b){ return b.type === 'ball'; }).length < 2 && !g.second) { g.second = true; g.balls.push(newBall('ball')); }
+  g.extraT -= dt;
+  if (g.extraT <= 0 && g.state === 'run') {
+    g.extras.push(g.t > 12 && Math.random() < 0.6 ? {type: 'red', x: G2.R + Math.random() * (w - 2 * G2.R), y: -30, vy: h * (0.3 + g.t / 400)} : {type: 'star', x: w * (0.15 + Math.random() * 0.7), y: -30, vy: h * 0.28});
+    g.extraT = 4 + Math.random() * 3.5;
+  }
+  g.balls.forEach(function(b){
+    if (b.wait > 0) { b.wait -= dt; return; }
+    b.vy += grav * dt; b.x += b.vx * dt; b.y += b.vy * dt;
+    if (b.x < G2.R) { b.x = G2.R; b.vx = Math.abs(b.vx); }
+    if (b.x > w - G2.R) { b.x = w - G2.R; b.vx = -Math.abs(b.vx); }
+    if (b.cool > 0) b.cool -= dt;
+    var dx = b.x - G2.headX, dy = b.y - G2.headY, dist = Math.sqrt(dx * dx + dy * dy);
+    if (b.vy > 0 && b.cool <= 0 && dist < G2.R + G2.headR && g.state === 'run') {
+      var apex = h * (0.6 - Math.min(0.12, g.t / 500)) * (0.9 + Math.random() * 0.2);
+      b.vy = -Math.sqrt(2 * grav * Math.max(h * 0.25, Math.min(apex, G2.headY - G2.R * 2)));
+      b.vx = (dx / (G2.R + G2.headR)) * w * 0.55 + (Math.random() - 0.5) * w * 0.1;
+      b.cool = 0.25; g.score++; g.pops.push({x: b.x, y: b.y - G2.R, txt: '+1', t: 0.6}); SFX.spark(); renderHud();
+      g.nod = 0.15;
+    }
+    if (b.y - G2.R > h && g.state === 'run') {
+      loseHeart();
+      if (g.state === 'run') { var nb = newBall('ball'); b.x = nb.x; b.y = nb.y; b.vx = nb.vx; b.vy = nb.vy; b.wait = 0.8; }
+    }
+  });
+  g.extras.forEach(function(e){
+    e.y += e.vy * dt;
+    if (e.gone || g.state !== 'run') return;
+    var dx = e.x - G2.headX, dy = e.y - G2.headY;
+    if (Math.sqrt(dx * dx + dy * dy) < G2.headR + G2.R * 0.9) {
+      e.gone = true;
+      if (e.type === 'star') { g.score += 3; g.pops.push({x: e.x, y: e.y, txt: '+3', t: 0.8}); SFX.spark(); renderHud(); }
+      else if (g.inv <= 0) loseHeart();
+    }
+  });
+  g.extras = g.extras.filter(function(e){ return !e.gone && e.y < h + 40; });
+  g.pops.forEach(function(p){ p.t -= dt; p.y -= 50 * dt; });
+  g.pops = g.pops.filter(function(p){ return p.t > 0; });
+  if (g.nod > 0) g.nod -= dt;
+}
+function drawHeader(){
+  var g = GAME, ctx = g.ctx, w = g.w, h = g.h, G2 = hdGeom();
+  // Abendhimmel mit Flutlicht und Tribüne
+  var sky = ctx.createLinearGradient(0, 0, 0, h * 0.45);
+  sky.addColorStop(0, '#07080d'); sky.addColorStop(1, '#1a2340');
+  ctx.fillStyle = sky; ctx.fillRect(0, 0, w, h * 0.45);
+  ctx.fillStyle = '#121729'; ctx.fillRect(0, h * 0.3, w, h * 0.15);
+  for (var i = 0; i < 46; i++) { ctx.fillStyle = i % 5 === 0 ? '#1b1b1f' : '#fde100'; ctx.globalAlpha = 0.75; ctx.fillRect((i * 37 % w), h * 0.32 + (i * 13 % (h * 0.1)), 3, 3); }
+  ctx.globalAlpha = 1;
+  [0.12, 0.88].forEach(function(f){ ctx.fillStyle = '#ffffff'; ctx.fillRect(w * f - 14, h * 0.06, 28, 8); ctx.fillStyle = 'rgba(255,255,230,.08)'; ctx.beginPath(); ctx.moveTo(w * f - 14, h * 0.07); ctx.lineTo(w * f + 14, h * 0.07); ctx.lineTo(w * (f < 0.5 ? f + 0.4 : f - 0.1), h); ctx.lineTo(w * (f < 0.5 ? f + 0.1 : f - 0.4), h); ctx.fill(); });
+  ctx.fillStyle = '#2f8f47'; ctx.fillRect(0, h * 0.45, w, h * 0.55);
+  ctx.fillStyle = '#359e4f'; for (var s = 0; s < 4; s++) ctx.fillRect(0, h * 0.45 + s * h * 0.14, w, h * 0.07);
+  ctx.strokeStyle = 'rgba(255,255,255,.7)'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(0, h * 0.52); ctx.lineTo(w, h * 0.52); ctx.stroke();
+  // Sterne und rote Bälle
+  g.extras.forEach(function(e){
+    if (e.type === 'star') drawStar(ctx, e.x, e.y, G2.R * 1.1);
+    else drawBall(ctx, e.x, e.y, G2.R * 0.95, 'red');
+  });
+  // Figur
+  var nod = g.nod > 0 ? -6 : 0;
+  shadow(ctx, g.hx, h - 8, G2.aw * 0.36, 6);
+  var img = g.state === 'over' && g.meCheer ? g.meCheer : g.me;
+  if (img && !blinking(g)) ctx.drawImage(img, g.hx - G2.aw / 2, G2.top + nod, G2.aw, G2.size);
+  // Bälle
+  g.balls.forEach(function(b){ if (b.wait <= 0 || Math.floor(b.wait * 8) % 2) drawBall(ctx, b.x, b.y, G2.R, ''); });
+  g.pops.forEach(function(p){ popText(ctx, p.x, p.y, p.txt, Math.min(1, p.t / 0.4), G2.R * 1.2); });
+}
+
+/* ---------- gemeinsam ---------- */
+function blinking(g){ return g.inv > 0 && Math.floor(g.inv * 10) % 2 === 0; }
+function shadow(ctx, x, y, rx, ry){ ctx.fillStyle = 'rgba(0,0,0,.2)'; ctx.beginPath(); ctx.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2); ctx.fill(); }
+function popText(ctx, x, y, txt, a, size){
+  ctx.save(); ctx.globalAlpha = Math.max(0, a); ctx.fillStyle = '#fde100'; ctx.strokeStyle = '#16171b'; ctx.lineWidth = 4;
+  ctx.font = '800 ' + Math.round(size) + 'px Arial, sans-serif'; ctx.textAlign = 'center'; ctx.strokeText(txt, x, y); ctx.fillText(txt, x, y); ctx.restore();
+}
+function drawStar(ctx, x, y, r){
+  ctx.save(); ctx.beginPath();
+  for (var i = 0; i < 10; i++) { var a = -Math.PI / 2 + i * Math.PI / 5, rr = i % 2 ? r * 0.45 : r; ctx[i ? 'lineTo' : 'moveTo'](x + Math.cos(a) * rr, y + Math.sin(a) * rr); }
+  ctx.closePath(); ctx.fillStyle = '#fde100'; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = '#b88a10'; ctx.stroke(); ctx.restore();
+}
+function drawBall(ctx, x, y, r, kind){
+  ctx.save();
+  ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fillStyle = kind === 'gold' ? '#fde100' : kind === 'red' ? '#e0473c' : '#ffffff'; ctx.fill();
+  ctx.lineWidth = Math.max(1, r * 0.1); ctx.strokeStyle = kind === 'red' ? '#7a1a14' : '#1b1b1f'; ctx.stroke();
+  if (kind === 'red') {
+    ctx.strokeStyle = '#ffffff'; ctx.lineWidth = Math.max(2, r * 0.16); ctx.beginPath();
+    ctx.moveTo(x - r * 0.4, y - r * 0.4); ctx.lineTo(x + r * 0.4, y + r * 0.4); ctx.moveTo(x + r * 0.4, y - r * 0.4); ctx.lineTo(x - r * 0.4, y + r * 0.4); ctx.stroke();
+    ctx.restore(); return;
+  }
+  ctx.beginPath();
+  for (var i = 0; i < 5; i++) { var a = -Math.PI / 2 + i * Math.PI * 2 / 5; ctx[i ? 'lineTo' : 'moveTo'](x + Math.cos(a) * r * 0.38, y + Math.sin(a) * r * 0.38); }
+  ctx.closePath(); ctx.fillStyle = '#1b1b1f'; ctx.fill();
+  for (var j = 0; j < 5; j++) { var b = -Math.PI / 2 + j * Math.PI * 2 / 5; ctx.beginPath(); ctx.moveTo(x + Math.cos(b) * r * 0.38, y + Math.sin(b) * r * 0.38); ctx.lineTo(x + Math.cos(b) * r * 0.95, y + Math.sin(b) * r * 0.95); ctx.stroke(); }
+  ctx.restore();
+}
+function loop(now){
+  var g = GAME; if (!g) return;
+  var dt = Math.min(0.05, (now - g.last) / 1000); g.last = now;
+  if (!g.paused) {
+    if (g.state === 'count') {
+      var before = Math.ceil(g.count); g.count -= dt;
+      if (g.count <= 0) { g.state = 'run'; SFX.go(); }
+      else if (Math.ceil(g.count) !== before) SFX.tick();
+    } else if (g.state === 'run') {
+      g.t += dt;
+      if (g.inv > 0) g.inv -= dt;
+      if (g.hit > 0) g.hit -= dt;
+      if (g.kind === 'dribble') updateDribble(dt); else updateHeader(dt);
+      if (g.state === 'run' && g.t >= GAME_SECONDS) endGame('time');
+      if (Math.floor(g.t * 4) !== Math.floor((g.t - dt) * 4)) renderHud();
+    }
+  }
+  draw();
+  if (GAME === g && g.state !== 'over') g.raf = requestAnimationFrame(loop);
+}
+function draw(){
+  var g = GAME, ctx = g.ctx, w = g.w, h = g.h;
+  ctx.setTransform(g.dpr, 0, 0, g.dpr, 0, 0);
+  if (g.kind === 'dribble') drawDribble(); else drawHeader();
   if (g.hit > 0) { ctx.fillStyle = 'rgba(224,71,60,' + (g.hit * 0.8).toFixed(2) + ')'; ctx.fillRect(0, 0, w, h); }
-  // Countdown
   if (g.state === 'count' || g.paused) {
-    ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = 'rgba(0,0,0,.4)'; ctx.fillRect(0, 0, w, h);
     ctx.fillStyle = '#fde100'; ctx.textAlign = 'center'; ctx.font = '800 ' + Math.round(h * 0.2) + 'px Arial, sans-serif';
-    ctx.fillText(g.paused ? 'Pause' : String(Math.max(1, Math.ceil(g.count))), w / 2, h * 0.45);
+    ctx.fillText(g.paused ? 'Pause' : String(Math.max(1, Math.ceil(g.count))), w / 2, h * 0.42);
     ctx.font = '700 ' + Math.round(h * 0.04) + 'px Arial, sans-serif'; ctx.fillStyle = '#ffffff';
-    ctx.fillText(g.paused ? 'Tippen zum Weiterspielen' : 'Links und rechts tippen', w / 2, h * 0.55);
+    ctx.fillText(g.paused ? 'Tippen zum Weiterspielen' : GAMES[g.kind].hint, w / 2, h * 0.52);
+    if (g.kind === 'header' && !g.paused) ctx.fillText('Rote Bälle nicht köpfen, Sterne fangen!', w / 2, h * 0.58);
   }
 }
 function endGame(why){
   var g = GAME; if (!g || g.state === 'over') return;
-  g.state = 'over'; g.inv = 0; g.hit = 0; cancelAnimationFrame(g.raf); releaseWake();
-  if (!S.gameBest) S.gameBest = {};
-  var prev = S.gameBest[g.pid] || 0, rec = g.score > prev;
-  if (rec) S.gameBest[g.pid] = g.score;
+  g.state = 'over'; g.inv = 0; g.hit = 0; g.dir = 0; cancelAnimationFrame(g.raf); releaseWake();
+  var key = g.kind === 'header' ? 'headBest' : 'gameBest';
+  if (!S[key]) S[key] = {};
+  var prev = S[key][g.pid] || 0, rec = g.score > prev;
+  if (rec) S[key][g.pid] = g.score;
   save(); renderHud(); draw();
   tone(1760, 0, .18, 'square', .05); tone(1760, .25, .5, 'square', .05);
   if (rec && g.score > 0) setTimeout(function(){ SFX.record(); }, 700);
+  var u = GAMES[g.kind].unit;
   var ov = $('#gameOver');
   ov.innerHTML = '<div class="gocard"><div class="gotitle">Abpfiff!</div>' +
-    '<div class="goscore">' + ballIcon(true) + '<b>' + g.score + '</b><span>' + (g.score === 1 ? 'Ball' : 'Bälle') + ' gesammelt</span></div>' +
+    '<div class="goscore">' + ballIcon(true) + '<b>' + g.score + '</b><span>' + (g.score === 1 ? u[0] : u[1]) + '</span></div>' +
     '<p>' + (why === 'hearts' ? 'Alle Herzen weg. ' : why === 'time' ? 'Die Zeit ist um. ' : '') + (rec && g.score > 0 ? 'Neuer Rekord, ' + esc(g.name) + '!' : prev ? 'Rekord von ' + esc(g.name) + ': ' + prev : '') + '</p>' +
-    '<p class="gonext">Für das nächste Dribbling wieder drei Runden üben.</p>' +
+    '<p class="gonext">Für das nächste Spiel wieder drei Runden üben.</p>' +
     '<button class="go" type="button" id="gameDone">Zurück zur Stadt</button></div>';
   ov.hidden = false;
   $('#gameDone').addEventListener('click', function(){ GAME = null; show('start'); renderStart(); });
 }
-$('#gameCanvas').addEventListener('pointerdown', function(e){
+/* Steuerung */
+var cvEl = $('#gameCanvas');
+function canvasX(e){ var r = cvEl.getBoundingClientRect(); return e.clientX - r.left; }
+cvEl.addEventListener('pointerdown', function(e){
   var g = GAME; if (!g) return;
   if (g.paused) { g.paused = false; g.last = performance.now(); return; }
-  var r = e.currentTarget.getBoundingClientRect();
-  move(e.clientX - r.left < r.width / 2 ? -1 : 1);
+  if (g.kind === 'dribble') { move(canvasX(e) < g.w / 2 ? -1 : 1); return; }
+  g.drag = true; g.target = canvasX(e);
+  try { cvEl.setPointerCapture(e.pointerId); } catch (err) {}
 });
-$('#gLeft').addEventListener('pointerdown', function(e){ e.preventDefault(); move(-1); });
-$('#gRight').addEventListener('pointerdown', function(e){ e.preventDefault(); move(1); });
+cvEl.addEventListener('pointermove', function(e){ var g = GAME; if (g && g.kind === 'header' && g.drag) g.target = canvasX(e); });
+['pointerup', 'pointercancel'].forEach(function(t){ cvEl.addEventListener(t, function(){ var g = GAME; if (g) { g.drag = false; g.target = null; } }); });
+[['#gLeft', -1], ['#gRight', 1]].forEach(function(pair){
+  var b = $(pair[0]);
+  b.addEventListener('pointerdown', function(e){ e.preventDefault(); move(pair[1]); });
+  ['pointerup', 'pointerleave', 'pointercancel'].forEach(function(t){ b.addEventListener(t, stopMove); });
+});
 document.addEventListener('keydown', function(e){
-  if (!GAME || $('#screen-game').hidden) return;
+  if (!GAME || $('#screen-game').hidden || e.repeat) return;
   if (e.key === 'ArrowLeft' || e.key === 'a') { e.preventDefault(); move(-1); }
   if (e.key === 'ArrowRight' || e.key === 'd') { e.preventDefault(); move(1); }
 });
-document.addEventListener('visibilitychange', function(){ if (document.hidden && GAME && GAME.state === 'run') GAME.paused = true; });
+document.addEventListener('keyup', function(e){ if (GAME && (e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === 'a' || e.key === 'd')) stopMove(); });
+document.addEventListener('visibilitychange', function(){ if (document.hidden && GAME && GAME.state === 'run') { GAME.paused = true; GAME.dir = 0; } });
 window.addEventListener('resize', function(){ if (GAME && !$('#screen-game').hidden) { sizeGame(); draw(); } });
 $('#gameQuit').addEventListener('click', function(){
   var b = $('#gameQuit');
@@ -2840,6 +3205,7 @@ $('#gameQuit').addEventListener('click', function(){
   clearTimeout(b._t); b.classList.remove('armed'); b.textContent = 'Beenden';
   if (GAME && GAME.state !== 'over') endGame('quit'); else { GAME = null; show('start'); renderStart(); }
 });
+if (/debug/.test(location.hash)) window.__bbGame = function(){ return GAME; };
 
 })();
 </script>
