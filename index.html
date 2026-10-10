@@ -650,6 +650,18 @@ h2,h3{margin:0}
 
 .level .lvballs{display:inline-flex;gap:1px;margin-left:2px;color:var(--muted)}
 .level .lvballs .ballico{width:15px;height:15px}
+
+/* Minispiele: Stufe wählen und nochmal spielen */
+.lvpick{display:grid;gap:8px;width:100%}
+.lvbtn{display:grid;gap:2px;justify-items:start;text-align:left;width:100%;padding:12px 16px;border-radius:14px;border:2px solid #3a3d48;background:#22242b;color:#f1f1f1;font:inherit}
+.lvbtn b{font-family:var(--f-hand);font-weight:800;font-size:1.25rem;color:#fde100}
+.lvbtn span{font-size:.85rem;color:#b9bdc6}
+.lvbtn[aria-pressed="true"]{border-color:#fde100}
+.lvbtn:active{transform:translateY(1px)}
+.goagain{font-family:var(--f-hand);font-weight:800;font-size:1.15rem;color:#fde100}
+.gocard .playbtns{width:100%}
+.gocard .playbtns .btn{flex:1}
+.gocard .go.ghost{background:transparent;color:#f1f1f1;border:1.5px solid #3a3d48;font-size:1rem;padding:10px 20px}
 </style>
 </head>
 <body>
@@ -824,7 +836,7 @@ var DEFAULTS = {
   input: 'voice', auto: true, code: 'Check', speak: true, syl: true, caps: false,
   retry: true, sound: true, history: {}, best: {},
   log: {}, flash: {}, lastCheck: {}, sparks: {}, sparkDay: {},
-  avatars: {}, balls: {}, gameBest: {}, headBest: {}, gameOn: true, mathLog: {}
+  avatars: {}, balls: {}, gameBest: {}, headBest: {}, gameOn: true, mathLog: {}, play: {}, gameRec: {}, gameLevel: {}
 };
 function clone(o){ return JSON.parse(JSON.stringify(o)); }
 function migrate(o){
@@ -833,7 +845,7 @@ function migrate(o){
   base.level = Object.assign({math: 1, read: 'check', adult: 13}, (o && o.level) || {});
   if (typeof base.level.read === 'number') base.level.read = ['w1', 'w2', 's1', 's2'][base.level.read - 1] || 'check';
   var hadSparks = o && o.sparks && typeof o.sparks === 'object';
-  ['history', 'best', 'log', 'flash', 'lastCheck', 'sparks', 'sparkDay', 'avatars', 'balls', 'gameBest', 'headBest', 'mathLog'].forEach(function(k){ if (!base[k] || typeof base[k] !== 'object') base[k] = {}; });
+  ['history', 'best', 'log', 'flash', 'lastCheck', 'sparks', 'sparkDay', 'avatars', 'balls', 'gameBest', 'headBest', 'mathLog', 'play', 'gameRec', 'gameLevel'].forEach(function(k){ if (!base[k] || typeof base[k] !== 'object') base[k] = {}; });
   if (!hadSparks) Object.keys(base.history).forEach(function(pid){
     base.sparks[pid] = (base.history[pid] || []).reduce(function(a, h){ return a + (h.ok || 0) + 3; }, 0);
   });
@@ -950,10 +962,11 @@ var PAIRS_LEN = [['O·fen', 'of·fen'], ['Mie·te', 'Mit·te'], ['Hü·te', 'Hü
 var READ_FREE = {
   w1: {name:'Kurze Wörter', type:'word', items:['Ma·ma','Pa·pa','O·ma','O·pa','Ball','Hund','Haus','Baum','Maus','Au·to','So·fa','I·gel','Na·se','Ho·se','Ro·se','Mond','Tor','Eis','Fisch','Buch','Kuh','Rad','Son·ne','Tas·se','La·ma','E·sel','Hut','Zug','Bus','Tisch','Lö·we','Bär','En·te','Ki·wi','Nest','Wolf','Mu·sik']},
   w2: {name:'Lange Wörter', type:'word', items:['Ba·na·ne','Fuß·ball#zus','Schu·le','E·le·fant','Gi·raf·fe','Scho·ko·la·de','Ka·nin·chen#nach','Dra·chen','Ap·fel·saft#zus','Ge·burts·tag#zus','Te·le·fon','Pi·rat','Kro·ko·dil','Schmet·ter·ling','Tor·wart#zus','Zau·be·rer','Fens·ter','Fahr·rad#zus','Kin·der·gar·ten#zus','Erd·bee·re#zus','Wol·ke','Pin·gu·in','Di·no·sau·ri·er','Ra·ke·te','Hub·schrau·ber#zus','Mar·me·la·de','Schnee·mann#zus','Spiel·platz#zus','Re·gen·bo·gen#zus','Feu·er·wehr#zus','Ta·schen·lam·pe#zus','Ku·schel·tier#zus']},
-  s1: {name:'Kurze Sätze', type:'sentence', items:['Der Hund bellt.','Ma·ma liest ein Buch.','{name} spielt Fuß·ball#zus.','Der Ball ist rot.','Die Kat·ze schläft.','Ich mag Eis.','O·pa hat ei·nen Hut.','Das Au·to ist schnell.','Wir ge·hen in den Park.','Der Fisch kann schwim·men.','{name} lacht laut.','Die Son·ne scheint.','Das Tor ist groß.','Der Bär isst Ho·nig.','Heu·te reg·net es.','Die En·te ist gelb.','Pa·pa kocht Nu·deln.','Ich ha·be Durst.']},
+  s0: {name:'Ganz kurze Sätze', type:'sentence', items:['Der Hund bellt.','Ich mag Eis.','Die Kat·ze schläft.','{name} lacht laut.','Die Son·ne scheint.','Ich ha·be Durst.','Heu·te reg·net es.','Der Ball ist rot.','Das Tor ist groß.','Die En·te ist gelb.','O·ma singt.','Wir spie·len.','Das Eis ist kalt.','Der Bus kommt.','Pa·pa kocht.','Ich bin mü·de.','Der Mond ist rund.','{name} rennt.','Die Maus ist klein.','Das Ba·by weint.']},
+  s1: {name:'Mittlere Sätze', type:'sentence', items:['Ma·ma liest ein Buch vor.','Am Mor·gen spielt {name} Fuß·ball#zus.','O·pa trägt ei·nen gro·ßen Hut.','Wir ge·hen heu·te in den Park.','Der Fisch schwimmt im blau·en Meer.','Das ro·te Au·to fährt schnell.','Der Bär isst gern sü·ßen Ho·nig.','Pa·pa kocht heu·te Nu·deln für uns.','Die Kat·ze liegt auf dem So·fa.','Der Ball fliegt ü·ber das Tor.','Ich trin·ke ein Glas Milch.','Die En·te schwimmt auf dem See.','Im Gar·ten wächst ein Ap·fel·baum#zus.','Der Vo·gel singt ein Lied.','Mei·ne Schwes·ter malt ein Bild.','Wir fah·ren mit dem Bus.','Der Hund holt den Stock.','Nach dem Es·sen spie·len wir.','Die Son·ne scheint am Him·mel.','{name} isst ein gro·ßes Eis.']},
   s2: {name:'Lange Sätze', type:'sentence', items:['Der Tor·wart#zus hält den Ball ganz fest.','Im Som·mer ge·hen wir oft ins Frei·bad#zus.','Die Ra·ke·te fliegt bis zum Mond.','Am Wo·chen·en·de#zus spielt {name} mit Freun·den Fuß·ball#zus.','Der klei·ne Dra·che kann noch nicht flie·gen.','Nach der Schu·le gibt es Nu·deln mit So·ße.','Der Hund ver·steckt#vor sei·nen Kno·chen im Gar·ten.','Wenn es reg·net, zie·hen wir Gum·mi·stie·fel#zus an.','Die Feu·er·wehr#zus kommt mit Blau·licht#zus und Si·re·ne.','{name} baut im Win·ter ei·nen gro·ßen Schnee·mann#zus.','Der Pi·rat sucht auf der In·sel nach ei·nem Schatz.','Un·ser Zug fährt heu·te sehr früh los.']}
 };
-var TRAIN_SENT = READ_FREE.s1.items.concat(READ_FREE.s2.items, [
+var TRAIN_SENT = READ_FREE.s0.items.concat(READ_FREE.s1.items, READ_FREE.s2.items, [
   'Die Schne·cke kriecht ü·ber den Stein.', 'Im Herbst fal·len die Blät·ter.', 'Der Fuchs schleicht durch den Wald.',
   'Ich ha·be vier Bie·nen ge·se·hen#vor.', 'Der Strand ist heu·te voll.', 'Mein Freund hat ei·nen Hund.',
   'Das Schiff fährt ü·ber das Meer.', 'Die Kat·ze springt auf den Stuhl.', 'Am Stra·ßen·rand#zus blüht ei·ne Blu·me.',
@@ -1312,7 +1325,7 @@ var SPARK_RULES = [
 ];
 // Rechenstufen 1 bis 11: Plus bis 10, Plus/Minus bis 10, bis 20, bis 100, Einmaleins, Geteilt, Gemischt, gezielt bis 10, Zehnerübergang, über die 20, Schwächen
 var MATH_SPARK = [1, 1, 2, 3, 2, 3, 3, 1, 2, 3, 2, 2, 3, 3];
-var FREE_SPARK = {w1: 1, w2: 2, s1: 3, s2: 5};
+var FREE_SPARK = {w1: 1, w2: 2, s0: 2, s1: 3, s2: 5};
 function sparkValue(g, t){
   if (t.kind === 'math') return MATH_SPARK[(g.level || 1) - 1] || 1;
   if (t.flash || t.type === 'sight') return 1;
@@ -1338,35 +1351,46 @@ function earn(pid, n){
 }
 function todayKey(){ var d = new Date(); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); }
 
-/* ---------- Bälle ---------- */
-var BALLS_NEEDED = 3;
-/* Wie viele Bälle eine geschaffte Runde bringt: lange Sätze und Lesecheck sofort ein Spiel, kurze Sätze nach zwei Runden, sonst nach drei */
-function ballValue(mode, sub){
-  if (mode !== 'read') return 1;
-  if (sub === 's2' || sub === 'check') return 3;
-  if (sub === 's1') return 1.5;
-  return 1;
+/* ---------- Spiele: jeder volle Ball ist ein Spiel ----------
+   Fortschritt in Sechsteln eines Spiels. Höchstens drei Spiele auf Vorrat.
+   Kurze Wörter, Training, Blitzlesen, Rechnen: ein Spiel nach drei Runden.
+   Lange Wörter: nach zwei Runden. Sätze: sofort, ganz kurz 1, mittel 2, lang 3. */
+var GAME_UNIT = 6, GAME_MAX = 3;
+var GAME_VALUE = {w1: 2, w2: 3, s0: 6, s1: 12, s2: 18, check: 6};
+function gameValue(mode, sub){ return mode === 'read' && GAME_VALUE[sub] ? GAME_VALUE[sub] : 2; }
+function playOf(pid){
+  if (!S.play) S.play = {};
+  if (S.play[pid] == null && S.balls && S.balls[pid]) S.play[pid] = Math.round(Math.min(3, S.balls[pid]) * 2);
+  return Math.min(GAME_UNIT * GAME_MAX, S.play[pid] || 0);
 }
-function ballsOf(pid){ return Math.min(BALLS_NEEDED, (S.balls && S.balls[pid]) || 0); }
-function addBall(pid, n){
-  if (!S.balls) S.balls = {};
-  var before = ballsOf(pid), after = Math.min(BALLS_NEEDED, before + (n == null ? 1 : n));
-  S.balls[pid] = after; save(); return after - before;
-}
-function fmtBalls(x){
-  var w = Math.floor(x), h = x - w >= 0.5 ? '½' : '';
-  if (!w && h) return '½ Ball';
-  return w + h + (x === 1 ? ' Ball' : ' Bälle');
-}
+function gamesOf(pid){ return Math.floor(playOf(pid) / GAME_UNIT); }
+function addPlay(pid, n){ var b = playOf(pid), a = Math.min(GAME_UNIT * GAME_MAX, b + n); S.play[pid] = a; save(); return a - b; }
+function usePlay(pid){ if (gamesOf(pid) < 1) return false; S.play[pid] = playOf(pid) - GAME_UNIT; save(); return true; }
+function fmtGames(n){ return n === 1 ? 'ein Spiel' : n === 2 ? 'zwei Spiele' : n === 3 ? 'drei Spiele' : n + ' Spiele'; }
+function roundsToNext(pid, mode, sub){ var rest = GAME_UNIT - playOf(pid) % GAME_UNIT; return Math.ceil(rest / gameValue(mode, sub)); }
 var BALL_UID = 0;
 function ballIcon(state){
-  var full = state === true || state >= 1, half = !full && state >= 0.5;
+  var f = state === true ? 1 : Math.max(0, Math.min(1, +state || 0)), full = f >= 0.999, part = !full && f > 0.01;
   var ring = '<circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.6" stroke-dasharray="3 2.4"/>';
   var ball = '<circle cx="12" cy="12" r="10" fill="#ffffff" stroke="#1b1b1f" stroke-width="1.6"/><path d="M12 7.2 l4.2 3 -1.6 4.9 h-5.2 l-1.6 -4.9 Z" fill="#1b1b1f"/><path d="M12 7.2 V2.6 M16.2 10.2 l4.3 -1.5 M14.6 15.1 l2.7 3.8 M9.4 15.1 l-2.7 3.8 M7.8 10.2 l-4.3 -1.5" stroke="#1b1b1f" stroke-width="1.3"/>';
-  var inner = full ? ball : half ? (function(id){ return ring + '<clipPath id="' + id + '"><rect x="0" y="0" width="12" height="24"/></clipPath><g clip-path="url(#' + id + ')">' + ball + '</g>'; })('bh' + (++BALL_UID)) : ring;
-  return '<svg class="ballico' + (full ? ' full' : half ? ' half' : '') + '" viewBox="0 0 24 24" aria-hidden="true">' + inner + '</svg>';
+  var inner = full ? ball : part ? (function(id){ var y = (1.2 + 21.6 * (1 - f)).toFixed(2); return ring + '<clipPath id="' + id + '"><rect x="0" y="' + y + '" width="24" height="24"/></clipPath><g clip-path="url(#' + id + ')">' + ball + '</g>'; })('bf' + (++BALL_UID)) : ring;
+  return '<svg class="ballico' + (full ? ' full' : part ? ' part' : '') + '" viewBox="0 0 24 24" aria-hidden="true">' + inner + '</svg>';
 }
-function ballIcons(b){ var s = ''; for (var i = 0; i < BALLS_NEEDED; i++) s += ballIcon(b - i); return s; }
+function ballIcons(v){ var s = ''; for (var i = 0; i < GAME_MAX; i++) s += ballIcon((v - i * GAME_UNIT) / GAME_UNIT); return s; }
+function playBtns(attr){ return '<div class="playbtns"><button class="btn play" type="button" ' + (attr || '') + ' data-kind="dribble">Dribbling</button><button class="btn play" type="button" ' + (attr || '') + ' data-kind="header">Kopfball</button></div>'; }
+
+/* Schwierigkeit der Minispiele und Rekorde je Stufe */
+var GAME_LEVELS = [null,
+  {name:'Leicht', drib:0.55, gap:1.6,  twoAt:35, twoP:0.10, twoDiv:600, grav:0.42, head:1.25, second:16, redAt:25, redP:0.30, extraV:0.6},
+  {name:'Mittel', drib:0.75, gap:1.25, twoAt:22, twoP:0.18, twoDiv:360, grav:0.65, head:1.1,  second:12, redAt:16, redP:0.45, extraV:0.8},
+  {name:'Schwer', drib:1,    gap:1,    twoAt:15, twoP:0.25, twoDiv:240, grav:1,    head:1,    second:8,  redAt:12, redP:0.60, extraV:1}];
+function gameLevelOf(pid){ var l = S.gameLevel && S.gameLevel[pid]; return l >= 1 && l <= 3 ? l : 1; }
+function recOf(pid, kind, lvl){
+  if (!S.gameRec) S.gameRec = {};
+  if (!S.gameRec[pid]) S.gameRec[pid] = {dribble: {3: (S.gameBest && S.gameBest[pid]) || 0}, header: {3: (S.headBest && S.headBest[pid]) || 0}};
+  return (S.gameRec[pid][kind] && S.gameRec[pid][kind][lvl]) || 0;
+}
+function setRec(pid, kind, lvl, v){ recOf(pid, kind, lvl); if (!S.gameRec[pid][kind]) S.gameRec[pid][kind] = {}; S.gameRec[pid][kind][lvl] = v; }
 
 /* ---------- Die Stadt ---------- */
 function seeded(seed){ return function(){ seed = (seed * 1664525 + 1013904223) % 4294967296; return seed / 4294967296; }; }
@@ -1551,13 +1575,13 @@ function setBulb(el, frac, animate){
 /* ---------- Karte auf der Startseite ---------- */
 function ballRowHTML(pid){
   if (S.gameOn === false) return '';
-  var b = ballsOf(pid), ready = b >= BALLS_NEEDED, bd = (S.gameBest && S.gameBest[pid]) || 0, bh = (S.headBest && S.headBest[pid]) || 0;
-  var icons = ballIcons(b), adult = isAdult(curPlayer());
-  var rec = [bd ? 'Dribbling ' + bd : '', bh ? 'Kopfball ' + bh : ''].filter(Boolean).join(' · ');
-  return '<div class="ballrow' + (ready ? ' ready' : '') + '"><div class="balls">' + icons + '</div><div class="balltext"><b>' +
-    (ready ? 'Drei Bälle! Such dir ein Spiel aus.' : 'Noch ' + fmtBalls(BALLS_NEEDED - b) + ' bis zum nächsten Spiel') + '</b>' +
-    '<span>' + (ready ? (rec ? 'Rekorde: ' + rec : 'Dribbling oder Kopfball') : adult ? 'Jede geschaffte Runde bringt einen Ball' : 'Lange Sätze bringen sofort ein Spiel, kurze Sätze 1½ Bälle') + '</span></div>' +
-    (ready ? '<div class="playbtns"><button class="btn play" type="button" data-act="game" data-kind="dribble">Dribbling</button><button class="btn play" type="button" data-act="game" data-kind="header">Kopfball</button></div>' : '') + '</div>';
+  var v = playOf(pid), n = Math.floor(v / GAME_UNIT), adult = isAdult(curPlayer()), lvl = gameLevelOf(pid);
+  var rd = recOf(pid, 'dribble', lvl), rh = recOf(pid, 'header', lvl);
+  var rec = [rd ? 'Dribbling ' + rd : '', rh ? 'Kopfball ' + rh : ''].filter(Boolean).join(' · ');
+  var head = n >= 1 ? (n === 1 ? 'Ein Spiel bereit! Such dir eins aus.' : (n === 2 ? 'Zwei' : 'Drei') + ' Spiele bereit! Such dir eins aus.') : (v % GAME_UNIT ? 'Dein Ball füllt sich' : 'Noch kein Spiel bereit');
+  var sub = n >= 1 ? (rec ? 'Rekorde ' + GAME_LEVELS[lvl].name + ': ' + rec : 'Jeder volle Ball ist ein Spiel') : adult ? 'Drei Runden Rechnen bringen ein Spiel' : 'Sätze bringen sofort Spiele: kurze 1, mittlere 2, lange 3';
+  return '<div class="ballrow' + (n >= 1 ? ' ready' : '') + '"><div class="balls">' + ballIcons(v) + '</div><div class="balltext"><b>' + head + '</b><span>' + sub + '</span></div>' +
+    (n >= 1 ? playBtns('data-act="game"') : '') + '</div>';
 }
 function cityCardHTML(p){
   var total = sparksOf(p.id), lv = levelInfo(total), lit = lv.level, nm = nextMilestone(lit);
@@ -1570,7 +1594,7 @@ function cityCardHTML(p){
     (nm ? '<div class="citymile">Als Nächstes: ' + esc(nm.name) + ' in ' + (nm.inN === 1 ? '1 Licht' : nm.inN + ' Lichtern') + '</div>' : '') +
     '</div></div></div>' + ballRowHTML(p.id) +
     '<details class="cityhow"><summary>So gibt es Sterne und Bälle</summary><ul>' + SPARK_RULES.map(function(r){ return '<li><span>' + esc(r[0]) + '</span><b>+' + r[1] + '</b></li>'; }).join('') + '</ul>' +
-    '<p>Im Lesecheck zählt jedes gelesene Wort, auch wenn es noch hakt. Mit drei Bällen gibt es ein Spiel: Dribbling oder Kopfball. Eine Runde lange Sätze oder ein Lesecheck bringt sofort drei Bälle. Eine Runde kurze Sätze bringt 1½ Bälle, also ein Spiel nach zwei Runden. Wörter, Blitzlesen und Rechnen bringen einen Ball pro Runde. Bisher gesammelt: <b>' + total + '</b> Sterne.</p></details>';
+    '<p>Im Lesecheck zählt jedes gelesene Wort, auch wenn es noch hakt. Jeder volle Ball ist ein Spiel: Dribbling oder Kopfball, jeweils mit fünf Herzen. Eine Runde lange Sätze bringt drei Spiele, mittlere Sätze zwei, ganz kurze Sätze und der Lesecheck eins. Lange Wörter füllen einen Ball in zwei Runden, kurze Wörter, Training, Blitzlesen und Rechnen in drei Runden. Mehr als drei Spiele gibt es nicht auf Vorrat. Bisher gesammelt: <b>' + total + '</b> Sterne.</p></details>';
 }
 
 /* =====================================================================
@@ -2182,8 +2206,9 @@ var READ_SUBS = [
   {id:'flash', name:'Blitzlesen', group:'Gezielt üben', hint:'Häufige kleine Wörter blitzen kurz auf und verschwinden. Klappt es, wird die Blitzzeit kürzer. Das trainiert das Erkennen auf einen Blick.'},
   {id:'w1', name:'Kurze Wörter', group:'Freies Lesen', hint:'Freies Lesen. Zählt auch fürs Leseprofil.'},
   {id:'w2', name:'Lange Wörter', group:'Freies Lesen', hint:'Freies Lesen. Zählt auch fürs Leseprofil.'},
-  {id:'s1', name:'Kurze Sätze', group:'Freies Lesen', hint:'Freies Lesen. Zählt auch fürs Leseprofil.'},
-  {id:'s2', name:'Lange Sätze', group:'Freies Lesen', hint:'Freies Lesen. Zählt auch fürs Leseprofil.'}
+  {id:'s0', name:'Ganz kurze Sätze', group:'Freies Lesen', hint:'Sätze mit zwei bis vier Wörtern. Zählt auch fürs Leseprofil.'},
+  {id:'s1', name:'Mittlere Sätze', group:'Freies Lesen', hint:'Sätze mit fünf bis sechs Wörtern. Zählt auch fürs Leseprofil.'},
+  {id:'s2', name:'Lange Sätze', group:'Freies Lesen', hint:'Lange Sätze mit sieben und mehr Wörtern. Zählt auch fürs Leseprofil.'}
 ];
 function subInfo(id){ return READ_SUBS.filter(function(s){ return s.id === id; })[0] || READ_SUBS[0]; }
 function levelName(mode, level){ return mode === 'math' ? MATH[level - 1].name : subInfo(level).name; }
@@ -2220,15 +2245,15 @@ function renderStart(){
     READ_SUBS.forEach(function(s){ (groups[s.group] = groups[s.group] || []).push(s); });
     $('#levels').innerHTML = Object.keys(groups).map(function(g){
       return '<div class="lvgroup"><span class="lvlabel">' + esc(g) + '</span><div class="levels">' + groups[g].map(function(s){
-        var bv = S.gameOn !== false ? ballValue('read', s.id) : 1, bi = '';
-        for (var j = 0; j < bv; j++) bi += ballIcon(bv - j);
-        return '<button class="level" type="button" data-level="' + s.id + '" aria-pressed="' + (lv === s.id) + '">' + esc(s.name) + (bv > 1 ? '<span class="lvballs" aria-label="' + fmtBalls(bv) + ' pro Runde">' + bi + '</span>' : '') + '</button>';
+        var ng = S.gameOn !== false ? Math.floor(gameValue('read', s.id) / GAME_UNIT) : 0, bi = '';
+        for (var j = 0; j < ng; j++) bi += ballIcon(1);
+        return '<button class="level" type="button" data-level="' + s.id + '" aria-pressed="' + (lv === s.id) + '">' + esc(s.name) + (ng ? '<span class="lvballs" aria-label="' + fmtGames(ng) + ' pro Runde">' + bi + '</span>' : '') + '</button>';
       }).join('') + '</div></div>';
     }).join('');
   }
   var hint = $('#subHint'), gi = !isRead ? goalInfo(lv) : null;
   hint.hidden = !(isRead || gi);
-  if (isRead) { var bvh = ballValue('read', lv); hint.textContent = subInfo(lv).hint + (S.gameOn === false ? '' : bvh >= BALLS_NEEDED ? ' Eine Runde bringt drei Bälle, danach geht es sofort ins Spiel.' : bvh > 1 ? ' Eine Runde bringt 1½ Bälle, nach zwei Runden gibt es ein Spiel.' : ' Eine Runde bringt einen Ball.'); }
+  if (isRead) { var gv = gameValue('read', lv); hint.textContent = subInfo(lv).hint + (S.gameOn === false ? '' : gv >= GAME_UNIT ? ' Eine Runde bringt ' + fmtGames(gv / GAME_UNIT) + ', danach darfst du sofort spielen.' : ' Nach ' + (GAME_UNIT / gv === 2 ? 'zwei' : 'drei') + ' Runden gibt es ein Spiel.'); }
   else if (gi) { var cv = factsFor(lv).length ? coverage(p.id, lv) : null; hint.textContent = gi.hint + (cv ? ' Schon gerechnet: ' + cv.done + ' von ' + cv.all + '.' : ''); }
 
   var prof = isRead ? readProfile(p.id) : null;
@@ -2382,7 +2407,7 @@ $('#resetRow').addEventListener('click', function(e){
   var pid = curPlayer().id;
   S.sparks[pid] = 0; delete S.sparkDay[pid];
   if (b.dataset.reset === 'all') {
-    delete S.history[pid]; delete S.log[pid]; delete S.flash[pid]; delete S.lastCheck[pid]; delete S.balls[pid]; delete S.gameBest[pid]; delete S.headBest[pid]; delete S.mathLog[pid];
+    delete S.history[pid]; delete S.log[pid]; delete S.flash[pid]; delete S.lastCheck[pid]; delete S.balls[pid]; delete S.gameBest[pid]; delete S.headBest[pid]; delete S.play[pid]; delete S.gameRec[pid]; delete S.mathLog[pid];
     Object.keys(S.best).forEach(function(k){ if (k.indexOf(pid + '|') === 0) delete S.best[k]; });
   }
   save(); renderStart();
@@ -2804,7 +2829,7 @@ function endRound(){
   if (n >= 5 && ok.length === n && g.sub !== 'check') bonus.push(['Alles richtig', 2]);
   if (S.sparkDay[pid] !== todayKey()) { bonus.push(['Erste Runde heute', 2]); S.sparkDay[pid] = todayKey(); }
   earn(pid, bonus.reduce(function(a, b){ return a + b[1]; }, 0));
-  g.ballWas = ballsOf(pid); g.ballGain = S.gameOn !== false ? addBall(pid, ballValue(g.mode, g.sub)) : 0;
+  g.playWas = playOf(pid); g.playGain = S.gameOn !== false ? addPlay(pid, gameValue(g.mode, g.sub)) : 0;
   save();
 
   var stars = n ? 1 + (ok.length / n >= .8 ? 1 : 0) + (ok.length === n ? 1 : 0) : 1;
@@ -2876,10 +2901,12 @@ function renderSparkCard(g, bonus){
     '<div class="sparkbig">+' + earned + (earned === 1 ? ' Stern' : ' Sterne') + '</div><div class="schips">' + chips + '</div>' +
     '<div class="sparknote">Noch <b>' + (after.need - after.into) + '</b> Sterne bis zum nächsten Licht</div></div></div>';
   if (S.gameOn !== false) {
-    var nb = ballsOf(g.player.id), icons = ballIcons(nb), gain = g.ballGain || 0;
-    html += '<div class="ballrow' + (nb >= BALLS_NEEDED ? ' ready' : '') + '"><div class="balls">' + icons + '</div><div class="balltext"><b>' +
-      (nb >= BALLS_NEEDED ? (!gain ? 'Drei Bälle! Erst spielen, dann gibt es neue.' : gain >= BALLS_NEEDED ? 'Drei Bälle auf einmal! Such dir ein Spiel aus.' : '+' + fmtBalls(gain) + '! Jetzt sind es drei. Such dir ein Spiel aus.') : '+' + fmtBalls(gain) + ' · noch ' + fmtBalls(BALLS_NEEDED - nb) + ' bis zum nächsten Spiel') + '</b></div>' +
-      (nb >= BALLS_NEEDED ? '<div class="playbtns"><button class="btn play" type="button" data-kind="dribble">Dribbling</button><button class="btn play" type="button" data-kind="header">Kopfball</button></div>' : '') + '</div>';
+    var pv = playOf(g.player.id), ng = Math.floor(pv / GAME_UNIT), newG = ng - Math.floor(g.playWas / GAME_UNIT), msg;
+    if (!g.playGain && ng >= GAME_MAX) msg = 'Drei Spiele auf Vorrat! Erst spielen, dann gibt es neue.';
+    else if (newG >= 1) msg = '+' + fmtGames(newG).replace(/^ein /, '1 ').replace(/^zwei /, '2 ').replace(/^drei /, '3 ') + '!' + (ng > newG ? ' Jetzt hast du ' + fmtGames(ng) + '.' : '') + ' Such dir ein Spiel aus.';
+    else { var rl = roundsToNext(g.player.id, g.mode, g.sub); msg = 'Dein Ball füllt sich. Noch ' + (rl === 1 ? 'eine Runde' : rl + ' Runden') + ' bis zum nächsten Spiel.' + (ng ? ' Ein Spiel hast du schon.' : ''); }
+    html += '<div class="ballrow' + (ng >= 1 ? ' ready' : '') + '"><div class="balls">' + ballIcons(pv) + '</div><div class="balltext"><b>' + msg + '</b></div>' +
+      (ng >= 1 ? playBtns() : '') + '</div>';
   }
   if (up) {
     var unl = unlockedBetween(before.level, after.level);
@@ -3140,7 +3167,8 @@ $('#figBack').addEventListener('click', function(){
    Dribbling: links und rechts den Gegnern ausweichen, Bälle einsammeln.
    Kopfball: die große Figur unten hin und her schieben, der Ball springt
    vom Kopf. Ab und zu ein zweiter Ball, rote Bälle nicht köpfen,
-   goldene Sterne bringen drei Punkte. Beide: 60 Sekunden, fünf Herzen.
+   goldene Sterne bringen drei Punkte. Beide: 60 Sekunden, fünf Herzen,
+   drei Stufen (Leicht, Mittel, Schwer), Rekorde je Stufe.
    ===================================================================== */
 var GAME = null;
 var GAME_SECONDS = 60;
@@ -3149,7 +3177,6 @@ var GAMES = {
   dribble: {name:'Dribbling', unit:['Ball gesammelt', 'Bälle gesammelt'], hint:'Links und rechts tippen'},
   header:  {name:'Kopfball',  unit:['Kopfball', 'Kopfbälle'],             hint:'Figur hin und her schieben'}
 };
-function bestOf(kind, pid){ var b = kind === 'header' ? S.headBest : S.gameBest; return (b && b[pid]) || 0; }
 function svgImage(svg){
   return new Promise(function(resolve){
     var img = new Image(), done = false, url;
@@ -3166,9 +3193,8 @@ function heartSVG(full){
 function startGame(kind){
   kind = kind === 'header' ? 'header' : 'dribble';
   var p = curPlayer();
-  if (ballsOf(p.id) < BALLS_NEEDED) return;
+  if (gamesOf(p.id) < 1) return;
   unlockAudio();
-  S.balls[p.id] = 0; save();
   var av = avOf(p.id);
   var foes = [
     {skin:2, hair:'strubbel', hairColor:'schwarz', kit1:'blau', kit2:'weiss', pattern:'aermel', num:4, pants:'weiss', socks:'blau'},
@@ -3176,7 +3202,7 @@ function startGame(kind){
     {skin:3, hair:'locken', hairColor:'schwarz', kit1:'weiss', kit2:'gruen', pattern:'querbalken', num:5, pants:'gruen', socks:'weiss'}
   ];
   var g = GAME = {kind: kind, pid: p.id, name: p.name, lane: 1, px: 1, objs: [], score: 0, hearts: GAME_HEARTS, t: 0, spawn: 0.6, inv: 0,
-                  state: 'load', count: 3, last: 0, hit: 0, paused: false, dir: 0, target: null, balls: [], extras: [], extraT: 8, pops: []};
+                  state: 'load', lvl: gameLevelOf(p.id), L: GAME_LEVELS[gameLevelOf(p.id)], count: 3, last: 0, hit: 0, paused: false, dir: 0, target: null, balls: [], extras: [], extraT: 8, pops: []};
   show('game');
   $('#gameWho').textContent = GAMES[kind].name;
   $('#gameOver').hidden = true;
@@ -3191,10 +3217,29 @@ function startGame(kind){
   Promise.all(imgs).then(function(list){
     if (GAME !== g) return;
     g.me = list[0]; g.meCheer = list[1]; g.foes = list.slice(2);
-    g.state = 'count'; g.count = 3; g.last = performance.now();
-    SFX.tick(); requestWake();
-    g.raf = requestAnimationFrame(loop);
+    g.state = 'pick'; draw(); showPick();
   });
+}
+/* Vor dem Anpfiff: Stufe wählen. Erst mit dem Antippen wird ein Spiel verbraucht. */
+function showPick(){
+  var g = GAME, ov = $('#gameOver');
+  ov.innerHTML = '<div class="gocard pick"><div class="gotitle">' + GAMES[g.kind].name + '</div><p>Wie schnell soll es gehen?</p><div class="lvpick">' +
+    [1, 2, 3].map(function(l){ var r = recOf(g.pid, g.kind, l); return '<button type="button" class="lvbtn" data-lvl="' + l + '" aria-pressed="' + (l === g.lvl) + '"><b>' + GAME_LEVELS[l].name + '</b><span>' + ['', 'ganz langsam', 'etwas schneller', 'richtig schnell'][l] + (r ? ' · Rekord ' + r : '') + '</span></button>'; }).join('') +
+    '</div><p class="gonext">' + (gamesOf(g.pid) === 1 ? 'Du hast ein Spiel.' : 'Du hast ' + fmtGames(gamesOf(g.pid)) + '.') + '</p></div>';
+  ov.hidden = false;
+  $$('#gameOver .lvbtn').forEach(function(b){ b.addEventListener('click', function(){ beginGame(+b.dataset.lvl); }); });
+}
+function beginGame(lvl){
+  var g = GAME; if (!g || g.state !== 'pick') return;
+  if (!usePlay(g.pid)) { GAME = null; show('start'); renderStart(); return; }
+  g.lvl = lvl; g.L = GAME_LEVELS[lvl];
+  if (!S.gameLevel) S.gameLevel = {};
+  S.gameLevel[g.pid] = lvl; save();
+  $('#gameWho').textContent = GAMES[g.kind].name + ' · ' + g.L.name;
+  $('#gameOver').hidden = true;
+  g.state = 'count'; g.count = 3; g.last = performance.now();
+  SFX.tick(); requestWake();
+  g.raf = requestAnimationFrame(loop);
 }
 function sizeGame(){
   var g = GAME; if (!g) return;
@@ -3227,16 +3272,17 @@ function loseHeart(){
 
 /* ---------- Dribbling ---------- */
 function spawnRow(){
-  var g = GAME, lanes = shuffle([0, 1, 2]), two = g.t > 15 && Math.random() < 0.25 + g.t / 240;
+  var g = GAME, L = g.L, lanes = shuffle([0, 1, 2]), two = g.t > L.twoAt && Math.random() < L.twoP + g.t / L.twoDiv;
   var nDef = two ? 2 : 1;
   for (var i = 0; i < nDef; i++) g.objs.push({type: 'def', lane: lanes[i], y: -0.12, img: pick(g.foes)});
   if (Math.random() < (two ? 0.75 : 0.55)) g.objs.push({type: Math.random() < 0.1 ? 'gold' : 'ball', lane: lanes[2], y: -0.12 - Math.random() * 0.1});
 }
+function dribSpeed(g){ return (0.36 + 0.26 * Math.min(1, g.t / GAME_SECONDS)) * g.L.drib; }
 function updateDribble(dt){
   var g = GAME;
-  var speed = 0.36 + 0.26 * Math.min(1, g.t / GAME_SECONDS);
+  var speed = dribSpeed(g);
   g.spawn -= dt;
-  if (g.spawn <= 0) { spawnRow(); g.spawn = Math.max(0.68, 1.25 - g.t / 100); }
+  if (g.spawn <= 0) { spawnRow(); g.spawn = Math.max(0.68, 1.25 - g.t / 100) * g.L.gap; }
   g.px += (g.lane - g.px) * Math.min(1, dt * 14);
   var pxPos = laneX(0) + (laneX(1) - laneX(0)) * g.px;
   g.objs.forEach(function(o){
@@ -3252,7 +3298,7 @@ function updateDribble(dt){
 }
 function drawDribble(){
   var g = GAME, ctx = g.ctx, w = g.w, h = g.h;
-  var stripe = h / 6, off = (g.t * (0.36 + 0.26 * Math.min(1, g.t / GAME_SECONDS)) * h) % (stripe * 2);
+  var stripe = h / 6, off = (g.t * dribSpeed(g) * h) % (stripe * 2);
   ctx.fillStyle = '#2f8f47'; ctx.fillRect(0, 0, w, h);
   ctx.fillStyle = '#359e4f';
   for (var y = -stripe * 2 + off; y < h; y += stripe * 2) ctx.fillRect(0, y, w, stripe);
@@ -3276,12 +3322,12 @@ function drawDribble(){
 function hdGeom(){
   var g = GAME, size = Math.min(g.h * 0.32, g.w * 0.42 * 170 / 120), aw = size * 120 / 170;
   var top = g.h - size - 6;
-  return {size: size, aw: aw, top: top, headX: g.hx, headY: top + size * 50 / 170, headR: size * 30 / 170 * 1.15, R: Math.max(16, size * 0.13)};
+  return {size: size, aw: aw, top: top, headX: g.hx, headY: top + size * 50 / 170, headR: size * 30 / 170 * 1.15 * g.L.head, R: Math.max(16, size * 0.13)};
 }
 function newBall(type){
-  var g = GAME, G2 = hdGeom();
+  var g = GAME, G2 = hdGeom(), k = Math.sqrt(g.L.grav);
   var x = type === 'red' ? G2.R + Math.random() * (g.w - 2 * G2.R) : g.w * (0.3 + Math.random() * 0.4);
-  return {type: type || 'ball', x: x, y: -G2.R * 2, vx: type === 'ball' ? (Math.random() - 0.5) * g.w * 0.25 : 0, vy: type === 'red' ? g.h * 0.35 : g.h * 0.15, cool: 0, wait: 0};
+  return {type: type || 'ball', x: x, y: -G2.R * 2, vx: type === 'ball' ? (Math.random() - 0.5) * g.w * 0.25 * k : 0, vy: type === 'red' ? g.h * 0.35 * g.L.extraV : g.h * 0.15 * k, cool: 0, wait: 0};
 }
 function updateHeader(dt){
   var g = GAME, w = g.w, h = g.h, G2 = hdGeom();
@@ -3291,11 +3337,11 @@ function updateHeader(dt){
   if (g.target != null) g.hx += Math.max(-speed * dt, Math.min(speed * dt, g.target - g.hx));
   else if (g.dir) g.hx += g.dir * speed * dt;
   g.hx = Math.max(G2.aw * 0.4, Math.min(w - G2.aw * 0.4, g.hx));
-  var grav = h * 0.95;
-  if (g.score >= 8 && g.balls.length < 2 && g.t >= (g.nextSecond || 0) && g.state === 'run') { g.balls.push(newBall('ball')); g.pops.push({x: w / 2, y: h * 0.22, txt: 'Zweiter Ball!', t: 1.2}); }
+  var L = g.L, grav = h * 0.95 * L.grav, k = Math.sqrt(L.grav);
+  if (g.score >= L.second && g.balls.length < 2 && g.t >= (g.nextSecond || 0) && g.state === 'run') { g.balls.push(newBall('ball')); g.pops.push({x: w / 2, y: h * 0.22, txt: 'Zweiter Ball!', t: 1.2}); }
   g.extraT -= dt;
   if (g.extraT <= 0 && g.state === 'run') {
-    g.extras.push(g.t > 12 && Math.random() < 0.6 ? {type: 'red', x: G2.R + Math.random() * (w - 2 * G2.R), y: -30, vy: h * (0.3 + g.t / 400)} : {type: 'star', x: w * (0.15 + Math.random() * 0.7), y: -30, vy: h * 0.28});
+    g.extras.push(g.t > L.redAt && Math.random() < L.redP ? {type: 'red', x: G2.R + Math.random() * (w - 2 * G2.R), y: -30, vy: h * (0.3 + g.t / 400) * L.extraV} : {type: 'star', x: w * (0.15 + Math.random() * 0.7), y: -30, vy: h * 0.28 * L.extraV});
     g.extraT = 4 + Math.random() * 3.5;
   }
   g.balls.forEach(function(b){
@@ -3308,7 +3354,7 @@ function updateHeader(dt){
     if (b.vy > 0 && b.cool <= 0 && dist < G2.R + G2.headR && g.state === 'run') {
       var apex = h * (0.6 - Math.min(0.12, g.t / 500)) * (0.9 + Math.random() * 0.2);
       b.vy = -Math.sqrt(2 * grav * Math.max(h * 0.25, Math.min(apex, G2.headY - G2.R * 2)));
-      b.vx = (dx / (G2.R + G2.headR)) * w * 0.55 + (Math.random() - 0.5) * w * 0.1;
+      b.vx = ((dx / (G2.R + G2.headR)) * w * 0.55 + (Math.random() - 0.5) * w * 0.1) * k;
       b.cool = 0.25; g.score++; g.pops.push({x: b.x, y: b.y - G2.R, txt: '+1', t: 0.6}); SFX.spark(); renderHud();
       g.nod = 0.15;
     }
@@ -3429,22 +3475,21 @@ function draw(){
 function endGame(why){
   var g = GAME; if (!g || g.state === 'over') return;
   g.state = 'over'; g.inv = 0; g.hit = 0; g.dir = 0; cancelAnimationFrame(g.raf); releaseWake();
-  var key = g.kind === 'header' ? 'headBest' : 'gameBest';
-  if (!S[key]) S[key] = {};
-  var prev = S[key][g.pid] || 0, rec = g.score > prev;
-  if (rec) S[key][g.pid] = g.score;
+  var prev = recOf(g.pid, g.kind, g.lvl), rec = g.score > prev;
+  if (rec) setRec(g.pid, g.kind, g.lvl, g.score);
   save(); renderHud(); draw();
   tone(1760, 0, .18, 'square', .05); tone(1760, .25, .5, 'square', .05);
   if (rec && g.score > 0) setTimeout(function(){ SFX.record(); }, 700);
-  var u = GAMES[g.kind].unit;
+  var u = GAMES[g.kind].unit, left = gamesOf(g.pid);
   var ov = $('#gameOver');
   ov.innerHTML = '<div class="gocard"><div class="gotitle">Abpfiff!</div>' +
     '<div class="goscore">' + ballIcon(true) + '<b>' + g.score + '</b><span>' + (g.score === 1 ? u[0] : u[1]) + '</span></div>' +
-    '<p>' + (why === 'hearts' ? 'Alle Herzen weg. ' : why === 'time' ? 'Die Zeit ist um. ' : '') + (rec && g.score > 0 ? 'Neuer Rekord, ' + esc(g.name) + '!' : prev ? 'Rekord von ' + esc(g.name) + ': ' + prev : '') + '</p>' +
-    '<p class="gonext">Für das nächste Spiel wieder drei Runden üben.</p>' +
-    '<button class="go" type="button" id="gameDone">Zurück zur Stadt</button></div>';
+    '<p>' + (why === 'hearts' ? 'Alle Herzen weg. ' : why === 'time' ? 'Die Zeit ist um. ' : '') + (rec && g.score > 0 ? 'Neuer Rekord auf ' + g.L.name + ', ' + esc(g.name) + '!' : prev ? 'Rekord auf ' + g.L.name + ': ' + prev : '') + '</p>' +
+    (left >= 1 ? '<p class="goagain">Du hast noch ' + fmtGames(left) + '!</p>' + playBtns('data-again="1"') : '<p class="gonext">Fürs nächste Spiel wieder lesen oder rechnen. Lange Sätze bringen gleich drei Spiele.</p>') +
+    '<button class="go' + (left >= 1 ? ' ghost' : '') + '" type="button" id="gameDone">Zurück zur Stadt</button></div>';
   ov.hidden = false;
   $('#gameDone').addEventListener('click', function(){ GAME = null; show('start'); renderStart(); });
+  $$('#gameOver [data-again]').forEach(function(b){ b.addEventListener('click', function(){ GAME = null; startGame(b.dataset.kind); }); });
 }
 /* Steuerung */
 var cvEl = $('#gameCanvas');
@@ -3479,7 +3524,7 @@ $('#gameQuit').addEventListener('click', function(){
     return;
   }
   clearTimeout(b._t); b.classList.remove('armed'); b.textContent = 'Beenden';
-  if (GAME && GAME.state !== 'over') endGame('quit'); else { GAME = null; show('start'); renderStart(); }
+  if (GAME && (GAME.state === 'run' || GAME.state === 'count')) endGame('quit'); else { GAME = null; show('start'); renderStart(); }
 });
 if (/debug/.test(location.hash)) window.__bbGame = function(){ return GAME; };
 
