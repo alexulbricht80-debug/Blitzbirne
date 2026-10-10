@@ -3140,10 +3140,11 @@ $('#figBack').addEventListener('click', function(){
    Dribbling: links und rechts den Gegnern ausweichen, Bälle einsammeln.
    Kopfball: die große Figur unten hin und her schieben, der Ball springt
    vom Kopf. Ab und zu ein zweiter Ball, rote Bälle nicht köpfen,
-   goldene Sterne bringen drei Punkte. Beide: 60 Sekunden, drei Herzen.
+   goldene Sterne bringen drei Punkte. Beide: 60 Sekunden, fünf Herzen.
    ===================================================================== */
 var GAME = null;
 var GAME_SECONDS = 60;
+var GAME_HEARTS = 5;
 var GAMES = {
   dribble: {name:'Dribbling', unit:['Ball gesammelt', 'Bälle gesammelt'], hint:'Links und rechts tippen'},
   header:  {name:'Kopfball',  unit:['Kopfball', 'Kopfbälle'],             hint:'Figur hin und her schieben'}
@@ -3174,7 +3175,7 @@ function startGame(kind){
     {skin:0, hair:'kurz', hairColor:'rot', kit1:'rot', kit2:'weiss', pattern:'einfarbig', num:6, pants:'weiss', socks:'rot'},
     {skin:3, hair:'locken', hairColor:'schwarz', kit1:'weiss', kit2:'gruen', pattern:'querbalken', num:5, pants:'gruen', socks:'weiss'}
   ];
-  var g = GAME = {kind: kind, pid: p.id, name: p.name, lane: 1, px: 1, objs: [], score: 0, hearts: 3, t: 0, spawn: 0.6, inv: 0,
+  var g = GAME = {kind: kind, pid: p.id, name: p.name, lane: 1, px: 1, objs: [], score: 0, hearts: GAME_HEARTS, t: 0, spawn: 0.6, inv: 0,
                   state: 'load', count: 3, last: 0, hit: 0, paused: false, dir: 0, target: null, balls: [], extras: [], extraT: 8, pops: []};
   show('game');
   $('#gameWho').textContent = GAMES[kind].name;
@@ -3207,7 +3208,7 @@ function sizeGame(){
 function laneX(i){ var g = GAME; return g.w * (0.2 + 0.3 * i); }
 function renderHud(){
   var g = GAME; if (!g) return;
-  $('#hearts').innerHTML = [0, 1, 2].map(function(i){ return heartSVG(i < g.hearts); }).join('');
+  var hs = ''; for (var i = 0; i < GAME_HEARTS; i++) hs += heartSVG(i < g.hearts); $('#hearts').innerHTML = hs;
   $('#gscore').innerHTML = ballIcon(true) + '<b>' + g.score + '</b>';
   var left = Math.max(0, Math.ceil(GAME_SECONDS - g.t));
   $('#gtime').textContent = '0:' + (left < 10 ? '0' : '') + left;
