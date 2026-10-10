@@ -662,6 +662,39 @@ h2,h3{margin:0}
 .gocard .playbtns{width:100%}
 .gocard .playbtns .btn{flex:1}
 .gocard .go.ghost{background:transparent;color:#f1f1f1;border:1.5px solid #3a3d48;font-size:1rem;padding:10px 20px}
+
+/* Einstellungen zum Aufklappen */
+.setblock > summary{list-style:none;display:flex;align-items:center;gap:10px;cursor:pointer;padding:12px 16px;background:var(--sheet);border:1px solid var(--line);border-radius:14px;-webkit-user-select:none;user-select:none}
+.setblock > summary::-webkit-details-marker{display:none}
+.setblock > summary .label{margin:0;color:var(--text);font-weight:700}
+.setblock .setinfo{flex:1;min-width:0;color:var(--muted);font-size:.86rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:right}
+.setblock .chev{width:20px;height:20px;flex:none;fill:none;stroke:var(--muted);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;transition:transform .2s}
+.setblock[open] .chev{transform:rotate(180deg)}
+.setblock[open] > summary{border-radius:14px 14px 0 0;border-bottom-style:dashed}
+.setblock[open] .opts{border-top:0;border-radius:0 0 14px 14px}
+
+/* Einmaleins: Reihen wählen */
+.rowpick{margin-top:12px}
+.rowpick .lvlabel{display:block;margin-bottom:6px}
+.rowchips{display:flex;flex-wrap:wrap;gap:6px}
+.rowchips button{min-width:42px;height:38px;padding:0 10px;border-radius:999px;border:1.5px solid var(--line);background:var(--sheet);color:var(--text);font-weight:700;font-variant-numeric:tabular-nums}
+.rowchips button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--on-ink)}
+
+/* Verlauf der Aufgabe im Rechenblatt */
+.fhist{position:absolute;left:8px;right:8px;bottom:6px;display:flex;justify-content:center;align-items:center;gap:8px;flex-wrap:nowrap;font-size:.78rem;line-height:1;pointer-events:none}
+.fhist i{font-style:normal;font-family:var(--f-clock);font-variant-numeric:tabular-nums;padding:3px 6px;border-radius:999px;border:1px solid var(--line);background:var(--sheet);color:var(--muted)}
+.fhist i.fhb{background:var(--mark);border-color:var(--mark);color:#16171b;font-weight:700}
+.fhist i.fhx{color:var(--red)}
+.fhist i.fhn{border-color:var(--text);color:var(--text);font-weight:700}
+.fhist i.fhb.fhn{border-color:#16171b;color:#16171b}
+.fhbest{padding:3px 8px;border-radius:999px;background:var(--ink);color:var(--on-ink);white-space:nowrap}
+.fhbest b{font-family:var(--f-clock)}
+.fhlist{display:flex;align-items:center;gap:4px;min-width:0}
+.fhlbl{color:var(--muted);margin-right:2px}
+@media (max-width:400px){ .fhlbl{display:none} }
+
+.dots.many{gap:3px}
+.dots.many i{width:9px;height:9px;border-width:1.5px}
 </style>
 </head>
 <body>
@@ -700,14 +733,15 @@ h2,h3{margin:0}
     </div>
     <div id="levels"></div>
     <p class="subhint" id="subHint" hidden></p>
+    <div class="rowpick" id="rowPick" hidden></div>
     <div class="profmini" id="profMini" hidden>
       <div><b>Leseprofil</b><span id="profMiniText"></span><div class="pills" id="profMiniPills"></div></div>
       <button class="btn" id="profOpen" type="button">Ansehen</button>
     </div>
   </div>
 
-  <div class="block">
-    <h2 class="label">Einstellungen</h2>
+  <details class="block setblock" id="setBlock">
+    <summary class="setsum"><span class="label">Einstellungen</span><span class="setinfo" id="setInfo"></span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9 l6 6 l6 -6"/></svg></summary>
     <div class="opts">
       <div class="opt" data-for="count"><span class="opt-label">Aufgaben pro Runde</span><div class="seg" id="segCount"></div></div>
       <div class="opt" data-for="input"><span class="opt-label">Steuerung</span><div class="seg" id="segInput"></div></div>
@@ -717,12 +751,12 @@ h2,h3{margin:0}
       <div class="opt" data-for="read"><label class="opt-label" for="optSyl">Silben färben<span class="opt-hint">Blau und rot mit Silbenbögen, wie in der Schule. Im Lesecheck immer aus.</span></label><span class="switch"><input type="checkbox" id="optSyl"><span class="knob"></span></span></div>
       <div class="opt" data-for="read"><label class="opt-label" for="optCaps">Großbuchstaben</label><span class="switch"><input type="checkbox" id="optCaps"><span class="knob"></span></span></div>
       <div class="opt" data-for="retry"><label class="opt-label" for="optRetry">Fehler am Ende wiederholen</label><span class="switch"><input type="checkbox" id="optRetry"><span class="knob"></span></span></div>
-      <div class="opt"><label class="opt-label" for="optGame">Minispiele<span class="opt-hint">Jede geschaffte Runde bringt einen Ball. Drei Bälle sind ein Spiel von einer Minute, Dribbling oder Kopfball.</span></label><span class="switch"><input type="checkbox" id="optGame"><span class="knob"></span></span></div>
+      <div class="opt"><label class="opt-label" for="optGame">Minispiele<span class="opt-hint">Lesen und Rechnen füllen Bälle. Jeder volle Ball ist ein Spiel von einer Minute, Dribbling oder Kopfball.</span></label><span class="switch"><input type="checkbox" id="optGame"><span class="knob"></span></span></div>
       <div class="opt"><label class="opt-label" for="optSound">Töne</label><span class="switch"><input type="checkbox" id="optSound"><span class="knob"></span></span></div>
       <div class="opt" id="resetRow"><span class="opt-label">Neu anfangen<span class="opt-hint" id="resetHint"></span></span><div class="resetbtns"><button class="btn" type="button" data-reset="city">Stadt dunkel</button><button class="btn danger" type="button" data-reset="all">Alles löschen</button></div></div>
     </div>
     <p class="voice-note" id="voiceNote"></p>
-  </div>
+  </details>
 
   <div class="startbar">
     <p class="best" id="bestLine"></p>
@@ -832,11 +866,11 @@ var $$ = function(s, el){ return Array.prototype.slice.call((el || document).que
 var KEY = 'blitzheft.v1';
 var DEFAULTS = {
   players: [{id:'p1', name:'Kind 1'}, {id:'p2', name:'Kind 2'}],
-  current: 'p1', mode: 'math', level: {math: 1, read: 'check', adult: 13}, count: 10,
+  current: 'p1', mode: 'math', level: {math: 1, read: 'check', adult: 13}, count: 5,
   input: 'voice', auto: true, code: 'Check', speak: true, syl: true, caps: false,
   retry: true, sound: true, history: {}, best: {},
   log: {}, flash: {}, lastCheck: {}, sparks: {}, sparkDay: {},
-  avatars: {}, balls: {}, gameBest: {}, headBest: {}, gameOn: true, mathLog: {}, play: {}, gameRec: {}, gameLevel: {}
+  avatars: {}, balls: {}, gameBest: {}, headBest: {}, gameOn: true, mathLog: {}, play: {}, gameRec: {}, gameLevel: {}, mulRows: {}
 };
 function clone(o){ return JSON.parse(JSON.stringify(o)); }
 function migrate(o){
@@ -845,11 +879,13 @@ function migrate(o){
   base.level = Object.assign({math: 1, read: 'check', adult: 13}, (o && o.level) || {});
   if (typeof base.level.read === 'number') base.level.read = ['w1', 'w2', 's1', 's2'][base.level.read - 1] || 'check';
   var hadSparks = o && o.sparks && typeof o.sparks === 'object';
-  ['history', 'best', 'log', 'flash', 'lastCheck', 'sparks', 'sparkDay', 'avatars', 'balls', 'gameBest', 'headBest', 'mathLog', 'play', 'gameRec', 'gameLevel'].forEach(function(k){ if (!base[k] || typeof base[k] !== 'object') base[k] = {}; });
+  ['history', 'best', 'log', 'flash', 'lastCheck', 'sparks', 'sparkDay', 'avatars', 'balls', 'gameBest', 'headBest', 'mathLog', 'play', 'gameRec', 'gameLevel', 'mulRows'].forEach(function(k){ if (!base[k] || typeof base[k] !== 'object') base[k] = {}; });
   if (!hadSparks) Object.keys(base.history).forEach(function(pid){
     base.sparks[pid] = (base.history[pid] || []).reduce(function(a, h){ return a + (h.ok || 0) + 3; }, 0);
   });
   if (!Array.isArray(base.players) || base.players.length < 2) base.players = clone(DEFAULTS.players);
+  // einmalig: früherer Standard 10 Aufgaben wird zu 5
+  if (!base.count5) { if (base.count === 10) base.count = 5; base.count5 = true; }
   return base;
 }
 var S = (function(){
@@ -1779,17 +1815,43 @@ function factTask(f){
   }
   return mk(a, op, b);
 }
+function factKey(t){
+  if (!t || t.kind !== 'math' || !famOf(t.a, t.op, t.b)) return null;
+  if (t.op === '·' && famOf(t.a, t.op, t.b) === 'e2') return Math.max(t.a, t.b) + '·' + Math.min(t.a, t.b);
+  return t.key;
+}
 function logMath(pid, r){
-  var t = r.task; if (t.kind !== 'math' || !famOf(t.a, t.op, t.b)) return;
+  var t = r.task, key = factKey(t); if (!key) return;
   if (!S.mathLog[pid]) S.mathLog[pid] = {};
-  var key = t.key;
-  if (t.op === '·' && famOf(t.a, t.op, t.b) === 'e2') key = Math.max(t.a, t.b) + '·' + Math.min(t.a, t.b);
   var e = S.mathLog[pid][key] || {n: 0, ok: 0, e: [], ts: []};
+  if (!e.h) e.h = e.ts.slice();
+  if (e.best == null && e.ts.length) e.best = Math.min.apply(null, e.ts);
   e.n++; if (r.correct) e.ok++;
   e.e.push(r.correct ? 1 : 0); if (e.e.length > 5) e.e = e.e.slice(-5);
-  if (r.correct && r.ms > 0) { e.ts.push(Math.round(r.ms)); if (e.ts.length > 5) e.ts = e.ts.slice(-5); }
+  var ms = Math.max(1, Math.round(r.ms || 0));
+  if (r.correct && r.ms > 0) { e.ts.push(ms); if (e.ts.length > 5) e.ts = e.ts.slice(-5); if (e.best == null || ms < e.best) e.best = ms; }
+  e.h.push(r.correct ? ms : -ms); if (e.h.length > 5) e.h = e.h.slice(-5);
   e.last = Date.now();
   S.mathLog[pid][key] = e; save();
+}
+/* Verlauf einer Aufgabe: die letzten fünf Versuche (alt nach neu, negativ = falsch) und die Bestzeit */
+function factHist(pid, t){
+  var key = factKey(t), e = key && S.mathLog[pid] && S.mathLog[pid][key];
+  if (!e) return null;
+  var h = (e.h || e.ts || []).slice(-5), best = e.best != null ? e.best : (e.ts && e.ts.length ? Math.min.apply(null, e.ts) : null);
+  return h.length ? {h: h, best: best} : null;
+}
+function factHistHTML(fh, fresh){
+  if (!fh) return '';
+  var shown = false;
+  var chips = fh.h.map(function(v, i){
+    var last = fresh && i === fh.h.length - 1;
+    if (v < 0) return '<i class="fhx' + (last ? ' fhn' : '') + '" title="falsch">✗</i>';
+    var isBest = !shown && v === fh.best; if (isBest) shown = true;
+    return '<i class="' + (isBest ? 'fhb' : '') + (last ? ' fhn' : '') + '">' + secShort(v) + '</i>';
+  }).join('');
+  return '<div class="fhist" id="fhist" aria-label="Bisherige Zeiten für diese Aufgabe">' + (fh.best != null ? '<span class="fhbest">Rekord <b>' + secShort(fh.best) + '</b></span>' : '') +
+    '<span class="fhlist"><span class="fhlbl">Zuletzt</span>' + chips + '</span></div>';
 }
 function parseKey(k){ var m = k.match(/^(\d+)([+−·:])(\d+)$/); return m ? {a: +m[1], op: m[2], b: +m[3]} : null; }
 function mathProfile(pid){
@@ -1815,12 +1877,27 @@ function mathProfile(pid){
   var weak = list.filter(function(f){ return f.status !== 'ok'; }).sort(function(x, y){ return y.weak - x.weak; });
   return {facts: facts, famMed: famMed, list: list, weak: weak, n: list.length};
 }
+/* Einmaleins: einzelne Reihen wählen (leer heißt alle) */
+var ROW_RANGE = {12: [1, 10], 13: [11, 20]};
+function rowsOf(pid, lv){
+  var r = ROW_RANGE[lv] && S.mulRows && S.mulRows[pid] && S.mulRows[pid][lv];
+  return Array.isArray(r) ? r.filter(function(x){ return x >= ROW_RANGE[lv][0] && x <= ROW_RANGE[lv][1]; }) : [];
+}
+function factsForRows(lv, rows){
+  var all = factsFor(lv);
+  if (!rows || !rows.length) return all;
+  return all.filter(function(f){ return rows.indexOf(f[0]) >= 0 || rows.indexOf(f[2]) >= 0; });
+}
+function rowsText(rows){
+  if (!rows.length) return '';
+  return rows.length === 1 ? rows[0] + 'er Reihe' : 'Reihen ' + rows.slice(0, -1).join(', ') + ' und ' + rows[rows.length - 1];
+}
 function smartQueue(lv, n, pid){
   var prof = mathProfile(pid), pool, adult = isAdult(S.players.filter(function(q){ return q.id === pid; })[0]);
   if (lv === 11) {
     pool = prof.list.filter(function(f){ return adult ? f.fam === 'e2' : f.fam !== 'e2'; }).map(function(f){ return [f.a, f.op, f.b]; });
     if (pool.length < n) pool = pool.concat(adult ? factsFor(13) : factsFor(9).concat(factsFor(8)));
-  } else pool = factsFor(lv);
+  } else pool = factsForRows(lv, rowsOf(pid, lv));
   var seen = {}, scored = pool.filter(function(f){ var k = f[0] + f[1] + f[2]; if (seen[k]) return false; seen[k] = 1; return true; }).map(function(f){
     var k = f[0] + f[1] + f[2], st = prof.facts[k];
     var s = st ? st.weak : (lv === 11 ? 0.5 : 2.6);
@@ -1850,7 +1927,7 @@ function gen500(){
   return mk(413, '−', 58);
 }
 function coverage(pid, lv){
-  var log = S.mathLog[pid] || {}, all = factsFor(lv), done = all.filter(function(f){ return log[f[0] + f[1] + f[2]]; }).length;
+  var log = S.mathLog[pid] || {}, all = factsForRows(lv, rowsOf(pid, lv)), done = all.filter(function(f){ return log[f[0] + f[1] + f[2]]; }).length;
   return {done: done, all: all.length};
 }
 
@@ -2217,6 +2294,8 @@ function effectiveInput(){ return (S.input === 'voice' && voiceStatus().ok) ? 'v
 function bestKey(pid, mode, level){ return pid + '|' + mode + '|' + level; }
 var STATUS_TXT = {bad:'Baustelle', warn:'unsicher', ok:'sitzt', none:'zu wenig Daten'};
 
+function isCheck0(isRead, lv){ return isRead && lv === 'check'; }
+function inp0(){ return effectiveInput(); }
 function renderStart(){
   var p = curPlayer(), adult = isAdult(p);
   if (adult && S.mode !== 'math') S.mode = 'math';
@@ -2254,7 +2333,18 @@ function renderStart(){
   var hint = $('#subHint'), gi = !isRead ? goalInfo(lv) : null;
   hint.hidden = !(isRead || gi);
   if (isRead) { var gv = gameValue('read', lv); hint.textContent = subInfo(lv).hint + (S.gameOn === false ? '' : gv >= GAME_UNIT ? ' Eine Runde bringt ' + fmtGames(gv / GAME_UNIT) + ', danach darfst du sofort spielen.' : ' Nach ' + (GAME_UNIT / gv === 2 ? 'zwei' : 'drei') + ' Runden gibt es ein Spiel.'); }
-  else if (gi) { var cv = factsFor(lv).length ? coverage(p.id, lv) : null; hint.textContent = gi.hint + (cv ? ' Schon gerechnet: ' + cv.done + ' von ' + cv.all + '.' : ''); }
+  else if (gi) {
+    var cv = factsFor(lv).length ? coverage(p.id, lv) : null, rs = rowsOf(p.id, lv);
+    hint.textContent = rs.length && cv ? 'Ausgewählt: ' + rowsText(rs) + ' mit ' + cv.all + ' Aufgaben, davon schon gerechnet: ' + cv.done + '. Die langsamen kommen öfter dran, und alles fließt in die Tafel im Rechenprofil ein.'
+      : gi.hint + (cv ? ' Schon gerechnet: ' + cv.done + ' von ' + cv.all + '.' : '');
+  }
+  var rp = $('#rowPick'), rr = !isRead && ROW_RANGE[lv];
+  rp.hidden = !rr;
+  if (rr) {
+    var sel = rowsOf(p.id, lv), chips = '<button type="button" data-row="all" aria-pressed="' + !sel.length + '">Alle</button>';
+    for (var ri = rr[0]; ri <= rr[1]; ri++) chips += '<button type="button" data-row="' + ri + '" aria-pressed="' + (sel.indexOf(ri) >= 0) + '">' + ri + '</button>';
+    rp.innerHTML = '<span class="lvlabel">Reihen üben</span><div class="rowchips">' + chips + '</div>';
+  }
 
   var prof = isRead ? readProfile(p.id) : null;
   $('#profMini').hidden = false;
@@ -2279,6 +2369,7 @@ function renderStart(){
     }
   }
 
+  $('#setInfo').textContent = [isCheck0(isRead, lv) ? '' : S.count + ' Aufgaben', inp0() === 'voice' ? 'Sprechen' : 'Antippen', S.sound ? 'Töne an' : 'Töne aus'].filter(Boolean).join(' · ');
   $('#segCount').innerHTML = [5, 10, 15, 20].map(function(n){ return '<button type="button" data-count="' + n + '" aria-pressed="' + (S.count === n) + '">' + n + '</button>'; }).join('');
   var vs = voiceStatus(), inp = effectiveInput();
   $('#segInput').innerHTML = '<button type="button" data-input="voice" aria-pressed="' + (inp === 'voice') + '"' + (vs.ok ? '' : ' disabled') + '>Sprechen</button><button type="button" data-input="tap" aria-pressed="' + (inp === 'tap') + '">Antippen</button>';
@@ -2347,6 +2438,16 @@ $('#modes').addEventListener('click', function(e){ var b = e.target.closest('.mo
 $('#levels').addEventListener('click', function(e){
   var b = e.target.closest('.level'); if (!b) return;
   S.level[levelKey()] = S.mode === 'math' ? +b.dataset.level : b.dataset.level; save(); renderStart();
+});
+$('#rowPick').addEventListener('click', function(e){
+  var b = e.target.closest('[data-row]'); if (!b) return;
+  var p = curPlayer(), lv = S.level[levelKey()], rr = ROW_RANGE[lv]; if (!rr) return;
+  if (!S.mulRows[p.id]) S.mulRows[p.id] = {};
+  var sel = rowsOf(p.id, lv);
+  if (b.dataset.row === 'all') sel = [];
+  else { var r = +b.dataset.row, i = sel.indexOf(r); if (i >= 0) sel.splice(i, 1); else sel.push(r); sel.sort(function(x, y){ return x - y; }); }
+  if (sel.length >= rr[1] - rr[0] + 1) sel = [];
+  S.mulRows[p.id][lv] = sel; save(); renderStart();
 });
 $('#segCount').addEventListener('click', function(e){ var b = e.target.closest('button'); if (!b) return; S.count = +b.dataset.count; save(); renderStart(); });
 $('#segInput').addEventListener('click', function(e){ var b = e.target.closest('button'); if (!b || b.disabled) return; S.input = b.dataset.input; save(); renderStart(); });
@@ -2498,6 +2599,7 @@ function setListen(state, msg){
 }
 function renderDots(){
   var g = G, real = 0, cur = 0;
+  $('#dots').classList.toggle('many', g.queue.length > 12);
   $('#dots').innerHTML = g.queue.map(function(t, i){
     if (t.kind === 'pause') return '<i class="gap"></i>';
     real++; if (i <= g.idx) cur = real;
@@ -2519,7 +2621,9 @@ function renderTask(){
     String(t.b).split('').forEach(function(c){ push(c); });
     push('=', 'op');
     String(t.ans).split('').forEach(function(){ push('', 'ans'); });
-    sheet.innerHTML = '<div class="mrow" id="mrow" aria-label="' + esc(t.say) + '">' + cells.join('') + '</div>';
+    G.fh = factHist(G.player.id, t);
+    sheet.innerHTML = '<div class="mrow" id="mrow" aria-label="' + esc(t.say) + '">' + cells.join('') + '</div>' + factHistHTML(G.fh);
+    sheet.classList.toggle('hashist', !!G.fh);
     G.cellCount = cells.length;
     layoutMath();
   } else {
@@ -2636,9 +2740,20 @@ function finish(res){
   g.pending = {task:t, ms:ms, method:res.method, retry:!!t.retry, tries:g.tries};
   updatePad();
   if (res.correct === true) {
-    if (t.kind === 'math') fillAnswer(String(t.ans), 'good');
+    var newBest = false;
+    if (t.kind === 'math') {
+      fillAnswer(String(t.ans), 'good');
+      var fh = g.fh, nb = fh && fh.best != null && ms < fh.best;
+      if (factKey(t)) {
+        var prev = fh || {h: [], best: null}, h = prev.h.concat([Math.max(1, Math.round(ms))]).slice(-5);
+        var fresh = {h: h, best: prev.best == null || ms < prev.best ? Math.max(1, Math.round(ms)) : prev.best};
+        var old = $('#fhist'); if (old) old.remove();
+        $('#sheet').insertAdjacentHTML('beforeend', factHistHTML(fresh, true)); $('#sheet').classList.add('hashist');
+      }
+      newBest = !!nb;
+    }
     setClock(ms, 'good'); SFX.good(); setCue('');
-    showFeedback('good', pick(PRAISE) + ' ' + sec(ms) + ' Sekunden', [{label:'Weiter', cls:'primary', fn:function(){ commit(true); }}]);
+    showFeedback('good', (newBest ? 'Neue Bestzeit für diese Aufgabe!' : pick(PRAISE)) + ' ' + sec(ms) + ' Sekunden', [{label:'Weiter', cls:'primary', fn:function(){ commit(true); }}]);
     g.autoNext = setTimeout(function(){ if (G === g) commit(true); }, 1500);
   } else if (res.correct === false) {
     fillAnswer(String(t.ans), 'wrong'); setClock(ms, 'bad'); SFX.bad(); setCue('');
@@ -2836,7 +2951,7 @@ function endRound(){
   var name = g.player.name;
   var titleWord = g.sub === 'check' ? 'Lesecheck geschafft, ' : (stars === 3 ? 'Super, ' : stars === 2 ? 'Stark, ' : 'Geschafft, ');
   $('#doneTitle').textContent = titleWord + name + '!';
-  $('#doneSub').textContent = (g.mode === 'math' ? 'Rechnen · Stufe ' + g.level + ' · ' : 'Lesen · ') + levelName(g.mode, g.level);
+  $('#doneSub').textContent = (g.mode === 'math' ? 'Rechnen · Stufe ' + g.level + ' · ' : 'Lesen · ') + levelName(g.mode, g.level) + (g.mode === 'math' && rowsOf(g.player.id, g.level).length ? ' · ' + rowsText(rowsOf(g.player.id, g.level)) : '');
   var star = '<path d="M12 2.6l2.85 5.95 6.55.8-4.85 4.5 1.3 6.5L12 17.1l-5.85 3.25 1.3-6.5L2.6 9.35l6.55-.8z"/>';
   $('#stars').hidden = true;
   $('#stars').innerHTML = [0, 1, 2].map(function(i){ return '<svg viewBox="0 0 24 24" class="' + (i < stars ? 'on' : 'off') + '" aria-hidden="true">' + star + '</svg>'; }).join('');
