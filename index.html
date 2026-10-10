@@ -564,6 +564,70 @@ h2,h3{margin:0}
 .mgrid.big{grid-template-columns:2.4em repeat(var(--cols,19),minmax(34px,1fr));min-width:calc(2.4em + 19 * 37px);max-width:none}
 .mgrid.big .mg-c{font-size:.72rem}
 .viewopt{border-bottom:0;padding:0 0 4px}
+
+/* Name und Figur: Figur oben, Auswahl zum Wischen */
+#screen-figure{display:flex;flex-direction:column;gap:12px}
+#screen-figure[hidden]{display:none!important}
+.fighead{display:flex;align-items:flex-end;gap:12px}
+.figname{flex:1;display:grid;gap:4px;font-size:.8rem;font-weight:700;color:var(--muted);min-width:0}
+.figname input{width:100%;padding:10px 12px;border-radius:12px;border:1.5px solid var(--line);background:var(--sheet);color:var(--text);font:800 1.15rem var(--f-read)}
+#screen-figure .figpreview{position:static;max-width:none;width:100%;height:clamp(210px,38vh,340px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:10px;border-radius:20px}
+#screen-figure .figpreview svg{height:calc(100% - 22px);width:auto;max-width:100%}
+.figtabs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;margin-inline:-16px;padding-inline:16px;scroll-padding-inline:16px}
+.figtabs::-webkit-scrollbar{display:none}
+.ftab{flex:none;border:1.5px solid var(--line);background:var(--sheet);border-radius:999px;padding:8px 14px;font-weight:700;font-size:.92rem;color:var(--text);white-space:nowrap}
+.ftab[aria-selected="true"]{background:var(--ink);border-color:var(--ink);color:var(--on-ink)}
+.figopts{margin-inline:-16px}
+.fstrip{display:flex;gap:10px;overflow-x:auto;padding:4px 16px 10px;scroll-snap-type:x proximity;scroll-padding-inline:16px;-webkit-overflow-scrolling:touch}
+.ftile{flex:none;scroll-snap-align:start;width:84px;display:grid;justify-items:center;align-content:start;gap:4px;padding:8px 6px 6px;border-radius:16px;border:2px solid var(--line);background:var(--sheet);color:var(--text);position:relative}
+.ftile[aria-pressed="true"]{border-color:var(--ink);box-shadow:0 0 0 2px var(--ink) inset}
+.ftile.locked{opacity:.6}
+.fprev{width:66px;height:66px;display:block;border-radius:12px;background:linear-gradient(180deg,#07080d 0%,#151c31 100%);overflow:hidden}
+.fprev svg{width:100%;height:100%;display:block}
+.fsw{width:56px;height:56px;border-radius:50%;background:var(--c);border:2px solid var(--line);display:block}
+.flbl{font-size:.74rem;font-weight:700;line-height:1.15;text-align:center;color:var(--muted)}
+.ftile[aria-pressed="true"] .flbl{color:var(--text)}
+.flock{position:absolute;top:8px;left:8px;right:8px;height:66px;display:grid;place-items:center;align-content:center;gap:2px;border-radius:12px;background:rgba(7,8,13,.6);color:#fde100;font-size:.68rem;font-weight:800}
+.flock svg{width:18px;height:18px;fill:currentColor}
+.fbig{width:56px;height:56px;display:grid;place-items:center;font:800 1.5rem var(--f-clock)}
+.fnum{flex:none;display:flex;align-items:center;gap:8px;padding-right:6px}
+.fnum input{width:3.4em;text-align:center;padding:10px 6px;border-radius:12px;border:1.5px solid var(--line);background:var(--sheet);color:var(--text);font:800 1.4rem var(--f-clock)}
+.fnum .btn{width:48px;height:48px;padding:0;font-size:1.4rem}
+.figfoot:empty{display:none}
+
+/* Startseite: große Stadt mit dezentem Text darauf */
+.citycard{padding-top:0}
+.cityhero{position:relative;margin:0 -16px}
+.cityhero .city{margin:0}
+.cityover{position:absolute;top:12px;left:16px;right:16px;display:flex;align-items:center;gap:10px;pointer-events:none;text-shadow:0 1px 6px rgba(0,0,0,.6)}
+.cityover .bulbwrap{width:46px;height:46px}
+.cityover .citytext{gap:1px}
+.cityover .citytitle{font-size:1.02rem}
+.cityover .citysub{font-size:.8rem;color:#c3cbe0}
+.cityover .citysub b{color:#fde100;font-family:var(--f-clock);font-weight:600}
+.cityover .citymile{font-size:.76rem;color:#8f99b3}
+.player.addp{border-style:dashed;color:var(--muted)}
+.player .ini.plus{display:grid;place-items:center;font:800 1.5rem var(--f-hand);color:var(--muted);background:var(--band)}
+@media (max-width:480px){ .cityover .bulbwrap{width:40px;height:40px} }
+
+/* Üben auf dem Handy: alles ohne Scrollen erreichbar */
+.playbar{flex-wrap:nowrap}
+.playbar .dots{flex:1 1 0;min-width:0;overflow:hidden;max-height:36px}
+.quit{padding:5px 11px;font-size:.84rem;white-space:nowrap;flex:none}
+.count{flex:none;font-size:.82rem}
+.pad .padstop{background:var(--ink);border-color:var(--ink);color:var(--on-ink);font-family:var(--f-hand);font-weight:800;font-size:1.15rem}
+@media (max-width:560px){
+  .sheet{min-height:clamp(150px,26vh,250px);margin-top:12px}
+  .sheet.math{min-height:clamp(140px,22vh,220px)}
+  .cue{margin-top:8px}
+  .clockrow{margin-top:8px}
+  .clock{font-size:clamp(2.6rem,12vw,4.6rem)}
+  .pad{gap:7px;margin-top:10px}
+  .pad button{padding:9px 0;font-size:1.45rem;border-radius:12px}
+  .stop,.decide{margin-top:12px}
+  .stop,.dbtn{height:58px}
+  .stop{padding:0}
+}
 </style>
 </head>
 <body>
@@ -578,7 +642,7 @@ h2,h3{margin:0}
   <div class="block">
     <h2 class="label">Wer übt?</h2>
     <div class="players" id="players"></div>
-    <button class="linkbtn" id="editNames" type="button">Namen ändern</button>
+    <button class="linkbtn" id="editFig" type="button">Name und Figur ändern</button>
     <form class="names" id="nameForm" hidden></form>
   </div>
 
@@ -640,7 +704,7 @@ h2,h3{margin:0}
 <section id="screen-play" hidden>
   <div class="playbar">
     <span class="who" id="playWho"></span>
-    <span class="sparkchip" id="sparkChip" title="Funken in dieser Runde"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5 2 L5 13.5 h6 L9.5 22 L19 9.8 h-6.2 Z"/></svg><b id="sparkNum">0</b></span>
+    <span class="sparkchip" id="sparkChip" title="Sterne in dieser Runde"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.6l2.85 5.95 6.55.8-4.85 4.5 1.3 6.5L12 17.1l-5.85 3.25 1.3-6.5L2.6 9.35l6.55-.8z"/></svg><b id="sparkNum">0</b></span>
     <div class="dots" id="dots"></div>
     <span class="count" id="playCount"></span>
     <button class="quit" id="quitBtn" type="button">Beenden</button>
@@ -657,7 +721,7 @@ h2,h3{margin:0}
     <button type="button" data-k="1">1</button><button type="button" data-k="2">2</button><button type="button" data-k="3">3</button>
     <button type="button" data-k="4">4</button><button type="button" data-k="5">5</button><button type="button" data-k="6">6</button>
     <button type="button" data-k="7">7</button><button type="button" data-k="8">8</button><button type="button" data-k="9">9</button>
-    <button type="button" class="del" data-k="del">Löschen</button><button type="button" data-k="0">0</button><span></span>
+    <button type="button" class="del" data-k="del">Löschen</button><button type="button" data-k="0">0</button><button type="button" class="padstop" data-k="stop">Stopp</button>
   </div>
   <button class="stop" id="stopBtn" type="button" disabled>Stopp <kbd>Leertaste</kbd></button>
   <div class="decide" id="decide" hidden></div>
@@ -686,12 +750,14 @@ h2,h3{margin:0}
 </section>
 
 <section id="screen-figure" hidden>
-  <div class="phead"><button class="btn primary" id="figBack" type="button">Fertig</button></div>
-  <h2 class="done-title" id="figTitle"></h2>
-  <div class="figgrid">
-    <button class="figpreview" id="figPreview" type="button" aria-label="Figur jubeln lassen"></button>
-    <div class="figopts" id="figOpts"></div>
+  <div class="fighead">
+    <label class="figname" for="figName"><span>Name</span><input id="figName" maxlength="16" autocomplete="off"></label>
+    <button class="btn primary" id="figBack" type="button">Fertig</button>
   </div>
+  <button class="figpreview" id="figPreview" type="button" aria-label="Figur jubeln lassen"></button>
+  <div class="figtabs" id="figTabs" role="tablist" aria-label="Was ändern"></div>
+  <div class="figopts" id="figOpts"></div>
+  <div class="figfoot" id="figFoot"></div>
 </section>
 
 <section id="screen-game" hidden>
@@ -1212,7 +1278,7 @@ function demoLog(){
 
 /* =====================================================================
    FUNKEN, BÄLLE UND DIE DORTMUNDER LEUCHTSTADT
-   Jede richtige Aufgabe bringt Funken. Funken füllen die Birne.
+   Jede richtige Aufgabe bringt Sterne. Sterne füllen die Birne mit Licht.
    Ist sie voll, geht in der Stadt des Kindes ein neues Licht an.
    Jede geschaffte Runde bringt einen Ball, drei Bälle sind ein Dribbling.
    ===================================================================== */
@@ -1223,7 +1289,7 @@ var SPARK_RULES = [
   ['Runde geschafft', 3], ['Neue Bestzeit', 5], ['Alles richtig', 2], ['Erste Runde am Tag', 2], ['Lesecheck geschafft', 5]
 ];
 // Rechenstufen 1 bis 11: Plus bis 10, Plus/Minus bis 10, bis 20, bis 100, Einmaleins, Geteilt, Gemischt, gezielt bis 10, Zehnerübergang, über die 20, Schwächen
-var MATH_SPARK = [1, 1, 2, 3, 2, 3, 3, 1, 2, 3, 2, 2, 3];
+var MATH_SPARK = [1, 1, 2, 3, 2, 3, 3, 1, 2, 3, 2, 2, 3, 3];
 var FREE_SPARK = {w1: 1, w2: 2, s1: 3, s2: 5};
 function sparkValue(g, t){
   if (t.kind === 'math') return MATH_SPARK[(g.level || 1) - 1] || 1;
@@ -1314,7 +1380,8 @@ function unlockedBetween(prevLit, lit){
 }
 
 var C = {bld:'#131a2e', bld2:'#0f1526', off:'#232c47', dim:'#3a4462', win:'#ffd84a', yel:'#fde100', street:'#090c16'};
-function citySVG(lit, prevLit, av, cheer){
+function citySVG(lit, prevLit, av, cheer, opt){
+  opt = opt || {};
   if (prevLit == null) prevLit = lit;
   var id = 'c' + (++SVGID), G = CITY.G, out = [];
   var on = {}, fresh = {};
@@ -1323,7 +1390,7 @@ function citySVG(lit, prevLit, av, cheer){
   CITY.slots.forEach(function(s, i){ if (s.k !== 'win') { L[s.k] = !!on[i]; F[s.k] = !!fresh[i]; } });
   var fc = function(k){ return F[k] ? ' fresh' : ''; };
   var glow = ' filter="url(#' + id + 'g)"';
-  out.push('<svg viewBox="0 0 400 180" role="img" aria-label="Leuchtstadt Dortmund mit ' + Math.min(lit, CITY.slots.length) + ' von ' + CITY.slots.length + ' Lichtern">');
+  out.push('<svg viewBox="' + (opt.sky ? '0 -58 400 238' : '0 0 400 180') + '" role="img" aria-label="Leuchtstadt Dortmund mit ' + Math.min(lit, CITY.slots.length) + ' von ' + CITY.slots.length + ' Lichtern">');
   out.push('<defs><filter id="' + id + 'g" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="1.8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>' +
            '<linearGradient id="' + id + 'b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff2a8" stop-opacity=".6"/><stop offset="1" stop-color="#fff2a8" stop-opacity="0"/></linearGradient>' +
            '<clipPath id="' + id + 'k"><rect x="8" y="76" width="36" height="16"/></clipPath></defs>');
@@ -1413,7 +1480,7 @@ function citySVG(lit, prevLit, av, cheer){
   });
   out.push(lp + '</g>');
   // Figur
-  if (av) out.push(avatarSVG(av, {pose: cheer ? 'cheer' : 'stand', box: [176, 134, 24, 34]}));
+  if (av) out.push(avatarSVG(av, {pose: cheer ? 'cheer' : 'stand', box: [173, 128, 28, 40]}));
   // Mannschaftsbus
   if (L.bus) out.push('<g class="bus' + fc('bus') + '"><rect x="0" y="152" width="46" height="13" rx="3" fill="' + C.yel + '"/><rect x="0" y="160" width="46" height="2.4" fill="#1b1b1f"/>' +
     [4, 12, 20, 28, 36].map(function(x){ return '<rect x="' + x + '" y="154" width="6" height="4" rx=".8" fill="#fff6c8"/>'; }).join('') +
@@ -1457,15 +1524,15 @@ function ballRowHTML(pid){
 function cityCardHTML(p){
   var total = sparksOf(p.id), lv = levelInfo(total), lit = lv.level, nm = nextMilestone(lit);
   var litTxt = lit === 0 ? 'Noch ist alles dunkel. Das erste Licht wartet!' : (Math.min(lit, CITY.slots.length) === 1 ? '1 Licht leuchtet' : Math.min(lit, CITY.slots.length) + ' Lichter leuchten') + (lit > CITY.slots.length ? ' und ' + (lit - CITY.slots.length) + ' neue Sterne' : '');
-  return '<div class="citytop"><div class="bulbwrap" id="cityBulb">' + bulbSVG(lv.frac) + '</div><div class="citytext">' +
+  var nLit = Math.min(lit, CITY.slots.length);
+  return '<div class="cityhero"><div class="city">' + citySVG(lit, null, avOf(p.id), false, {sky: true}) + '</div>' +
+    '<div class="cityover"><div class="bulbwrap" id="cityBulb">' + bulbSVG(lv.frac) + '</div><div class="citytext">' +
     '<div class="citytitle">Leuchtstadt von ' + esc(p.name) + '</div>' +
-    '<div class="citysub">' + litTxt + '</div>' +
-    '<div class="citynext"><b>' + (lv.need - lv.into) + '</b> Funken bis zum nächsten Licht</div>' +
+    '<div class="citysub"><b>' + (lv.need - lv.into) + '</b> Sterne bis zum nächsten Licht' + (nLit ? ' · ' + (nLit === 1 ? '1 Licht' : nLit + ' Lichter') : '') + '</div>' +
     (nm ? '<div class="citymile">Als Nächstes: ' + esc(nm.name) + ' in ' + (nm.inN === 1 ? '1 Licht' : nm.inN + ' Lichtern') + '</div>' : '') +
-    '</div><button class="figbtn" type="button" data-act="figure" aria-label="Figur gestalten">' + avatarSVG(avOf(p.id), {view: 'head'}) + '<span>Figur</span></button></div>' +
-    '<div class="city">' + citySVG(lit, null, avOf(p.id)) + '</div>' + ballRowHTML(p.id) +
-    '<details class="cityhow"><summary>So gibt es Funken und Bälle</summary><ul>' + SPARK_RULES.map(function(r){ return '<li><span>' + esc(r[0]) + '</span><b>+' + r[1] + '</b></li>'; }).join('') + '</ul>' +
-    '<p>Im Lesecheck zählt jedes gelesene Wort, auch wenn es noch hakt. Jede geschaffte Runde bringt einen Ball, mit drei Bällen gibt es ein Spiel: Dribbling oder Kopfball. Bisher gesammelt: <b>' + total + '</b> Funken.</p></details>';
+    '</div></div></div>' + ballRowHTML(p.id) +
+    '<details class="cityhow"><summary>So gibt es Sterne und Bälle</summary><ul>' + SPARK_RULES.map(function(r){ return '<li><span>' + esc(r[0]) + '</span><b>+' + r[1] + '</b></li>'; }).join('') + '</ul>' +
+    '<p>Im Lesecheck zählt jedes gelesene Wort, auch wenn es noch hakt. Jede geschaffte Runde bringt einen Ball, mit drei Bällen gibt es ein Spiel: Dribbling oder Kopfball. Bisher gesammelt: <b>' + total + '</b> Sterne.</p></details>';
 }
 
 /* =====================================================================
@@ -1508,7 +1575,7 @@ function avatarSVG(o, opt){
   var cheer = opt.pose === 'cheer', head = opt.view === 'head';
   var p = [];
   var attrs = opt.box ? ' x="' + opt.box[0] + '" y="' + opt.box[1] + '" width="' + opt.box[2] + '" height="' + opt.box[3] + '"' : '';
-  p.push('<svg xmlns="http://www.w3.org/2000/svg"' + attrs + ' class="avatar' + (cheer ? ' cheer' : '') + '" viewBox="' + (head ? '14 0 92 92' : '0 0 120 170') + '" aria-hidden="true">');
+  p.push('<svg xmlns="http://www.w3.org/2000/svg"' + attrs + ' class="avatar' + (cheer ? ' cheer' : '') + '" viewBox="' + (head ? '14 0 92 92' : opt.view === 'torso' ? '20 70 80 80' : '0 0 120 170') + '" aria-hidden="true">');
   // Haare hinten
   if (o.hair === 'lang') p.push('<path d="M27 46 Q22 96 40 98 L80 98 Q98 96 93 46 Z" fill="' + hc + '"/>');
   if (o.hair === 'zopf') p.push('<g transform="rotate(25 94 46)"><ellipse cx="96" cy="58" rx="8" ry="17" fill="' + hc + '"/></g><circle cx="90" cy="40" r="4" fill="' + k1 + '"/>');
@@ -1598,9 +1665,10 @@ var MATH_GOAL = [
   {lv:10, name:'Über die 20',           hint:'Der gleiche Übergang eine Etage höher, zum Beispiel 17 + 5 oder 23 − 6. Zeigt, ob der Zehnerübergang schon übertragen wird.'},
   {lv:12, name:'Einmaleins gezielt',    hint:'Alle 100 Aufgaben von 1 · 1 bis 10 · 10, auch die Tauschaufgaben einzeln. Erst kommt jede einmal dran, danach die langsamen öfter. Die Einmaleins Tafel zeigt die Zeiten.'},
   {lv:11, name:'Schwächen trainieren',  hint:'Nimmt die Aufgaben, die laut Rechenprofil gerade am meisten haken, aus allen Bereichen. Dazwischen ein paar sichere zur Wiederholung.'},
+  {lv:14, name:'Plus und Minus bis 500', adult:true, hint:'Gemischte Aufgaben bis 500, immer mit Zehnerübergang und oft auch mit Hunderterübergang, zum Beispiel 287 + 46 oder 413 − 58. Keine glatten Zehner und keine Mini Zahlen.'},
   {lv:13, name:'Großes Einmaleins',     adult:true, hint:'Alle 145 Aufgaben von 11 · 2 bis 20 · 20. Erst kommt jede einmal dran, danach die langsamen und falschen öfter. Die große Tafel zeigt, wie lange jede gedauert hat.'}
 ];
-var KID_GOALS = [8, 9, 10, 12, 11], ADULT_GOALS = [13, 11];
+var KID_GOALS = [8, 9, 10, 12, 11], ADULT_GOALS = [13, 14, 11];
 function goalInfo(lv){ return MATH_GOAL.filter(function(x){ return x.lv === lv; })[0] || null; }
 function isAdult(p){ return !!(p && p.adult); }
 function famOf(a, op, b){
@@ -1698,6 +1766,26 @@ function smartQueue(lv, n, pid){
   }).sort(function(x, y){ return y.s - x.s; });
   var main = Math.ceil(n * 0.8), pick1 = scored.slice(0, main), rest = shuffle(scored.slice(main)).slice(0, n - main);
   return shuffle(pick1.concat(rest)).slice(0, n).map(function(x){ return factTask(x.f); });
+}
+function gen500(){
+  var a, b, c, i, both = Math.random() < 0.6;
+  if (Math.random() < 0.5) {
+    for (i = 0; i < 400; i++) {
+      a = rnd(23, 470); b = rnd(13, Math.min(260, 500 - a));
+      if (a % 10 === 0 || b % 10 === 0 || a + b > 500) continue;
+      if (a % 10 + b % 10 < 10) continue;
+      if (both && Math.floor(a % 100 / 10) + Math.floor(b % 100 / 10) + 1 < 10) continue;
+      return mk(a, '+', b);
+    }
+    return mk(287, '+', 46);
+  }
+  for (i = 0; i < 400; i++) {
+    c = rnd(60, 500); b = rnd(13, Math.min(260, c - 11));
+    if (b % 10 === 0 || c % 10 >= b % 10) continue;
+    if (both && Math.floor(c % 100 / 10) - 1 >= Math.floor(b % 100 / 10)) continue;
+    return mk(c, '−', b);
+  }
+  return mk(413, '−', 58);
 }
 function coverage(pid, lv){
   var log = S.mathLog[pid] || {}, all = factsFor(lv), done = all.filter(function(f){ return log[f[0] + f[1] + f[2]]; }).length;
@@ -1848,11 +1936,12 @@ var MATH = [
   {name:'Über die 20', goal:true, gen:function(){ var f = pick(factsFor(10)); return mk(f[0], f[1], f[2]); }},
   {name:'Schwächen trainieren', goal:true, gen:function(){ var f = pick(factsFor(9)); return mk(f[0], f[1], f[2]); }},
   {name:'Einmaleins gezielt', goal:true, gen:function(){ var f = pick(factsFor(12)); return mk(f[0], f[1], f[2]); }},
-  {name:'Großes Einmaleins', goal:true, adult:true, gen:function(){ return factTask(pick(factsFor(13))); }}
+  {name:'Großes Einmaleins', goal:true, adult:true, gen:function(){ return factTask(pick(factsFor(13))); }},
+  {name:'Plus und Minus bis 500', goal:true, adult:true, gen:function(){ return gen500(); }}
 ];
 function levelKey(){ return isAdult(curPlayer()) ? 'adult' : S.mode; }
 function makeMathQueue(level, n, pid){
-  if (level >= 8 && pid) return smartQueue(level, n, pid);
+  if (pid && (level === 11 || factsFor(level).length)) return smartQueue(level, n, pid);
   var L = MATH[level - 1], out = [], seen = {};
   for (var i = 0; i < n; i++) {
     var t, tries = 0;
@@ -2074,11 +2163,11 @@ function renderStart(){
   $('#modes [data-mode=read]').hidden = adult;
   if (isRead && !READ_SUBS.some(function(s){ return s.id === lv; })) lv = S.level.read = 'check';
   $('#cityCard').innerHTML = cityCardHTML(p);
-  $('#resetHint').textContent = 'Gilt nur für ' + p.name + ' und nur auf diesem Gerät. „Stadt dunkel“ setzt die Funken auf null. „Alles löschen“ entfernt zusätzlich Runden, Bestzeiten und Leseprofil.';
+  $('#resetHint').textContent = 'Gilt nur für ' + p.name + ' und nur auf diesem Gerät. „Stadt dunkel“ setzt die Sterne auf null. „Alles löschen“ entfernt zusätzlich Runden, Bestzeiten und Leseprofil.';
   $('#players').innerHTML = S.players.map(function(pl){
     var h = (S.history[pl.id] || []).length;
     return '<button class="player" type="button" data-id="' + pl.id + '" aria-pressed="' + (pl.id === S.current) + '"><span class="ini">' + avatarSVG(avOf(pl.id), {view: 'head'}) + '</span><span><span class="pname">' + esc(pl.name) + '</span><span class="psub">' + (pl.adult ? 'Profi · ' : '') + (h === 1 ? '1 Runde' : h + ' Runden') + '</span></span></button>';
-  }).join('');
+  }).join('') + (S.players.some(function(pl){ return pl.adult; }) ? '' : '<button class="player addp" type="button" data-add="adult"><span class="ini plus">+</span><span><span class="pname">Erwachsene</span><span class="psub">Profimodus</span></span></button>');
   $$('#modes .mode').forEach(function(b){ b.setAttribute('aria-pressed', b.dataset.mode === S.mode); });
 
   if (!isRead) {
@@ -2100,7 +2189,7 @@ function renderStart(){
   var hint = $('#subHint'), gi = !isRead ? goalInfo(lv) : null;
   hint.hidden = !(isRead || gi);
   if (isRead) hint.textContent = subInfo(lv).hint;
-  else if (gi) { var cv = lv !== 11 ? coverage(p.id, lv) : null; hint.textContent = gi.hint + (cv ? ' Schon gerechnet: ' + cv.done + ' von ' + cv.all + '.' : ''); }
+  else if (gi) { var cv = factsFor(lv).length ? coverage(p.id, lv) : null; hint.textContent = gi.hint + (cv ? ' Schon gerechnet: ' + cv.done + ' von ' + cv.all + '.' : ''); }
 
   var prof = isRead ? readProfile(p.id) : null;
   $('#profMini').hidden = false;
@@ -2178,7 +2267,17 @@ function renderStart(){
   }
 }
 
-$('#players').addEventListener('click', function(e){ var b = e.target.closest('.player'); if (!b) return; S.current = b.dataset.id; save(); renderStart(); });
+$('#players').addEventListener('click', function(e){
+  var b = e.target.closest('.player'); if (!b) return;
+  if (b.dataset.add) {
+    var id = 'p' + (Date.now() % 100000);
+    S.players.push({id: id, name: 'Papa', adult: true}); S.current = id; S.mode = 'math'; save(); renderStart(); openFigure();
+    var inp = $('#figName'); if (inp) { inp.focus(); inp.select(); }
+    return;
+  }
+  S.current = b.dataset.id; save(); renderStart();
+});
+$('#editFig').addEventListener('click', function(){ openFigure(); });
 $('#modes').addEventListener('click', function(e){ var b = e.target.closest('.mode'); if (!b) return; S.mode = b.dataset.mode; save(); renderStart(); });
 $('#levels').addEventListener('click', function(e){
   var b = e.target.closest('.level'); if (!b) return;
@@ -2206,10 +2305,7 @@ function renderNameForm(blank){
     (S.players.some(function(pl){ return pl.adult; }) ? '' : '<button class="btn" type="button" id="addAdult">Erwachsene hinzufügen</button>') +
     '<p class="namehint">Erwachsene üben im Profimodus das große Einmaleins.</p>';
 }
-$('#editNames').addEventListener('click', function(){
-  var f = $('#nameForm'); f.hidden = !f.hidden;
-  if (!f.hidden) { renderNameForm(false); var i0 = $('#pn0'); if (i0) i0.focus(); }
-});
+
 $('#nameForm').addEventListener('click', function(e){
   var t = e.target;
   if (t.id === 'addAdult') {
@@ -2391,7 +2487,8 @@ function fillAnswer(str, cls){
     if (cls) c.classList.add(cls);
   });
 }
-function updatePad(){ var g = G; $('#pad').hidden = !(g && g.task && g.task.kind === 'math' && !g.voiceOn && !g.pending); }
+function syncStop(){ var g = G; $('#stopBtn').hidden = !!(g && (g.sub === 'flash' || !$('#pad').hidden || !$('#decide').hidden)); }
+function updatePad(){ var g = G; $('#pad').hidden = !(g && g.task && g.task.kind === 'math' && !g.voiceOn && !g.pending); syncStop(); }
 
 function startTask(){
   var g = G; g.task = g.queue[g.idx]; g.tries = 0; g.typed = ''; g.pending = null; g.marking = false;
@@ -2585,7 +2682,7 @@ function showFeedback(kind, msg, actions){
 }
 function hideFeedback(){
   var box = $('#decide'); box.hidden = true; box.innerHTML = '';
-  $('#stopBtn').hidden = !!(G && G.sub === 'flash');
+  syncStop();
   var c = $('#cue'); c.className = 'cue';
 }
 function logRead(g, r){
@@ -2623,6 +2720,7 @@ function commit(correct){
 function padPress(k){
   var g = G;
   if (!g || !g.timing || g.task.kind !== 'math' || g.voiceOn) return;
+  if (k === 'stop') return finish({method:'tap', correct:null});
   var ansStr = String(g.task.ans);
   if (k === 'del') { g.typed = g.typed.slice(0, -1); fillAnswer(g.typed); return; }
   if (g.typed.length >= ansStr.length) return;
@@ -2675,7 +2773,7 @@ function endRound(){
   $('#doneTitle').textContent = titleWord + name + '!';
   $('#doneSub').textContent = (g.mode === 'math' ? 'Rechnen · Stufe ' + g.level + ' · ' : 'Lesen · ') + levelName(g.mode, g.level);
   var star = '<path d="M12 2.6l2.85 5.95 6.55.8-4.85 4.5 1.3 6.5L12 17.1l-5.85 3.25 1.3-6.5L2.6 9.35l6.55-.8z"/>';
-  $('#stars').hidden = g.sub === 'check';
+  $('#stars').hidden = true;
   $('#stars').innerHTML = [0, 1, 2].map(function(i){ return '<svg viewBox="0 0 24 24" class="' + (i < stars ? 'on' : 'off') + '" aria-hidden="true">' + star + '</svg>'; }).join('');
   $('#stars').setAttribute('aria-label', stars + ' von 3 Sternen');
   if (isFlash) {
@@ -2735,8 +2833,8 @@ function renderSparkCard(g, bonus){
     bonus.map(function(b){ return '<span class="schip">' + esc(b[0]) + ' <b>+' + b[1] + '</b></span>'; }).join('');
   var up = after.level > before.level;
   var html = '<div class="sparkhead"><div class="bulbwrap" id="doneBulb">' + bulbSVG(before.frac) + '</div><div class="sparkinfo">' +
-    '<div class="sparkbig">+' + earned + ' Funken</div><div class="schips">' + chips + '</div>' +
-    '<div class="sparknote">Noch <b>' + (after.need - after.into) + '</b> Funken bis zum nächsten Licht</div></div></div>';
+    '<div class="sparkbig">+' + earned + (earned === 1 ? ' Stern' : ' Sterne') + '</div><div class="schips">' + chips + '</div>' +
+    '<div class="sparknote">Noch <b>' + (after.need - after.into) + '</b> Sterne bis zum nächsten Licht</div></div></div>';
   if (S.gameOn !== false) {
     var nb = ballsOf(g.player.id), icons = '';
     for (var i = 0; i < BALLS_NEEDED; i++) icons += ballIcon(i < nb);
@@ -2899,80 +2997,104 @@ if (window.__BLITZ_PWA && 'serviceWorker' in navigator && /^https?:$/.test(locat
 }
 
 /* =====================================================================
-   FIGURENBAUKASTEN
+   NAME UND FIGUR: Figur immer oben im Blick, Auswahl darunter zum Wischen
    ===================================================================== */
-var FIG_CHEER = false;
+var FIG_CHEER = false, FIG_TAB = 'hair';
+var FIG_TABS = [['hair', 'Frisur'], ['hairColor', 'Haarfarbe'], ['skin', 'Haut'], ['face', 'Gesicht'], ['kit1', 'Trikot'], ['kit2', 'Zweite Farbe'], ['pattern', 'Muster'], ['num', 'Nummer'], ['pants', 'Hose'], ['socks', 'Stutzen'], ['acc', 'Zubehör']];
 function figSet(pid, k, v){
   if (!S.avatars) S.avatars = {};
-  var a = avOf(pid);
-  a[k] = v;
+  var a = avOf(pid); a[k] = v;
   S.avatars[pid] = a; save();
 }
-function swatches(k, list, cur, label){
-  return '<div class="swrow">' + list.map(function(it, i){
-    var v = it[0], c = it[1];
-    return '<button type="button" class="sw" data-k="' + k + '" data-v="' + esc(v) + '" aria-pressed="' + (String(cur) === String(v)) + '" aria-label="' + esc(label + ' ' + it[2]) + '" style="--c:' + c + '"></button>';
-  }).join('') + '</div>';
+function tile(attrs, inner, label, pressed, extra){
+  return '<button type="button" class="ftile' + (extra || '') + '" ' + attrs + ' aria-pressed="' + !!pressed + '">' + inner + (label ? '<span class="flbl">' + label + '</span>' : '') + '</button>';
 }
-function chips(k, list, cur){
-  return '<div class="chiprow">' + list.map(function(it){
-    return '<button type="button" class="chip2" data-k="' + k + '" data-v="' + esc(it[0]) + '" aria-pressed="' + (cur === it[0]) + '">' + esc(it[1]) + '</button>';
-  }).join('') + '</div>';
+function swatchTiles(k, list, cur){
+  return list.map(function(it){ return tile('data-k="' + k + '" data-v="' + esc(it[0]) + '" aria-label="' + esc(it[2]) + '"', '<span class="fsw" style="--c:' + it[1] + '"></span>', esc(it[2]), String(cur) === String(it[0])); }).join('');
 }
-function toggle(k, on, label){ return '<button type="button" class="chip2" data-k="' + k + '" data-v="toggle" aria-pressed="' + !!on + '">' + esc(label) + '</button>'; }
-function renderFigure(){
-  var p = curPlayer(), a = avOf(p.id), lit = levelInfo(sparksOf(p.id)).level;
-  $('#figTitle').textContent = 'Figur von ' + p.name;
-  $('#figPreview').innerHTML = avatarSVG(a, {pose: FIG_CHEER ? 'cheer' : 'stand'}) + '<span class="fighint">Antippen zum Jubeln</span>';
+function renderFigTabs(){
+  $('#figTabs').innerHTML = FIG_TABS.map(function(t){ return '<button type="button" role="tab" class="ftab" data-tab="' + t[0] + '" aria-selected="' + (t[0] === FIG_TAB) + '">' + t[1] + '</button>'; }).join('');
+}
+function renderFigOpts(){
+  var p = curPlayer(), a = avOf(p.id), lit = levelInfo(sparksOf(p.id)).level, html = '';
   var kitList = AV_LABEL.kit.map(function(k){ return [k[0], AV.kit[k[0]], k[1]]; });
-  var html = '';
-  html += '<div class="figgroup"><h3>Gesicht</h3>' +
-    '<span class="figlbl">Hautfarbe</span>' + swatches('skin', AV.skin.map(function(c, i){ return [i, c, String(i + 1)]; }), a.skin, 'Hautfarbe') +
-    '<span class="figlbl">Frisur</span>' + chips('hair', AV_LABEL.hair, a.hair) +
-    '<span class="figlbl">Haarfarbe</span>' + swatches('hairColor', AV_LABEL.hairColor.map(function(h){ return [h[0], AV.hairC[h[0]], h[1]]; }), a.hairColor, 'Haarfarbe') +
-    '<div class="chiprow">' + toggle('freckles', a.freckles, 'Sommersprossen') + toggle('glasses', a.glasses, 'Brille') + '</div></div>';
-  html += '<div class="figgroup"><h3>Trikot</h3>' +
-    '<span class="figlbl">Hauptfarbe</span>' + swatches('kit1', kitList, a.kit1, 'Hauptfarbe') +
-    '<span class="figlbl">Zweite Farbe</span>' + swatches('kit2', kitList, a.kit2, 'Zweite Farbe') +
-    '<span class="figlbl">Muster</span>' + chips('pattern', AV_LABEL.pattern, a.pattern) +
-    '<span class="figlbl">Rückennummer</span><div class="numrow"><button type="button" class="btn" data-num="-1" aria-label="Nummer kleiner">−</button><input id="figNum" inputmode="numeric" maxlength="2" value="' + esc(a.num) + '" aria-label="Rückennummer"><button type="button" class="btn" data-num="1" aria-label="Nummer größer">+</button></div>' +
-    '<span class="figlbl">Hose</span>' + swatches('pants', kitList, a.pants, 'Hose') +
-    '<span class="figlbl">Stutzen</span>' + swatches('socks', kitList, a.socks, 'Stutzen') + '</div>';
-  html += '<div class="figgroup"><h3>Zubehör</h3><p class="figsub">Wird mit den Lichtern der Leuchtstadt freigeschaltet.</p><div class="chiprow">' +
-    ACCESSORIES.map(function(x){
+  var head = function(over){ return '<span class="fprev">' + avatarSVG(Object.assign({}, a, over), {view: 'head'}) + '</span>'; };
+  var torso = function(over){ return '<span class="fprev">' + avatarSVG(Object.assign({}, a, over), {view: 'torso'}) + '</span>'; };
+  switch (FIG_TAB) {
+    case 'hair': html = AV_LABEL.hair.map(function(h){ return tile('data-k="hair" data-v="' + h[0] + '"', head({hair: h[0], head: ''}), h[1], a.hair === h[0]); }).join(''); break;
+    case 'hairColor': html = swatchTiles('hairColor', AV_LABEL.hairColor.map(function(h){ return [h[0], AV.hairC[h[0]], h[1]]; }), a.hairColor); break;
+    case 'skin': html = AV.skin.map(function(c, i){ return tile('data-k="skin" data-v="' + i + '" aria-label="Hautfarbe ' + (i + 1) + '"', head({skin: i}), '', a.skin === i); }).join(''); break;
+    case 'face': html = tile('data-k="freckles" data-v="toggle"', head({freckles: !a.freckles}), 'Sommersprossen', a.freckles) + tile('data-k="glasses" data-v="toggle"', head({glasses: !a.glasses, sonne: false}), 'Brille', a.glasses); break;
+    case 'kit1': html = swatchTiles('kit1', kitList, a.kit1); break;
+    case 'kit2': html = swatchTiles('kit2', kitList, a.kit2); break;
+    case 'pattern': html = AV_LABEL.pattern.map(function(pt){ return tile('data-k="pattern" data-v="' + pt[0] + '"', torso({pattern: pt[0], schal: false}), pt[1], a.pattern === pt[0]); }).join(''); break;
+    case 'num': html = '<div class="fnum"><button type="button" class="btn" data-num="-1" aria-label="Nummer kleiner">−</button><input id="figNum" inputmode="numeric" maxlength="2" value="' + esc(a.num) + '" aria-label="Rückennummer"><button type="button" class="btn" data-num="1" aria-label="Nummer größer">+</button></div>' +
+      [7, 9, 10, 11, 13, 17, 23].map(function(n){ return tile('data-k="num" data-v="' + n + '"', '<span class="fbig">' + n + '</span>', '', String(a.num) === String(n)); }).join(''); break;
+    case 'pants': html = swatchTiles('pants', kitList, a.pants); break;
+    case 'socks': html = swatchTiles('socks', kitList, a.socks); break;
+    case 'acc': html = ACCESSORIES.map(function(x){
       var open = lit >= x.at, onNow = x.head ? a.head === x.k : !!a[x.k];
-      return '<button type="button" class="chip2' + (open ? '' : ' locked') + '" data-acc="' + x.k + '" aria-pressed="' + onNow + '"' + (open ? '' : ' disabled') + '>' +
-        (open ? '' : '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11 V8 a4 4 0 0 1 8 0 V11" fill="none" stroke="currentColor" stroke-width="2"/></svg>') +
-        esc(x.name) + (open ? '' : '<small>ab Licht ' + x.at + '</small>') + '</button>';
-    }).join('') + '</div></div>';
-  $('#figOpts').innerHTML = html;
+      var over = {}; if (x.head) over.head = x.k; else over[x.k] = true;
+      var prev = (x.k === 'binde' || x.k === 'pokal') ? '<span class="fprev">' + avatarSVG(Object.assign({}, a, over), {view: 'torso'}) + '</span>' : head(over);
+      return tile('data-acc="' + x.k + '"' + (open ? '' : ' disabled'), prev + (open ? '' : '<span class="flock"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11 V8 a4 4 0 0 1 8 0 V11" fill="none" stroke="currentColor" stroke-width="2"/></svg>ab Licht ' + x.at + '</span>'), esc(x.name), onNow, open ? '' : ' locked');
+    }).join(''); break;
+  }
+  $('#figOpts').innerHTML = '<div class="fstrip">' + html + '</div>';
 }
-function openFigure(){ FIG_CHEER = false; renderFigure(); show('figure'); }
-$('#figPreview').addEventListener('click', function(){ FIG_CHEER = !FIG_CHEER; renderFigure(); });
+function renderFigure(keepScroll){
+  var p = curPlayer(), a = avOf(p.id);
+  var strip = $('#figOpts .fstrip'), sx = keepScroll && strip ? strip.scrollLeft : 0;
+  $('#figName').value = p.name;
+  $('#figPreview').innerHTML = avatarSVG(a, {pose: FIG_CHEER ? 'cheer' : 'stand'}) + '<span class="fighint">Antippen zum Jubeln</span>';
+  renderFigTabs(); renderFigOpts();
+  var ns = $('#figOpts .fstrip'); if (ns) ns.scrollLeft = sx;
+  $('#figFoot').innerHTML = isAdult(p) ? '<button class="btn danger" type="button" id="figRemove">Profi entfernen</button>' : '';
+}
+function openFigure(){ FIG_CHEER = false; FIG_TAB = 'hair'; renderFigure(false); show('figure'); }
+$('#figPreview').addEventListener('click', function(){ FIG_CHEER = !FIG_CHEER; renderFigure(true); });
+$('#figTabs').addEventListener('click', function(e){
+  var b = e.target.closest('[data-tab]'); if (!b) return;
+  FIG_TAB = b.dataset.tab; renderFigTabs(); renderFigOpts();
+  b = $('#figTabs [aria-selected="true"]'); if (b && b.scrollIntoView) b.scrollIntoView({block: 'nearest', inline: 'center'});
+});
 $('#figOpts').addEventListener('click', function(e){
   var pid = curPlayer().id, a = avOf(pid), b;
   if ((b = e.target.closest('[data-num]'))) {
     var n = parseInt(a.num, 10); if (isNaN(n)) n = 0;
-    n = (n + parseInt(b.dataset.num, 10) + 100) % 100; figSet(pid, 'num', n); renderFigure(); return;
+    figSet(pid, 'num', (n + parseInt(b.dataset.num, 10) + 100) % 100); renderFigure(true); return;
   }
   if ((b = e.target.closest('[data-acc]'))) {
     if (b.disabled) return;
     var x = ACCESSORIES.filter(function(q){ return q.k === b.dataset.acc; })[0];
     if (x.head) figSet(pid, 'head', a.head === x.k ? '' : x.k); else figSet(pid, x.k, !a[x.k]);
-    renderFigure(); return;
+    renderFigure(true); return;
   }
   if ((b = e.target.closest('[data-k]'))) {
     var k = b.dataset.k, v = b.dataset.v;
-    if (v === 'toggle') v = !a[k]; else if (k === 'skin') v = +v;
-    figSet(pid, k, v); renderFigure();
+    if (v === 'toggle') v = !a[k]; else if (k === 'skin' || k === 'num') v = +v;
+    if (k === 'glasses' && v) figSet(pid, 'sonne', false);
+    figSet(pid, k, v); renderFigure(true);
   }
 });
 $('#figOpts').addEventListener('change', function(e){
   if (e.target.id !== 'figNum') return;
   var v = String(e.target.value).replace(/\D/g, '').slice(0, 2);
-  figSet(curPlayer().id, 'num', v === '' ? '' : +v); renderFigure();
+  figSet(curPlayer().id, 'num', v === '' ? '' : +v); renderFigure(true);
 });
-$('#figBack').addEventListener('click', function(){ show('start'); renderStart(); });
+$('#figName').addEventListener('change', function(e){
+  var p = curPlayer(), v = e.target.value.trim();
+  p.name = v || p.name; e.target.value = p.name; save();
+});
+$('#figFoot').addEventListener('click', function(e){
+  var b = e.target.closest('#figRemove'); if (!b) return;
+  if (!b.classList.contains('armed')) { b.classList.add('armed'); b.textContent = 'Wirklich entfernen?'; return; }
+  var p = curPlayer(); S.players = S.players.filter(function(q){ return q.id !== p.id; });
+  S.current = S.players[0].id; save(); show('start'); renderStart();
+});
+$('#figBack').addEventListener('click', function(){
+  var p = curPlayer(), v = $('#figName').value.trim(); if (v) { p.name = v; save(); }
+  show('start'); renderStart();
+});
 
 /* =====================================================================
    MINISPIELE: DRIBBLING UND KOPFBALL
@@ -3130,7 +3252,7 @@ function updateHeader(dt){
   else if (g.dir) g.hx += g.dir * speed * dt;
   g.hx = Math.max(G2.aw * 0.4, Math.min(w - G2.aw * 0.4, g.hx));
   var grav = h * 0.95;
-  if (g.score >= 8 && g.balls.filter(function(b){ return b.type === 'ball'; }).length < 2 && !g.second) { g.second = true; g.balls.push(newBall('ball')); }
+  if (g.score >= 8 && g.balls.length < 2 && g.t >= (g.nextSecond || 0) && g.state === 'run') { g.balls.push(newBall('ball')); g.pops.push({x: w / 2, y: h * 0.22, txt: 'Zweiter Ball!', t: 1.2}); }
   g.extraT -= dt;
   if (g.extraT <= 0 && g.state === 'run') {
     g.extras.push(g.t > 12 && Math.random() < 0.6 ? {type: 'red', x: G2.R + Math.random() * (w - 2 * G2.R), y: -30, vy: h * (0.3 + g.t / 400)} : {type: 'star', x: w * (0.15 + Math.random() * 0.7), y: -30, vy: h * 0.28});
@@ -3150,9 +3272,13 @@ function updateHeader(dt){
       b.cool = 0.25; g.score++; g.pops.push({x: b.x, y: b.y - G2.R, txt: '+1', t: 0.6}); SFX.spark(); renderHud();
       g.nod = 0.15;
     }
-    if (b.y - G2.R > h && g.state === 'run') {
-      loseHeart();
-      if (g.state === 'run') { var nb = newBall('ball'); b.x = nb.x; b.y = nb.y; b.vx = nb.vx; b.vy = nb.vy; b.wait = 0.8; }
+    if (b.y - G2.R > h && g.state === 'run' && !b.gone) {
+      var others = g.balls.filter(function(o){ return o !== b && !o.gone && o.wait <= 0; }).length;
+      if (others > 0) { b.gone = true; g.nextSecond = g.t + 6; }
+      else {
+        loseHeart();
+        if (g.state === 'run') { var nb = newBall('ball'); b.x = nb.x; b.y = nb.y; b.vx = nb.vx; b.vy = nb.vy; b.wait = 0.8; }
+      }
     }
   });
   g.extras.forEach(function(e){
@@ -3165,6 +3291,7 @@ function updateHeader(dt){
       else if (g.inv <= 0) loseHeart();
     }
   });
+  g.balls = g.balls.filter(function(b){ return !b.gone; });
   g.extras = g.extras.filter(function(e){ return !e.gone && e.y < h + 40; });
   g.pops.forEach(function(p){ p.t -= dt; p.y -= 50 * dt; });
   g.pops = g.pops.filter(function(p){ return p.t > 0; });
