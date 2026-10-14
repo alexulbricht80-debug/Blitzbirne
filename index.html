@@ -695,6 +695,58 @@ h2,h3{margin:0}
 
 .dots.many{gap:3px}
 .dots.many i{width:9px;height:9px;border-width:1.5px}
+
+/* Denkzeit und Spielzeit unter den Spielern */
+.timebar:empty{display:none}
+.timebar{margin-top:14px;display:flex;align-items:center;gap:12px 18px;flex-wrap:wrap;padding:12px 16px;border-radius:14px;background:var(--sheet);border:1px solid var(--line)}
+.tbmain{display:flex;align-items:center;gap:10px}
+.tbmain svg{width:34px;height:34px;flex:none}
+.tbmain .tbk{display:block;font-size:.78rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+.tbmain b{font-family:var(--f-hand);font-size:1.5rem;line-height:1.1}
+.tbside{display:grid;gap:2px;font-size:.84rem;color:var(--muted);flex:1;min-width:180px}
+.tbside b{color:var(--text)}
+
+/* Rechenblöcke */
+.blockpick{margin-top:12px}
+.blockpick .lvlabel{display:block;margin-bottom:6px}
+.bgrid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.btile{display:grid;justify-items:center;gap:1px;padding:8px 2px;border-radius:12px;border:1.5px solid var(--line);background:var(--sheet);color:var(--text)}
+.btile b{font-family:var(--f-hand);font-size:1.25rem;line-height:1}
+.btile span{font-size:.72rem;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.btile.done{border-color:var(--good)}
+.btile[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--on-ink)}
+.btile[aria-pressed="true"] span{color:var(--on-ink);opacity:.85}
+.btotal{margin-top:10px;font-size:.95rem}
+.btotal b{font-family:var(--f-clock)}
+.btotal small{display:block;color:var(--muted);font-size:.82rem}
+.rankbtn{margin-top:10px}
+.blockres{margin-top:4px;margin-bottom:14px;padding:16px;border-radius:16px;background:#16171b;color:#f1f1f1;border:2px solid #fde100;display:grid;gap:6px}
+.brtop{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.brl{font-family:var(--f-hand);font-weight:800;font-size:1.3rem;color:#fde100}
+.brt{font-family:var(--f-clock);font-size:2.2rem;font-weight:600;line-height:1}
+.brmeta{color:#b9bdc6;font-size:.9rem}
+.brbest{font-weight:800;color:#fde100}
+.brtot{font-size:.95rem}
+.brtot b{font-family:var(--f-clock);color:#fde100}
+.bractions{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+.blockres .btn{background:#22242b;color:#f1f1f1;border-color:#3a3d48}
+
+/* Rangliste */
+.rankhead{display:flex;align-items:center;gap:14px}
+.rankseg{margin-top:16px}
+.rankseg button{padding:6px 11px}
+#rankHead{margin-top:18px}
+.ranklist{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.ranklist li{display:grid;grid-template-columns:32px 1fr auto;grid-template-areas:"k n t" "k n e";align-items:center;column-gap:10px;padding:10px 14px;border-radius:12px;background:var(--sheet);border:1px solid var(--line)}
+.ranklist li.me{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.ranklist .rk{grid-area:k;font-family:var(--f-hand);font-weight:800;font-size:1.2rem;text-align:center}
+.ranklist li:nth-child(1) .rk{color:#b88a10}
+.ranklist .rn{grid-area:n;font-weight:700}
+.ranklist .rt{grid-area:t;font-family:var(--f-clock);font-weight:600;text-align:right}
+.ranklist .re{grid-area:e;font-size:.78rem;color:var(--muted);text-align:right}
+.rankjoin{margin-top:20px;display:grid;gap:8px;justify-items:start}
+.rankseg{border:0;background:none;padding:0;gap:6px;border-radius:0}
+.rankseg button{border:1.5px solid var(--line);background:var(--sheet);color:var(--text);min-width:40px;padding:7px 12px}
 </style>
 </head>
 <body>
@@ -710,6 +762,7 @@ h2,h3{margin:0}
     <h2 class="label">Wer übt?</h2>
     <div class="players" id="players"></div>
     <button class="linkbtn" id="editFig" type="button">Name und Figur ändern</button>
+    <div class="timebar" id="timeBar"></div>
     <form class="names" id="nameForm" hidden></form>
   </div>
 
@@ -734,6 +787,7 @@ h2,h3{margin:0}
     <div id="levels"></div>
     <p class="subhint" id="subHint" hidden></p>
     <div class="rowpick" id="rowPick" hidden></div>
+    <div class="blockpick" id="blockPick" hidden></div>
     <div class="profmini" id="profMini" hidden>
       <div><b>Leseprofil</b><span id="profMiniText"></span><div class="pills" id="profMiniPills"></div></div>
       <button class="btn" id="profOpen" type="button">Ansehen</button>
@@ -800,6 +854,7 @@ h2,h3{margin:0}
     <div><h2 class="done-title" id="doneTitle"></h2><p class="done-sub" id="doneSub"></p></div>
     <div class="stars" id="stars"></div>
   </div>
+  <div class="blockres" id="blockCard" hidden></div>
   <div class="sparkcard" id="sparkCard"></div>
   <div class="stats">
     <div class="stat"><div class="v" id="statAvg"></div><div class="k" id="statAvgK">Durchschnitt pro richtiger Aufgabe</div></div>
@@ -815,6 +870,14 @@ h2,h3{margin:0}
     <button class="btn" id="doneProfileBtn" type="button" hidden>Leseprofil ansehen</button>
     <button class="btn" id="homeBtn" type="button">Zum Start</button>
   </div>
+</section>
+
+<section id="screen-rank" hidden>
+  <div class="rankhead"><button class="btn" id="rankBack" type="button">Zurück</button><div><h2 class="done-title">Rangliste</h2><p class="done-sub">Großes Einmaleins · Rechenblöcke</p></div></div>
+  <div class="seg rankseg" id="rankTabs"></div>
+  <h3 class="label" id="rankHead"></h3>
+  <div id="rankList"></div>
+  <div class="rankjoin" id="rankJoin"></div>
 </section>
 
 <section id="screen-figure" hidden>
@@ -864,13 +927,16 @@ var $$ = function(s, el){ return Array.prototype.slice.call((el || document).que
 
 /* ---------- Speicher (nur in diesem Browser) ---------- */
 var KEY = 'blitzheft.v1';
+/* Rangliste online: Adresse der Web App (Google Tabelle). Leer heißt aus. */
+var RANK_URL = '';
+var RANK_BOARD = 'e2block';
 var DEFAULTS = {
   players: [{id:'p1', name:'Kind 1'}, {id:'p2', name:'Kind 2'}],
   current: 'p1', mode: 'math', level: {math: 1, read: 'check', adult: 13}, count: 5,
   input: 'voice', auto: true, code: 'Check', speak: true, syl: true, caps: false,
   retry: true, sound: true, history: {}, best: {},
   log: {}, flash: {}, lastCheck: {}, sparks: {}, sparkDay: {},
-  avatars: {}, balls: {}, gameBest: {}, headBest: {}, gameOn: true, mathLog: {}, play: {}, gameRec: {}, gameLevel: {}, mulRows: {}
+  avatars: {}, balls: {}, gameBest: {}, headBest: {}, gameOn: true, mathLog: {}, play: {}, gameRec: {}, gameLevel: {}, mulRows: {}, think: {}, playMs: {}, playN: {}, blocks: {}, blockSel: {}, recent: {}, rankPending: []
 };
 function clone(o){ return JSON.parse(JSON.stringify(o)); }
 function migrate(o){
@@ -879,11 +945,12 @@ function migrate(o){
   base.level = Object.assign({math: 1, read: 'check', adult: 13}, (o && o.level) || {});
   if (typeof base.level.read === 'number') base.level.read = ['w1', 'w2', 's1', 's2'][base.level.read - 1] || 'check';
   var hadSparks = o && o.sparks && typeof o.sparks === 'object';
-  ['history', 'best', 'log', 'flash', 'lastCheck', 'sparks', 'sparkDay', 'avatars', 'balls', 'gameBest', 'headBest', 'mathLog', 'play', 'gameRec', 'gameLevel', 'mulRows'].forEach(function(k){ if (!base[k] || typeof base[k] !== 'object') base[k] = {}; });
+  ['history', 'best', 'log', 'flash', 'lastCheck', 'sparks', 'sparkDay', 'avatars', 'balls', 'gameBest', 'headBest', 'mathLog', 'play', 'gameRec', 'gameLevel', 'mulRows', 'think', 'playMs', 'playN', 'blocks', 'blockSel', 'recent'].forEach(function(k){ if (!base[k] || typeof base[k] !== 'object') base[k] = {}; });
   if (!hadSparks) Object.keys(base.history).forEach(function(pid){
     base.sparks[pid] = (base.history[pid] || []).reduce(function(a, h){ return a + (h.ok || 0) + 3; }, 0);
   });
   if (!Array.isArray(base.players) || base.players.length < 2) base.players = clone(DEFAULTS.players);
+  if (!Array.isArray(base.rankPending)) base.rankPending = [];
   // einmalig: früherer Standard 10 Aufgaben wird zu 5
   if (!base.count5) { if (base.count === 10) base.count = 5; base.count5 = true; }
   return base;
@@ -1000,7 +1067,7 @@ var READ_FREE = {
   w2: {name:'Lange Wörter', type:'word', items:['Ba·na·ne','Fuß·ball#zus','Schu·le','E·le·fant','Gi·raf·fe','Scho·ko·la·de','Ka·nin·chen#nach','Dra·chen','Ap·fel·saft#zus','Ge·burts·tag#zus','Te·le·fon','Pi·rat','Kro·ko·dil','Schmet·ter·ling','Tor·wart#zus','Zau·be·rer','Fens·ter','Fahr·rad#zus','Kin·der·gar·ten#zus','Erd·bee·re#zus','Wol·ke','Pin·gu·in','Di·no·sau·ri·er','Ra·ke·te','Hub·schrau·ber#zus','Mar·me·la·de','Schnee·mann#zus','Spiel·platz#zus','Re·gen·bo·gen#zus','Feu·er·wehr#zus','Ta·schen·lam·pe#zus','Ku·schel·tier#zus']},
   s0: {name:'Ganz kurze Sätze', type:'sentence', items:['Der Hund bellt.','Ich mag Eis.','Die Kat·ze schläft.','{name} lacht laut.','Die Son·ne scheint.','Ich ha·be Durst.','Heu·te reg·net es.','Der Ball ist rot.','Das Tor ist groß.','Die En·te ist gelb.','O·ma singt.','Wir spie·len.','Das Eis ist kalt.','Der Bus kommt.','Pa·pa kocht.','Ich bin mü·de.','Der Mond ist rund.','{name} rennt.','Die Maus ist klein.','Das Ba·by weint.']},
   s1: {name:'Mittlere Sätze', type:'sentence', items:['Ma·ma liest ein Buch vor.','Am Mor·gen spielt {name} Fuß·ball#zus.','O·pa trägt ei·nen gro·ßen Hut.','Wir ge·hen heu·te in den Park.','Der Fisch schwimmt im blau·en Meer.','Das ro·te Au·to fährt schnell.','Der Bär isst gern sü·ßen Ho·nig.','Pa·pa kocht heu·te Nu·deln für uns.','Die Kat·ze liegt auf dem So·fa.','Der Ball fliegt ü·ber das Tor.','Ich trin·ke ein Glas Milch.','Die En·te schwimmt auf dem See.','Im Gar·ten wächst ein Ap·fel·baum#zus.','Der Vo·gel singt ein Lied.','Mei·ne Schwes·ter malt ein Bild.','Wir fah·ren mit dem Bus.','Der Hund holt den Stock.','Nach dem Es·sen spie·len wir.','Die Son·ne scheint am Him·mel.','{name} isst ein gro·ßes Eis.']},
-  s2: {name:'Lange Sätze', type:'sentence', items:['Der Tor·wart#zus hält den Ball ganz fest.','Im Som·mer ge·hen wir oft ins Frei·bad#zus.','Die Ra·ke·te fliegt bis zum Mond.','Am Wo·chen·en·de#zus spielt {name} mit Freun·den Fuß·ball#zus.','Der klei·ne Dra·che kann noch nicht flie·gen.','Nach der Schu·le gibt es Nu·deln mit So·ße.','Der Hund ver·steckt#vor sei·nen Kno·chen im Gar·ten.','Wenn es reg·net, zie·hen wir Gum·mi·stie·fel#zus an.','Die Feu·er·wehr#zus kommt mit Blau·licht#zus und Si·re·ne.','{name} baut im Win·ter ei·nen gro·ßen Schnee·mann#zus.','Der Pi·rat sucht auf der In·sel nach ei·nem Schatz.','Un·ser Zug fährt heu·te sehr früh los.']}
+  s2: {name:'Lange Sätze', type:'sentence', items:['Der Tor·wart#zus hält den Ball ganz fest.','Im Som·mer ge·hen wir oft ins Frei·bad#zus.','Die Ra·ke·te fliegt bis zum Mond.','Am Wo·chen·en·de#zus spielt {name} mit Freun·den Fuß·ball#zus.','Der klei·ne Dra·che kann noch nicht flie·gen.','Nach der Schu·le gibt es Nu·deln mit So·ße.','Der Hund ver·steckt#vor sei·nen Kno·chen im Gar·ten.','Wenn es reg·net, zie·hen wir Gum·mi·stie·fel#zus an.','Die Feu·er·wehr#zus kommt mit Blau·licht#zus und Si·re·ne.','{name} baut im Win·ter ei·nen gro·ßen Schnee·mann#zus.','Der Pi·rat sucht auf der In·sel nach ei·nem Schatz.','Un·ser Zug fährt heu·te sehr früh los.','Im Sta·di·on ju·beln al·le Fans ganz laut.','Der Tor·wart#zus springt und hält den Elf·me·ter#zus.','Nach dem Spiel trin·ken wir ei·nen war·men Ka·ka·o.','Mei·ne O·ma backt am Sonn·tag#zus ei·nen Ap·fel·ku·chen#zus.','Der klei·ne I·gel schläft im Win·ter un·ter dem Laub.','Auf dem Spiel·platz#zus rut·schen wir die lan·ge Rut·sche run·ter.','Pa·pa und {name} fah·ren mit dem Fahr·rad#zus zum See.','Am Him·mel zie·hen gro·ße dunk·le Wol·ken vor·bei.','Die Kat·ze klet·tert lei·se auf das ho·he Dach.','Im Zoo füt·tert der Wär·ter die hung·ri·gen Af·fen.','Der Bus hält di·rekt vor un·se·rer Schu·le.','Wir bau·en am Strand ei·ne rie·si·ge Sand·burg#zus.','Der Dra·chen steigt im Herbst hoch in den Him·mel.','Mein Freund bringt heu·te sei·nen neu·en Ball mit.','Die Feu·er·wehr#zus löscht das Feu·er mit viel Was·ser.','Im Wald hö·ren wir ei·nen Specht am Baum klop·fen.','Nach dem Ba·den sind mei·ne Haa·re ganz nass.','Der Schnee·mann#zus be·kommt#vor ei·ne Ka·rot·te als Na·se.','Am A·bend le·sen wir zu·sam·men ein span·nen·des Buch.','Die Bie·ne fliegt von Blü·te zu Blü·te.','Un·ser Hund bellt im·mer, wenn es klin·gelt.','Der Zug fährt durch ei·nen lan·gen, dunk·len Tun·nel.','Im Som·mer es·sen wir drau·ßen auf der Ter·ras·se.','{name} schießt den Ball mit Schwung ins o·be·re Eck.','Die Schild·krö·te#zus läuft sehr lang·sam ü·ber die Wie·se.','Beim Ein·kau·fen#vor le·gen wir Äp·fel in den Korb.','Der Pi·lot fliegt das gro·ße Flug·zeug#zus si·cher nach Hau·se.','Wenn die Son·ne scheint, ge·hen wir ins Schwimm·bad#zus.','Die Fans sin·gen und schwen·ken ih·re gel·ben Schals.','Auf dem Bau·ern·hof#zus le·ben Kü·he, Schwei·ne und Hüh·ner.','Mor·gens put·zen wir uns zu·erst die Zäh·ne.','Der Ast bricht, und der Vo·gel fliegt schnell weg.','Im Ka·len·der steht, dass bald Fe·ri·en sind.','Ein klei·ner Ma·ri·en·kä·fer#zus krab·belt auf mei·ner Hand.','Der Trai·ner pfeift, und das Trai·ning be·ginnt#vor.','A·bends leuch·ten die Ster·ne hell am Him·mel.']}
 };
 var TRAIN_SENT = READ_FREE.s0.items.concat(READ_FREE.s1.items, READ_FREE.s2.items, [
   'Die Schne·cke kriecht ü·ber den Stein.', 'Im Herbst fal·len die Blät·ter.', 'Der Fuchs schleicht durch den Wald.',
@@ -1223,12 +1290,16 @@ function trainQueue(player, n){
   return {items: out, focus: focus};
 }
 function flashQueue(n){ return shuffle(BANK.sight.slice()).slice(0, n).map(function(it){ return Object.assign({}, it, {flash: true}); }); }
-function freeQueue(sub, n, name){
-  var L = READ_FREE[sub], pool = [], out = [];
-  while (out.length < n) {
-    if (!pool.length) { pool = shuffle(L.items.slice()); if (out.length && pool[0] === out[out.length - 1].raw) pool.push(pool.shift()); }
-    out.push(buildItem(pool.shift(), L.type, sentenceName(name)));
-  }
+// Freies Lesen: erst alles zeigen, was länger nicht dran war, bevor sich etwas wiederholt
+function freeQueue(sub, n, name, pid){
+  var L = READ_FREE[sub], out = [];
+  if (!S.recent) S.recent = {};
+  var key = (pid || '') + '|' + sub, recent = (S.recent[key] || []).filter(function(r){ return L.items.indexOf(r) >= 0; });
+  var order = shuffle(L.items.filter(function(r){ return recent.indexOf(r) < 0; })).concat(recent);
+  for (var i = 0; out.length < n; i++) out.push(buildItem(order[i % order.length], L.type, sentenceName(name)));
+  var used = out.map(function(o){ return o.raw; });
+  recent = recent.filter(function(r){ return used.indexOf(r) < 0; }).concat(used);
+  S.recent[key] = recent.slice(-Math.max(0, L.items.length - n)); save();
   return out;
 }
 
@@ -1360,7 +1431,7 @@ var SPARK_RULES = [
   ['Runde geschafft', 3], ['Neue Bestzeit', 5], ['Alles richtig', 2], ['Erste Runde am Tag', 2], ['Lesecheck geschafft', 5]
 ];
 // Rechenstufen 1 bis 11: Plus bis 10, Plus/Minus bis 10, bis 20, bis 100, Einmaleins, Geteilt, Gemischt, gezielt bis 10, Zehnerübergang, über die 20, Schwächen
-var MATH_SPARK = [1, 1, 2, 3, 2, 3, 3, 1, 2, 3, 2, 2, 3, 3];
+var MATH_SPARK = [1, 1, 2, 3, 2, 3, 3, 1, 2, 3, 2, 2, 3, 3, 3];
 var FREE_SPARK = {w1: 1, w2: 2, s0: 2, s1: 3, s2: 5};
 function sparkValue(g, t){
   if (t.kind === 'math') return MATH_SPARK[(g.level || 1) - 1] || 1;
@@ -1764,9 +1835,10 @@ var MATH_GOAL = [
   {lv:12, name:'Einmaleins gezielt',    hint:'Alle 100 Aufgaben von 1 · 1 bis 10 · 10, auch die Tauschaufgaben einzeln. Erst kommt jede einmal dran, danach die langsamen öfter. Die Einmaleins Tafel zeigt die Zeiten.'},
   {lv:11, name:'Schwächen trainieren',  hint:'Nimmt die Aufgaben, die laut Rechenprofil gerade am meisten haken, aus allen Bereichen. Dazwischen ein paar sichere zur Wiederholung.'},
   {lv:14, name:'Plus und Minus bis 500', adult:true, hint:'Gemischte Aufgaben bis 500, immer mit Zehnerübergang und oft auch mit Hunderterübergang, zum Beispiel 287 + 46 oder 413 − 58. Keine glatten Zehner und keine Mini Zahlen.'},
+  {lv:15, name:'Rechenblöcke',          adult:true, hint:'Das große Einmaleins in zehn festen Blöcken A bis J mit je 14 oder 15 Aufgaben, jeder Block gleich schwer gemischt. Gezählt wird die reine Denkzeit, jeder Fehler gibt 3 Sekunden dazu. Wer alle zehn Blöcke geschafft hat, bekommt eine Gesamtzeit für das ganze große Einmaleins.'},
   {lv:13, name:'Großes Einmaleins',     adult:true, hint:'Alle 145 Aufgaben von 11 · 2 bis 20 · 20. Erst kommt jede einmal dran, danach die langsamen und falschen öfter. Die große Tafel zeigt, wie lange jede gedauert hat.'}
 ];
-var KID_GOALS = [8, 9, 10, 12, 11], ADULT_GOALS = [13, 14, 11];
+var KID_GOALS = [8, 9, 10, 12, 11], ADULT_GOALS = [13, 15, 14, 11];
 function goalInfo(lv){ return MATH_GOAL.filter(function(x){ return x.lv === lv; })[0] || null; }
 function isAdult(p){ return !!(p && p.adult); }
 function famOf(a, op, b){
@@ -1931,6 +2003,42 @@ function coverage(pid, lv){
   return {done: done, all: all.length};
 }
 
+/* ---------- Rechenblöcke: großes Einmaleins in zehn gemischten Blöcken A bis J ---------- */
+var BLOCK_N = 10, BLOCK_PENALTY = 3000, BLOCK_LV = 15;
+function blockLetter(k){ return String.fromCharCode(65 + k); }
+// Jede zehnte Aufgabe der geordneten Tafel: so bekommt jeder Block aus jeder Reihe etwas und alle sind gleich schwer
+function blockFacts(k){ return factsFor(13).filter(function(f, i){ return i % BLOCK_N === k; }); }
+function blocksOf(pid){ if (!S.blocks[pid]) S.blocks[pid] = {}; return S.blocks[pid]; }
+function blockSel(pid){
+  var s = S.blockSel && S.blockSel[pid]; if (s >= 0 && s < BLOCK_N) return s;
+  var b = blocksOf(pid); for (var k = 0; k < BLOCK_N; k++) if (!b[blockLetter(k)]) return k;
+  return 0;
+}
+function blockTotal(pid){
+  var b = blocksOf(pid), sum = 0, done = 0;
+  for (var k = 0; k < BLOCK_N; k++) { var e = b[blockLetter(k)]; if (e && e.best) { sum += e.best; done++; } }
+  return {done: done, part: sum, sum: done === BLOCK_N ? sum : null};
+}
+function fmtDur(ms){
+  var s = ms / 1000; if (s < 60) return s.toFixed(1).replace('.', ',') + ' s';
+  var m = Math.floor(s / 60), r = s - m * 60; return m + ':' + (r < 9.95 ? '0' : '') + r.toFixed(1).replace('.', ',');
+}
+function fmtLong(ms){
+  var s = Math.round(ms / 1000), h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), r = s % 60;
+  return (h ? h + ':' + (m < 10 ? '0' : '') : '') + m + ':' + (r < 10 ? '0' : '') + r;
+}
+function blockPanelHTML(pid){
+  var b = blocksOf(pid), sel = blockSel(pid), tot = blockTotal(pid), tiles = '';
+  for (var k = 0; k < BLOCK_N; k++) {
+    var L = blockLetter(k), e = b[L];
+    tiles += '<button type="button" class="btile' + (e ? ' done' : '') + '" data-blk="' + k + '" aria-pressed="' + (k === sel) + '"><b>' + L + '</b><span>' + (e ? fmtDur(e.best) : 'offen') + '</span></button>';
+  }
+  return '<span class="lvlabel">Block wählen</span><div class="bgrid">' + tiles + '</div>' +
+    '<div class="btotal">' + (tot.sum != null ? 'Gesamtzeit großes Einmaleins <b>' + fmtLong(tot.sum) + '</b><small>Summe der zehn Bestzeiten</small>'
+      : '<b>' + tot.done + ' von ' + BLOCK_N + '</b> Blöcken geschafft' + (tot.done ? '<small>Nach allen zehn gibt es die Gesamtzeit fürs große Einmaleins</small>' : '<small>Jeder Block hat 14 oder 15 Aufgaben</small>')) + '</div>' +
+    (rankOn() ? '<button type="button" class="btn rankbtn" data-act="rank">Rangliste ansehen</button>' : '');
+}
+
 /* ---------- Darstellung ---------- */
 function factLabel(k){ var p = parseKey(k); return p ? p.a + ' ' + p.op + ' ' + p.b : k; }
 function secShort(ms){ var s = ms / 1000; return s >= 10 ? String(Math.round(s)) : s.toFixed(1).replace('.', ','); }
@@ -2076,10 +2184,12 @@ var MATH = [
   {name:'Schwächen trainieren', goal:true, gen:function(){ var f = pick(factsFor(9)); return mk(f[0], f[1], f[2]); }},
   {name:'Einmaleins gezielt', goal:true, gen:function(){ var f = pick(factsFor(12)); return mk(f[0], f[1], f[2]); }},
   {name:'Großes Einmaleins', goal:true, adult:true, gen:function(){ return factTask(pick(factsFor(13))); }},
-  {name:'Plus und Minus bis 500', goal:true, adult:true, gen:function(){ return gen500(); }}
+  {name:'Plus und Minus bis 500', goal:true, adult:true, gen:function(){ return gen500(); }},
+  {name:'Rechenblöcke', goal:true, adult:true, gen:function(){ return factTask(pick(factsFor(13))); }}
 ];
 function levelKey(){ return isAdult(curPlayer()) ? 'adult' : S.mode; }
 function makeMathQueue(level, n, pid){
+  if (level === BLOCK_LV) return shuffle(blockFacts(blockSel(pid))).map(factTask);
   if (pid && (level === 11 || factsFor(level).length)) return smartQueue(level, n, pid);
   var L = MATH[level - 1], out = [], seen = {};
   for (var i = 0; i < n; i++) {
@@ -2294,6 +2404,26 @@ function effectiveInput(){ return (S.input === 'voice' && voiceStatus().ok) ? 'v
 function bestKey(pid, mode, level){ return pid + '|' + mode + '|' + level; }
 var STATUS_TXT = {bad:'Baustelle', warn:'unsicher', ok:'sitzt', none:'zu wenig Daten'};
 
+/* ---------- Denkzeit und Spielzeit ---------- */
+function thinkOf(pid){
+  if (S.think[pid] == null) S.think[pid] = (S.history[pid] || []).reduce(function(a, h){ return a + (h.total || 0); }, 0);
+  return S.think[pid];
+}
+function fmtHM(ms){
+  var s = Math.round((ms || 0) / 1000);
+  if (s < 60) return s + ' Sek';
+  var m = Math.floor(s / 60), h = Math.floor(m / 60);
+  return h ? h + ' Std ' + (m % 60) + ' Min' : m + ' Min';
+}
+function timeBarHTML(pid){
+  var th = thinkOf(pid), pm = S.playMs[pid] || 0, pn = S.playN[pid] || 0;
+  if (!th && !pm) return '';
+  var ratio = pm >= 60000 ? th / pm : null;
+  return '<div class="tbmain"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 4.5c-7.7 0-13.5 5.9-13.5 13.3 0 4.6 2.3 7.9 4.6 10.3 1.4 1.5 2.2 3 2.2 4.9v1.5h13.4V33c0-1.9.8-3.4 2.2-4.9 2.3-2.4 4.6-5.7 4.6-10.3C37.5 10.4 31.7 4.5 24 4.5z" fill="#fde100" stroke="#16171b" stroke-width="2.5"/><path d="M26.2 9.5 L17.8 21.6 h6 L21.6 30.5 L30.4 18.2 h-6.1 Z" fill="#16171b"/><rect x="17.5" y="36.4" width="13" height="3" rx="1.5" fill="#16171b"/><rect x="19" y="40.6" width="10" height="3" rx="1.5" fill="#16171b"/></svg>' +
+    '<div><span class="tbk">Denkzeit</span><b>' + fmtHM(th) + '</b></div></div>' +
+    '<div class="tbside"><span>Gespielt <b>' + fmtHM(pm) + '</b>' + (pn ? ' in ' + pn + (pn === 1 ? ' Spiel' : ' Spielen') : '') + '</span>' +
+    (ratio != null ? '<span>' + (ratio >= 1 ? 'Auf jede Spielminute kommen ' + (ratio >= 10 ? Math.round(ratio) : ratio.toFixed(1).replace('.', ',')) + ' Denkminuten' : 'Gerade wird mehr gespielt als gedacht') + '</span>' : '<span>So lange hat deine Birne gerechnet und gelesen</span>') + '</div>';
+}
 function isCheck0(isRead, lv){ return isRead && lv === 'check'; }
 function inp0(){ return effectiveInput(); }
 function renderStart(){
@@ -2369,7 +2499,10 @@ function renderStart(){
     }
   }
 
-  $('#setInfo').textContent = [isCheck0(isRead, lv) ? '' : S.count + ' Aufgaben', inp0() === 'voice' ? 'Sprechen' : 'Antippen', S.sound ? 'Töne an' : 'Töne aus'].filter(Boolean).join(' · ');
+  var isBlock = !isRead && lv === BLOCK_LV;
+  var bp = $('#blockPick'); bp.hidden = !isBlock; if (isBlock) bp.innerHTML = blockPanelHTML(p.id);
+  $('#timeBar').innerHTML = timeBarHTML(p.id);
+  $('#setInfo').textContent = [isCheck0(isRead, lv) || isBlock ? '' : S.count + ' Aufgaben', inp0() === 'voice' ? 'Sprechen' : 'Antippen', S.sound ? 'Töne an' : 'Töne aus'].filter(Boolean).join(' · ');
   $('#segCount').innerHTML = [5, 10, 15, 20].map(function(n){ return '<button type="button" data-count="' + n + '" aria-pressed="' + (S.count === n) + '">' + n + '</button>'; }).join('');
   var vs = voiceStatus(), inp = effectiveInput();
   $('#segInput').innerHTML = '<button type="button" data-input="voice" aria-pressed="' + (inp === 'voice') + '"' + (vs.ok ? '' : ' disabled') + '>Sprechen</button><button type="button" data-input="tap" aria-pressed="' + (inp === 'tap') + '">Antippen</button>';
@@ -2380,8 +2513,8 @@ function renderStart(){
     var f = el.dataset.for, hide = false;
     if (f === 'voice') hide = inp !== 'voice' || isCheck;
     else if (f === 'input') hide = isCheck;
-    else if (f === 'count') hide = isCheck;
-    else if (f === 'retry') hide = isCheck || (isRead && lv === 'flash');
+    else if (f === 'count') hide = isCheck || isBlock;
+    else if (f === 'retry') hide = isCheck || isBlock || (isRead && lv === 'flash');
     else hide = f !== S.mode;
     el.hidden = hide;
   });
@@ -2399,12 +2532,15 @@ function renderStart(){
     bl.innerHTML = lv === 'check'
       ? (prof.lastCheck ? 'Letzter Lesecheck von ' + esc(p.name) + ': <b>' + dateDE(prof.lastCheck) + '</b>' : 'Noch kein Lesecheck von ' + esc(p.name))
       : (prof.n ? 'Trainiert nach dem Leseprofil von ' + esc(p.name) : 'Ohne Lesecheck mischt das Training breit');
+  } else if (isBlock) {
+    var be = blocksOf(p.id)[blockLetter(blockSel(p.id))];
+    bl.innerHTML = 'Block ' + blockLetter(blockSel(p.id)) + ' mit ' + blockFacts(blockSel(p.id)).length + ' Aufgaben' + (be ? ', Bestzeit von ' + esc(p.name) + ': <b>' + fmtDur(be.best) + '</b>' : ', noch keine Zeit');
   } else {
     bl.innerHTML = b != null
       ? 'Bestzeit von ' + esc(p.name) + ' in „' + esc(name) + '“: <b>' + sec(b) + ' s</b> pro Aufgabe'
       : 'Noch keine Bestzeit für ' + esc(p.name) + ' in „' + esc(name) + '“';
   }
-  $('#goLabel').textContent = isCheck ? 'Lesecheck starten' : 'Los geht\'s';
+  $('#goLabel').textContent = isCheck ? 'Lesecheck starten' : isBlock ? 'Block ' + blockLetter(blockSel(p.id)) + ' starten' : 'Los geht\'s';
 
   var hist = (S.history[p.id] || []).filter(function(h){ return h.mode === S.mode && h.level === lv; }).slice(-6);
   $('#histTitle').textContent = 'Letzte Runden von ' + p.name + ' · ' + name;
@@ -2438,6 +2574,16 @@ $('#modes').addEventListener('click', function(e){ var b = e.target.closest('.mo
 $('#levels').addEventListener('click', function(e){
   var b = e.target.closest('.level'); if (!b) return;
   S.level[levelKey()] = S.mode === 'math' ? +b.dataset.level : b.dataset.level; save(); renderStart();
+});
+$('#blockPick').addEventListener('click', function(e){
+  if (e.target.closest('[data-act="rank"]')) { openRank(blockLetter(blockSel(curPlayer().id))); return; }
+  var b = e.target.closest('[data-blk]'); if (!b) return;
+  S.blockSel[curPlayer().id] = +b.dataset.blk; save(); renderStart();
+});
+$('#blockCard').addEventListener('click', function(e){
+  var r = e.target.closest('[data-act="rank"]'); if (r) { openRank(r.dataset.tab); return; }
+  var b = e.target.closest('[data-blocknext]'); if (!b) return;
+  S.blockSel[curPlayer().id] = +b.dataset.blocknext; save(); startRound();
 });
 $('#rowPick').addEventListener('click', function(e){
   var b = e.target.closest('[data-row]'); if (!b) return;
@@ -2522,7 +2668,7 @@ $('#profOpen').addEventListener('click', function(){ if (S.mode === 'math') open
 var G = null;
 var TYMAP = {word:'w', pseudo:'p', sight:'g', sentence:'s'};
 function show(which){
-  ['start', 'play', 'done', 'profile', 'figure', 'game'].forEach(function(s){ $('#screen-' + s).hidden = s !== which; });
+  ['start', 'play', 'done', 'profile', 'figure', 'game', 'rank'].forEach(function(s){ $('#screen-' + s).hidden = s !== which; });
   window.scrollTo(0, 0);
 }
 function startRound(){
@@ -2533,12 +2679,13 @@ function startRound(){
   else if (sub === 'check') { queue = checkQueue(player); save(); }
   else if (sub === 'train') { var tq = trainQueue(player, S.count); queue = tq.items; focus = tq.focus; }
   else if (sub === 'flash') queue = flashQueue(S.count);
-  else queue = freeQueue(sub, S.count, player.name);
+  else queue = freeQueue(sub, S.count, player.name, player.id);
   var g = G = {mode:mode, level:level, sub:sub, player:player, queue:queue, focus:focus, idx:0, results:[], timing:false, voiceOn:false, tries:0, typed:''};
   g.voiceOn = effectiveInput() === 'voice' && sub !== 'check';
   g.sparkStart = sparksOf(player.id); g.sparks = 0; g.sparkItems = 0; $('#sparkNum').textContent = '0';
   g.colored = sub === 'check' ? false : S.syl;
-  g.retry = S.retry && sub !== 'check' && sub !== 'flash';
+  g.block = mode === 'math' && level === BLOCK_LV ? blockSel(player.id) : null;
+  g.retry = S.retry && sub !== 'check' && sub !== 'flash' && g.block == null;
   if (sub === 'flash') { g.flashMs = S.flash[player.id] || 1000; g.flashStart = g.flashMs; }
   show('play');
   $('#playWho').textContent = player.name;
@@ -2935,6 +3082,7 @@ function endRound(){
   var allowRecord = g.mode === 'math' || (g.sub && /^[ws]\d$/.test(g.sub));
   if (allowRecord && n >= 5 && ok.length / n >= .8 && avg != null && (prev == null || avg < prev)) { record = true; S.best[k] = avg; }
   if (isFlash && n >= 5 && ok.length / n >= .8 && (prev == null || g.flashMs < prev)) { record = true; S.best[k] = g.flashMs; }
+  var thinkBefore = thinkOf(g.player.id);
   if (!S.history[g.player.id]) S.history[g.player.id] = [];
   S.history[g.player.id].push({t:Date.now(), mode:g.mode, level:g.level, n:n, ok:ok.length, avg:avg, total:total, flash: isFlash ? g.flashMs : undefined});
   S.history[g.player.id] = S.history[g.player.id].slice(-60);
@@ -2945,7 +3093,26 @@ function endRound(){
   if (S.sparkDay[pid] !== todayKey()) { bonus.push(['Erste Runde heute', 2]); S.sparkDay[pid] = todayKey(); }
   earn(pid, bonus.reduce(function(a, b){ return a + b[1]; }, 0));
   g.playWas = playOf(pid); g.playGain = S.gameOn !== false ? addPlay(pid, gameValue(g.mode, g.sub)) : 0;
+  S.think[pid] = thinkBefore + total;
+  var blockRes = null;
+  if (g.block != null) {
+    var L = blockLetter(g.block), errs = n - ok.length, bms = first.reduce(function(a, r){ return a + r.ms; }, 0) + errs * BLOCK_PENALTY;
+    var bb = blocksOf(pid), be = bb[L] || {runs: 0}, totBefore = blockTotal(pid);
+    blockRes = {L: L, k: g.block, ms: bms, err: errs, n: n, prev: be.best || null};
+    be.runs = (be.runs || 0) + 1; be.last = bms; be.lastErr = errs;
+    if (!be.best || bms < be.best) { be.best = bms; be.err = errs; be.n = n; be.t = Date.now(); blockRes.isBest = true; }
+    bb[L] = be;
+    var totAfter = blockTotal(pid); blockRes.tot = totAfter; blockRes.totBefore = totBefore;
+    if (blockRes.isBest) {
+      rankQueue(g.player, L, bms, errs, n);
+      if (totAfter.sum != null) rankQueue(g.player, 'ALL', totAfter.sum, 0, 145);
+    }
+    // nächster Block: der nächste offene, sonst der folgende
+    var nx = -1; for (var q = 1; q <= BLOCK_N; q++) { var c = (g.block + q) % BLOCK_N; if (!bb[blockLetter(c)]) { nx = c; break; } }
+    blockRes.next = nx >= 0 ? nx : (g.block + 1) % BLOCK_N;
+  }
   save();
+  if (blockRes) rankFlush();
 
   var stars = n ? 1 + (ok.length / n >= .8 ? 1 : 0) + (ok.length === n ? 1 : 0) : 1;
   var name = g.player.name;
@@ -2961,9 +3128,18 @@ function endRound(){
     $('#statTotal').textContent = sec2(g.flashStart) + ' s'; $('#statTotalK').textContent = 'Blitzzeit am Anfang';
   } else {
     $('#statAvg').textContent = avg != null ? sec(avg) + ' s' : 'keine'; $('#statAvgK').textContent = 'Durchschnitt pro richtiger Aufgabe';
-    $('#statTotal').textContent = clockText(total) + ' s'; $('#statTotalK').textContent = 'Gesamtzeit';
+    $('#statTotal').textContent = clockText(total) + ' s'; $('#statTotalK').textContent = 'Denkzeit dieser Runde';
   }
   $('#statOk').textContent = ok.length + ' von ' + n;
+  var bc = $('#blockCard'); bc.hidden = !blockRes;
+  if (blockRes) {
+    var tt = blockRes.tot, tb = blockRes.totBefore;
+    bc.innerHTML = '<div class="brtop"><span class="brl">Block ' + blockRes.L + '</span><span class="brt">' + fmtDur(blockRes.ms) + '</span></div>' +
+      '<div class="brmeta">' + blockRes.n + ' Aufgaben · ' + (blockRes.err ? blockRes.err + ' Fehler, also ' + (blockRes.err * BLOCK_PENALTY / 1000) + ' s dazu' : 'fehlerfrei') + '</div>' +
+      (blockRes.isBest ? '<div class="brbest">' + (blockRes.prev ? 'Neue Bestzeit für Block ' + blockRes.L + '! Vorher ' + fmtDur(blockRes.prev) : 'Erste Zeit für Block ' + blockRes.L) + '</div>' : '<div class="brmeta">Bestzeit in Block ' + blockRes.L + ': ' + fmtDur(blockRes.prev) + '</div>') +
+      '<div class="brtot">' + (tt.sum != null ? (tb.sum == null ? 'Alle zehn Blöcke geschafft! ' : '') + 'Gesamtzeit großes Einmaleins: <b>' + fmtLong(tt.sum) + '</b>' + (tb.sum != null && tt.sum < tb.sum ? ', vorher ' + fmtLong(tb.sum) : '') : tt.done + ' von ' + BLOCK_N + ' Blöcken geschafft. Danach gibt es die Gesamtzeit.') + '</div>' +
+      '<div class="bractions"><button type="button" class="btn" data-blocknext="' + blockRes.next + '">Weiter mit Block ' + blockLetter(blockRes.next) + '</button>' + (rankOn() ? '<button type="button" class="btn" data-act="rank" data-tab="' + blockRes.L + '">Rangliste</button>' : '') + '</div>';
+  }
   var rec = $('#record');
   if (record) {
     rec.hidden = false;
@@ -3590,6 +3766,7 @@ function draw(){
 function endGame(why){
   var g = GAME; if (!g || g.state === 'over') return;
   g.state = 'over'; g.inv = 0; g.hit = 0; g.dir = 0; cancelAnimationFrame(g.raf); releaseWake();
+  S.playMs[g.pid] = (S.playMs[g.pid] || 0) + Math.round(g.t * 1000); S.playN[g.pid] = (S.playN[g.pid] || 0) + 1;
   var prev = recOf(g.pid, g.kind, g.lvl), rec = g.score > prev;
   if (rec) setRec(g.pid, g.kind, g.lvl, g.score);
   save(); renderHud(); draw();
@@ -3642,6 +3819,88 @@ $('#gameQuit').addEventListener('click', function(){
   if (GAME && (GAME.state === 'run' || GAME.state === 'count')) endGame('quit'); else { GAME = null; show('start'); renderStart(); }
 });
 if (/debug/.test(location.hash)) window.__bbGame = function(){ return GAME; };
+/* =====================================================================
+   RANGLISTE ONLINE: Rechenblöcke im großen Einmaleins
+   Speicherort ist eine Google Tabelle mit kleinem Skript (Web App).
+   Solange RANK_URL leer ist, bleibt alles unsichtbar.
+   ===================================================================== */
+var RANK_TAB = 'ALL';
+function rankOn(){ return !!RANK_URL; }
+function playerUid(p){
+  if (!p.uid) { p.uid = 'u' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36); save(); }
+  return p.uid;
+}
+function rankQueue(p, block, ms, err, n){
+  if (!rankOn() || !p.online) return;
+  S.rankPending = (S.rankPending || []).filter(function(x){ return !(x.uid === playerUid(p) && x.block === block); });
+  S.rankPending.push({name: p.name, uid: playerUid(p), board: RANK_BOARD, block: block, ms: Math.round(ms), err: err || 0, n: n || 0});
+  save();
+}
+var rankBusy = false;
+function rankFlush(){
+  if (!rankOn() || rankBusy || !(S.rankPending || []).length) return Promise.resolve();
+  rankBusy = true;
+  var item = S.rankPending[0];
+  return fetch(RANK_URL, {method: 'POST', body: JSON.stringify(item)})
+    .then(function(r){ return r.json(); })
+    .then(function(res){
+      if (res && (res.ok || res.error === 'ungültig')) { S.rankPending.shift(); save(); }
+      rankBusy = false;
+      if (res && res.ok && S.rankPending.length) return rankFlush();
+    })
+    .catch(function(){ rankBusy = false; });
+}
+function rankLoad(){
+  return fetch(RANK_URL + (RANK_URL.indexOf('?') >= 0 ? '&' : '?') + 'board=' + RANK_BOARD + '&t=' + Date.now())
+    .then(function(r){ return r.json(); });
+}
+// Alle bisherigen Bestzeiten eines Spielers in die Warteschlange (beim Mitmachen)
+function rankQueueAll(p){
+  var b = blocksOf(p.id);
+  Object.keys(b).forEach(function(L){ var e = b[L]; if (e && e.best) rankQueue(p, L, e.best, e.err, e.n); });
+  var tot = blockTotal(p.id); if (tot.sum != null) rankQueue(p, 'ALL', tot.sum, 0, 145);
+}
+function openRank(tab){
+  if (!rankOn()) return;
+  RANK_TAB = tab || RANK_TAB || 'ALL';
+  show('rank'); renderRankTabs(); renderRankJoin();
+  $('#rankList').innerHTML = '<p class="muted">Lädt …</p>';
+  rankFlush().then(function(){ return rankLoad(); }).then(function(res){
+    RANK_DATA = (res && res.top) || {}; renderRankList();
+  }).catch(function(){ $('#rankList').innerHTML = '<p class="muted">Keine Verbindung zur Rangliste. Später nochmal probieren.</p>'; });
+}
+var RANK_DATA = {};
+function renderRankTabs(){
+  var tabs = [['ALL', 'Gesamt']];
+  for (var k = 0; k < BLOCK_N; k++) tabs.push([blockLetter(k), blockLetter(k)]);
+  $('#rankTabs').innerHTML = tabs.map(function(t){ return '<button type="button" data-tab="' + t[0] + '" aria-pressed="' + (t[0] === RANK_TAB) + '">' + t[1] + '</button>'; }).join('');
+}
+function renderRankList(){
+  var list = RANK_DATA[RANK_TAB] || [], me = curPlayer(), uid = me.uid;
+  $('#rankHead').textContent = RANK_TAB === 'ALL' ? 'Gesamtzeit: alle zehn Blöcke' : 'Block ' + RANK_TAB;
+  if (!list.length) { $('#rankList').innerHTML = '<p class="muted">' + (RANK_TAB === 'ALL' ? 'Noch niemand hat alle zehn Blöcke geschafft.' : 'Noch keine Zeit in Block ' + RANK_TAB + '.') + '</p>'; return; }
+  $('#rankList').innerHTML = '<ol class="ranklist">' + list.map(function(x, i){
+    return '<li class="' + (x.uid && x.uid === uid ? 'me' : '') + '"><span class="rk">' + (i + 1) + '</span><span class="rn">' + esc(x.name) + '</span><span class="rt">' + (RANK_TAB === 'ALL' ? fmtLong(x.ms) : fmtDur(x.ms)) + '</span>' + (RANK_TAB !== 'ALL' ? '<span class="re">' + (x.err ? x.err + (x.err === 1 ? ' Fehler' : ' Fehler') : 'fehlerfrei') + '</span>' : '<span class="re"></span>') + '</li>';
+  }).join('') + '</ol>';
+}
+function renderRankJoin(){
+  var p = curPlayer(), box = $('#rankJoin');
+  if (!isAdult(p)) { box.innerHTML = '<p class="muted">Die Rangliste ist für den Profimodus.</p>'; return; }
+  box.innerHTML = p.online
+    ? '<p class="muted">' + esc(p.name) + ' ist dabei. Neue Bestzeiten werden automatisch eingetragen.</p><button type="button" class="linkbtn" id="rankLeave">Nicht mehr eintragen</button>'
+    : '<button type="button" class="go" id="rankJoinBtn">Mitmachen als ' + esc(p.name) + '</button><p class="muted">Name und Zeiten sind dann für alle sichtbar, die den Link zu Blitzbirne haben. Ein Spitzname reicht.</p>';
+}
+$('#rankTabs').addEventListener('click', function(e){
+  var b = e.target.closest('[data-tab]'); if (!b) return;
+  RANK_TAB = b.dataset.tab; renderRankTabs(); renderRankList();
+});
+$('#rankJoin').addEventListener('click', function(e){
+  var p = curPlayer();
+  if (e.target.closest('#rankJoinBtn')) { p.online = true; save(); rankQueueAll(p); openRank(RANK_TAB); }
+  else if (e.target.closest('#rankLeave')) { p.online = false; S.rankPending = (S.rankPending || []).filter(function(x){ return x.uid !== p.uid; }); save(); renderRankJoin(); }
+});
+$('#rankBack').addEventListener('click', function(){ show('start'); renderStart(); });
+if (rankOn()) setTimeout(rankFlush, 1500);
 
 })();
 </script>
