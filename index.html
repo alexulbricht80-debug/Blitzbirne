@@ -786,6 +786,18 @@ h2,h3{margin:0}
 .rtext i.lb{color:var(--syl)}
 .rtext i.ld{color:var(--red)}
 @media (max-width:420px){ .bdhelp{flex-direction:column;align-items:flex-start} }
+.focuspick{margin-top:12px}
+.focuspick .lvlabel{display:block;margin-bottom:6px}
+.fchips button{display:inline-flex;align-items:center;gap:6px}
+.fdot{width:9px;height:9px;border-radius:50%;flex:none}
+.fdot.bad{background:var(--red)}
+.fdot.warn{background:var(--warn)}
+.fdot.ok{background:var(--good)}
+.fleg{margin:6px 0 0;font-size:.8rem;color:var(--muted)}
+.ftoks{display:flex;gap:8px;flex:none}
+.ftok{display:grid;justify-items:center;gap:2px;min-width:64px;padding:8px 10px;border-radius:12px;background:var(--band);border:1px solid var(--line)}
+.ftok b{font:800 1.5rem var(--f-read);line-height:1.1}
+.ftok small{font-size:.72rem;color:var(--muted);white-space:nowrap}
 </style>
 </head>
 <body>
@@ -825,7 +837,7 @@ h2,h3{margin:0}
     </div>
     <div id="levels"></div>
     <p class="subhint" id="subHint" hidden></p>
-    <div class="bdhelp" id="bdHelp" hidden></div>
+    <div class="focuspick" id="focusPick" hidden></div>
     <div class="rowpick" id="rowPick" hidden></div>
     <div class="blockpick" id="blockPick" hidden></div>
     <div class="profmini" id="profMini" hidden>
@@ -991,6 +1003,10 @@ function migrate(o){
   });
   if (!Array.isArray(base.players) || base.players.length < 2) base.players = clone(DEFAULTS.players);
   if (!Array.isArray(base.rankPending)) base.rankPending = [];
+  // b und d ist jetzt ein Stolperstein
+  if (base.level.read === 'bd') { base.level.read = 'fokus'; base.focusCat = 'bd'; }
+  if (base.bdColor != null && base.focusColor == null) base.focusColor = base.bdColor;
+  if (base.bdMiss) { base.focusMiss = base.focusMiss || {}; Object.keys(base.bdMiss).forEach(function(pid){ base.focusMiss[pid] = base.focusMiss[pid] || {}; base.focusMiss[pid].bd = base.bdMiss[pid]; }); delete base.bdMiss; }
   // einmalig: früherer Standard 10 Aufgaben wird zu 5
   if (!base.count5) { if (base.count === 10) base.count = 5; base.count5 = true; }
   return base;
@@ -1329,38 +1345,71 @@ function trainQueue(player, n){
   if (sent.length && n >= 8) add(buildItem(sent[0], 'sentence', sentenceName(player.name)));
   return {items: out, focus: focus};
 }
-/* ---------- b und d: Fokus Training ---------- */
-var BD = {
-  pairs: [['gelb#bd', 'Geld#bd'], ['Grab#bd', 'Grad#bd'], ['lieb#bd', 'Lied#bd'], ['Leib#bd', 'Leid#bd'], ['Le·ber#bd', 'Le·der#bd'], ['Na·bel#bd', 'Na·del#bd'], ['lie·ber#bd', 'Lie·der#bd'], ['Wa·be#bd', 'Wa·de#bd'], ['O·ber#bd', 'o·der#bd'], ['Bu·be#bd', 'Bu·de#bd'], ['Re·be#bd', 'Re·de#bd']],
-  pseudo: ['ba·do#bd', 'da·bo#bd', 'bo·di#bd', 'di·bo#bd', 'be·du#bd', 'du·be#bd', 'bi·da#bd', 'da·bi#bd', 'bu·do#bd', 'do·bu#bd', 'bal·de#bd', 'dal·be#bd', 'bin·do#bd', 'din·bo#bd', 'bem·da#bd', 'dem·ba#bd'],
-  mixed: ['blind#bd', 'bald#bd', 'da·bei#bd', 'da·ne·ben#bd', 'A·bend#bd', 'A·bend·brot#bd', 'Hand·ball#bd', 'Kle·be·band#bd', 'Fuß·ball·feld#bd', 'Bil·der·buch#bd', 'Kin·der·bett#bd', 'Feld·bett#bd', 'Sand·burg#bd', 'Erd·bee·re#bd', 'Le·der·ball#bd', 'Kin·der·buch#bd', 'Wald·bo·den#bd', 'Ro·bo·ter·hand#bd', 'Lie·der·buch#bd'],
-  sent: ['Der Dieb#bd ba·det#bd den Bä·ren#bd im Bach#bd.', 'Die Bie·ne#bd brummt#bd durch das bun·te#bd Blu·men·beet#bd.', 'Das Ba·by#bd be·kommt#bd drei#bd Ba·na·nen#bd zum A·bend·brot#bd.', 'Der Bau·er#bd baut#bd ein Dach#bd ü·ber#bd die Bank#bd.', 'Dein#bd Bru·der#bd darf den Ball#bd ins Tor schie·ßen.', 'Die Do·se#bd mit den Bon·bons#bd steht auf dem Bo·den#bd.', 'Beim#bd Ba·den#bd macht {name} bun·te#bd Bla·sen#bd.', 'Der Dra·che#bd be·wacht#bd den Berg#bd mit dem Gold#bd.', 'Die Bu·de#bd ist voll, denn Dort·mund#bd spielt heu·te.', 'Der Dok·tor#bd bin·det#bd mir ei·ne Bin·de#bd um das Bein#bd.', 'Dan·ke#bd für das bun·te#bd Bild#bd mit dem Di·no#bd.', 'Das Boot#bd dreht#bd drei#bd Run·den#bd auf dem Bo·den·see#bd.', 'Bald#bd ba·den#bd wir mit der Ba·de·en·te#bd in der Wan·ne.', 'Der Do·ber·mann#bd bellt#bd den Brief·trä·ger#bd an.', 'Im Bil·der·buch#bd sind#bd Dra·chen#bd, Di·nos#bd und Bä·ren#bd.', 'Die Spie·ler von Dort·mund#bd drib·beln#bd durch die Ab·wehr#bd.', 'Der Bus#bd bringt#bd die Kin·der#bd bis#bd zum Bad#bd.', 'Das di·cke#bd Buch#bd liegt un·ter dem Bett#bd.', 'Die Tau·be#bd und die Dros·sel#bd ba·den#bd im Brun·nen#bd.', 'Der Bä·cker#bd backt#bd am A·bend#bd dunk·les#bd Brot#bd.', 'Die bei·den#bd Brü·der#bd bau·en#bd ei·ne Burg#bd aus De·cken#bd.', 'Ich drü·cke#bd dir bei·de#bd Dau·men#bd für das Spiel.', 'Du darfst die Bre·zel#bd mit But·ter#bd be·strei·chen#bd.', 'Ein di·cker#bd Bi·ber#bd baut#bd am Bach#bd ei·nen Damm#bd.']
+/* ---------- Stolpersteine: gezielt üben, was Kinder oft verwechseln ----------
+   Jede Runde: zwei Wortpaare direkt hintereinander, zwei Quatschwörter,
+   zwei passende längere Wörter und zwei Sätze. Fehler kommen zuerst wieder. */
+var FOCUS_ORDER = ['bd', 'ie', 'lk', 'st', 'um'];
+var FOCUS = {
+  bd: {name:"b und d", feats:["bd"], color:"b blau, d rot",
+    pairs: [['gelb#bd', 'Geld#bd'], ['Grab#bd', 'Grad#bd'], ['lieb#bd', 'Lied#bd'], ['Leib#bd', 'Leid#bd'], ['Le·ber#bd', 'Le·der#bd'], ['Na·bel#bd', 'Na·del#bd'], ['lie·ber#bd', 'Lie·der#bd'], ['Wa·be#bd', 'Wa·de#bd'], ['O·ber#bd', 'o·der#bd'], ['Bu·be#bd', 'Bu·de#bd'], ['Re·be#bd', 'Re·de#bd']],
+    pseudo: ['ba·do#bd', 'da·bo#bd', 'bo·di#bd', 'di·bo#bd', 'be·du#bd', 'du·be#bd', 'bi·da#bd', 'da·bi#bd', 'bu·do#bd', 'do·bu#bd', 'bal·de#bd', 'dal·be#bd', 'bin·do#bd', 'din·bo#bd', 'bem·da#bd', 'dem·ba#bd'],
+    mixed: ['blind#bd', 'bald#bd', 'da·bei#bd', 'da·ne·ben#bd', 'A·bend#bd', 'A·bend·brot#bd', 'Hand·ball#bd', 'Kle·be·band#bd', 'Fuß·ball·feld#bd', 'Bil·der·buch#bd', 'Kin·der·bett#bd', 'Feld·bett#bd', 'Sand·burg#bd', 'Erd·bee·re#bd', 'Le·der·ball#bd', 'Kin·der·buch#bd', 'Wald·bo·den#bd', 'Ro·bo·ter·hand#bd', 'Lie·der·buch#bd'],
+    sent: ['Der Dieb#bd ba·det#bd den Bä·ren#bd im Bach#bd.', 'Die Bie·ne#bd brummt#bd durch das bun·te#bd Blu·men·beet#bd.', 'Das Ba·by#bd be·kommt#bd drei#bd Ba·na·nen#bd zum A·bend·brot#bd.', 'Der Bau·er#bd baut#bd ein Dach#bd ü·ber#bd die Bank#bd.', 'Dein#bd Bru·der#bd darf den Ball#bd ins Tor schie·ßen.', 'Die Do·se#bd mit den Bon·bons#bd steht auf dem Bo·den#bd.', 'Beim#bd Ba·den#bd macht {name} bun·te#bd Bla·sen#bd.', 'Der Dra·che#bd be·wacht#bd den Berg#bd mit dem Gold#bd.', 'Die Bu·de#bd ist voll, denn Dort·mund#bd spielt heu·te.', 'Der Dok·tor#bd bin·det#bd mir ei·ne Bin·de#bd um das Bein#bd.', 'Dan·ke#bd für das bun·te#bd Bild#bd mit dem Di·no#bd.', 'Das Boot#bd dreht#bd drei#bd Run·den#bd auf dem Bo·den·see#bd.', 'Bald#bd ba·den#bd wir mit der Ba·de·en·te#bd in der Wan·ne.', 'Der Do·ber·mann#bd bellt#bd den Brief·trä·ger#bd an.', 'Im Bil·der·buch#bd sind#bd Dra·chen#bd, Di·nos#bd und Bä·ren#bd.', 'Die Spie·ler von Dort·mund#bd drib·beln#bd durch die Ab·wehr#bd.', 'Der Bus#bd bringt#bd die Kin·der#bd bis#bd zum Bad#bd.', 'Das di·cke#bd Buch#bd liegt un·ter dem Bett#bd.', 'Die Tau·be#bd und die Dros·sel#bd ba·den#bd im Brun·nen#bd.', 'Der Bä·cker#bd backt#bd am A·bend#bd dunk·les#bd Brot#bd.', 'Die bei·den#bd Brü·der#bd bau·en#bd ei·ne Burg#bd aus De·cken#bd.', 'Ich drü·cke#bd dir bei·de#bd Dau·men#bd für das Spiel.', 'Du darfst die Bre·zel#bd mit But·ter#bd be·strei·chen#bd.', 'Ein di·cker#bd Bi·ber#bd baut#bd am Bach#bd ei·nen Damm#bd.']},
+  ie: {name:"ie und ei", feats:["ie", "ei"], color:"ie blau, ei rot",
+    pairs: [["Bie·ne", "Bei·ne"], ["Lied", "Leid"], ["Rie·se", "Rei·se"], ["Wie·se", "Wei·se"], ["Stiel", "steil"], ["Lie·der", "lei·der"], ["Schie·ne", "Schei·ne"], ["Kiel", "Keil"], ["lieb", "Leib"], ["sie", "sei"]],
+    pseudo: ["lie·mo", "lei·mo", "rie·fa", "rei·fa", "tie·lu", "tei·lu", "mie·ko", "mei·ko", "nie·sa", "nei·sa", "sie·pe", "sei·pe"],
+    mixed: ["Bei·spiel", "Spiel·zeit", "Tier·heim", "Kie·sel·stein", "Spie·gel·ei", "Zie·gel·stein", "Frei·spiel", "Lieb·lings·eis", "Rie·sen·ei", "Brief·ein·wurf", "Sie·ger·preis", "drei·vier·tel"],
+    sent: ["Die Bie·ne sitzt auf mei·nem Bein.", "Der Rie·se geht auf ei·ne wei·te Rei·se.", "Auf der Wie·se lie·gen vier wei·ße Ei·er.", "Mein Lieb·lings·lied ist lei·der schon vor·bei.", "Wir schrei·ben ei·nen lan·gen Brief an O·ma.", "Sie·ben klei·ne Zie·gen spie·len auf der Wie·se.", "Der Spie·gel zeigt ein lus·ti·ges Ge·sicht.", "Im Win·ter liegt viel Eis auf dem Teich.", "Der Dieb steigt lei·se ü·ber die Mau·er.", "Pa·pa liest die Zei·tung beim Früh·stück.", "Zwei Flie·gen sit·zen auf dem wei·ßen Tel·ler.", "Die Zei·ger der Uhr ste·hen auf vier.", "Beim Spie·len fällt mein Eis auf ei·nen Stein.", "Wie·so schreit der klei·ne Pa·pa·gei so laut?", "Das Tier schleicht lei·se durch die ho·he Wie·se."]},
+  lk: {name:"lang und kurz", feats:["dop"], color:"doppelte Mitlaute blau",
+    pairs: [["O·fen", "of·fen"], ["Mie·te", "Mit·te"], ["Hü·te", "Hüt·te"], ["Beet", "Bett"], ["Kahn", "kann"], ["Wal", "Wall"], ["Stahl", "Stall"], ["Saat", "satt"], ["Ha·sen", "has·sen"], ["bie·ten", "bit·ten"], ["Höh·le", "Höl·le"], ["füh·len", "fül·len"], ["ra·ten", "Rat·ten"], ["lahm", "Lamm"], ["Keh·le", "Kel·le"]],
+    pseudo: ["lo·fe", "lof·fe", "ri·ma", "rim·ma", "sa·be", "sab·be", "tu·lo", "tul·lo", "ne·po", "nep·po", "gu·fa", "guf·fa"],
+    mixed: ["Kar·tof·fel", "Schmet·ter·ling", "Ham·mer", "Son·nen·schirm", "Rol·ler", "Wet·ter", "Mit·tag", "Schlüs·sel", "Pup·pe", "Löf·fel", "Kof·fer", "Was·ser·fall", "Bril·le", "Ten·nis·ball", "Kel·ler·trep·pe"],
+    sent: ["Der O·fen ist heiß, die Tür bleibt of·fen.", "In der Mit·te vom Beet wach·sen ro·te Ro·sen.", "Die Ha·sen has·sen den kal·ten Re·gen.", "Die Rat·ten ra·ten, wo der Kä·se liegt.", "Im Bett liegt ei·ne De·cke, im Beet wächst Sa·lat.", "Wir fül·len die Fla·schen und füh·len das kal·te Was·ser.", "In der Höh·le ist es dun·kel und kalt.", "O·pa hat drei Hü·te, a·ber nur ei·ne Hüt·te.", "Das klei·ne Lamm ist noch ein biss·chen lahm.", "Wir bit·ten O·ma, uns Kek·se an·zu·bie·ten.", "Kann der Kahn bis zum an·de·ren U·fer fah·ren?", "Der Tel·ler ist voll, a·ber der Topf ist leer.", "Im Stall schla·fen die Pfer·de auf fri·schem Stroh."]},
+  st: {name:"st und sp", feats:["stp"], color:"st und sp am Silbenanfang blau",
+    pairs: [["Sport", "Wes·pe"], ["Stern", "Fens·ter"], ["Stall", "Kas·ten"], ["Spin·ne", "Knos·pe"], ["Stein", "Kis·te"], ["Stift", "Lis·te"], ["Spur", "Kas·per"], ["Stuhl", "Pfos·ten"], ["Spie·gel", "Ras·pel"], ["Stra·ße", "Pflas·ter"]],
+    pseudo: ["sto·ma", "spa·li", "stu·ne", "spe·ro", "sti·ka", "spu·lo", "stel·po", "spin·ke"],
+    mixed: ["Sport·stun·de", "Spiel·stand", "Spring·seil", "Sprung·brett", "Stech·mü·cke", "Stopp·schild", "Start·schuss", "Stein·pilz", "Spritz·pis·to·le", "Strumpf·ho·se", "Spar·schwein", "Stroh·halm", "Ster·nen·him·mel"],
+    sent: ["Im Sport spie·len wir mit ei·nem wei·chen Ball.", "Auf der Stra·ße steht ein Stuhl mit Strei·fen.", "Die Spin·ne spinnt ein Netz zwi·schen zwei Stei·nen.", "Am Strand ste·hen vie·le Strand·kör·be in der Son·ne.", "Der Storch stakst durch das ho·he Gras.", "Wir spie·len Stopp·tanz auf dem Spiel·platz.", "Am A·bend strah·len tau·send Ster·ne am Him·mel.", "Mein Stift steckt in der klei·nen Kis·te.", "Die Spat·zen strei·ten sich um ein Stück Brot.", "Der Sport·leh·rer stoppt die Zeit mit der Stopp·uhr.", "Im Stall ste·hen sie·ben Stu·ten.", "Ges·tern spiel·ten wir im Gar·ten Fuß·ball#zus.", "Die Wes·pe sitzt au·ßen am Fens·ter."]},
+  um: {name:"ä, ö, ü", feats:["uml"], color:"ä, ö und ü blau",
+    pairs: [["schon", "schön"], ["Bar", "Bär"], ["Mut·ter", "Müt·ter"], ["Ap·fel", "Äp·fel"], ["Vo·gel", "Vö·gel"], ["Bru·der", "Brü·der"], ["Ku·chen", "Kü·chen"], ["Man·tel", "Män·tel"], ["Gar·ten", "Gär·ten"], ["O·fen", "Ö·fen"], ["fuhr", "für"], ["dru·cken", "drü·cken"], ["zah·len", "zäh·len"], ["La·den", "Lä·den"], ["Fa·den", "Fä·den"]],
+    pseudo: ["lü·ma", "lu·ma", "kö·so", "ko·so", "rä·pe", "ra·pe", "sü·na", "su·na", "tö·mi", "to·mi", "fä·lo", "fa·lo"],
+    mixed: ["Bü·cher·re·gal", "Mär·chen·buch", "Ge·mü·se·sup·pe", "Schlüs·sel·bund", "Hüh·ner·stall", "Kä·se·brot", "Zahn·bürs·te", "Tür·klin·gel", "Bröt·chen·tü·te", "Schul·tü·te", "Gold·mün·ze", "Bä·ren·hun·ger", "Kühl·schrank", "Spül·ma·schi·ne", "Lö·wen·zahn"],
+    sent: ["Der Bär sitzt schon an der Bar.", "Die Vö·gel sin·gen schön im Gar·ten.", "Mei·ne Brü·der ba·cken ei·nen Ku·chen in der Kü·che.", "Im Win·ter tra·gen al·le Müt·ter war·me Män·tel.", "Ich zäh·le die Äp·fel im Korb.", "Der Hund drückt mit der Pfo·te auf die Tür.", "Die Mö·we fliegt ü·ber das Boot am Ha·fen.", "Fünf Hüh·ner lau·fen schnell ü·ber den Hof.", "Die Schü·ler le·sen ein Mär·chen ü·ber ei·nen Lö·wen.", "Im Kühl·schrank lie·gen Kä·se, Ge·mü·se und Würst·chen.", "Ich put·ze mei·ne Zäh·ne mit der neu·en Zahn·bürs·te.", "Die Kä·fer krab·beln ü·ber die grü·nen Blät·ter.", "Für mich gibt es heu·te sü·ße Bröt·chen.", "In der Höh·le schläft ein mü·der Bär."]}
 };
-// Reihum auswählen: erst was länger nicht dran war, Verwechsler von letzter Runde zuerst
+// Reihum auswählen: erst was länger nicht dran war, Fehler von letzter Runde zuerst
 function pickRot(key, list, k, first){
   if (!S.recent) S.recent = {};
   var ids = list.map(function(x, i){ return i; }), recent = (S.recent[key] || []).filter(function(i){ return i < list.length; });
-  var pri = (first || []).filter(function(i){ return i >= 0; });
+  var pri = []; (first || []).forEach(function(i){ if (i >= 0 && pri.indexOf(i) < 0) pri.push(i); });
   var order = pri.concat(shuffle(ids.filter(function(i){ return recent.indexOf(i) < 0 && pri.indexOf(i) < 0; })), recent.filter(function(i){ return pri.indexOf(i) < 0; }));
   var take = order.slice(0, k);
   S.recent[key] = recent.filter(function(i){ return take.indexOf(i) < 0; }).concat(take).slice(-Math.max(0, list.length - k));
   return take.map(function(i){ return list[i]; });
 }
-function bdQueue(player){
-  var pid = player.id, name = sentenceName(player.name), miss = (S.bdMiss && S.bdMiss[pid]) || [];
-  var idx = function(list, f){ return miss.map(function(raw){ for (var i = 0; i < list.length; i++) if (f(list[i]) === raw) return i; return -1; }); };
-  var pr = pickRot(pid + '|bd:p', BD.pairs, 2, miss.map(function(raw){ for (var i = 0; i < BD.pairs.length; i++) if (BD.pairs[i].indexOf(raw) >= 0) return i; return -1; }));
-  var ps = pickRot(pid + '|bd:q', BD.pseudo, 2, idx(BD.pseudo, function(x){ return x; }));
-  var mx = pickRot(pid + '|bd:m', BD.mixed, 2, idx(BD.mixed, function(x){ return x; }));
-  var se = pickRot(pid + '|bd:s', BD.sent, 2, idx(BD.sent, function(x){ return x; }));
-  var w = function(raw, ty){ return buildItem(raw, ty, name); };
+function focusCat(){ return FOCUS[S.focusCat] ? S.focusCat : 'bd'; }
+function focusMissOf(pid, cat){ return (S.focusMiss && S.focusMiss[pid] && S.focusMiss[pid][cat]) || []; }
+function focusQueue(player, cat){
+  var F = FOCUS[cat], pid = player.id, name = sentenceName(player.name), miss = focusMissOf(pid, cat), key = pid + '|f:' + cat + ':';
+  var idx = function(list){ return miss.map(function(raw){ return list.indexOf(raw); }); };
+  var pr = pickRot(key + 'p', F.pairs, 2, miss.map(function(raw){ for (var i = 0; i < F.pairs.length; i++) if (F.pairs[i].indexOf(raw) >= 0) return i; return -1; }));
+  var ps = pickRot(key + 'q', F.pseudo, 2, idx(F.pseudo)), mx = pickRot(key + 'm', F.mixed, 2, idx(F.mixed)), se = pickRot(key + 's', F.sent, 2, idx(F.sent));
+  var w = function(raw, ty){ var it = buildItem(raw, ty, name); it.focus = cat; return it; };
   var pair = function(p){ return shuffle(p.slice()).map(function(r){ return w(r, 'word'); }); };
   save();
   return pair(pr[0]).concat([w(ps[0], 'pseudo'), w(mx[0], 'word')], pair(pr[1]), [w(ps[1], 'pseudo'), w(mx[1], 'word'), w(se[0], 'sentence'), w(se[1], 'sentence')]);
 }
-// Merkhilfe: b und d farbig
-function bdColorHTML(html){
-  return html.replace(/>([^<]+)</g, function(m, txt){ return '>' + txt.replace(/b/g, '<i class="lb">b</i>').replace(/d/g, '<i class="ld">d</i>') + '<'; });
+// Farbhilfe je Stolperstein
+function focusColorHTML(html, cat){
+  var seg = function(fn){ return html.replace(/>([^<]+)</g, function(m, txt){ return '>' + fn(txt) + '<'; }); };
+  if (cat === 'bd') return seg(function(t){ return t.replace(/b/g, '<i class="lb">b</i>').replace(/d/g, '<i class="ld">d</i>'); });
+  if (cat === 'ie') return seg(function(t){ return t.replace(/ie|ei|Ei/g, function(x){ return '<i class="' + (x === 'ie' ? 'lb' : 'ld') + '">' + x + '</i>'; }); });
+  if (cat === 'um') return seg(function(t){ return t.replace(/[äöüÄÖÜ]/g, function(x){ return '<i class="lb">' + x + '</i>'; }); });
+  if (cat === 'st') return html.replace(/(<span class="s[01]" data-i="\d+">)(st|sp|St|Sp)/g, '$1<i class="lb">$2</i>');
+  if (cat === 'lk') {
+    html = seg(function(t){ return t.replace(/([bdfgklmnprst])\1/g, '<i class="lb">$1$1</i>'); });
+    return html.replace(/([bdfgklmnprst])(<\/span><span class="s[01]" data-i="\d+">)\1/g, '<i class="lb">$1</i>$2<i class="lb">$1</i>');
+  }
+  return html;
 }
 function flashQueue(n){ return shuffle(BANK.sight.slice()).slice(0, n).map(function(it){ return Object.assign({}, it, {flash: true}); }); }
 // Freies Lesen: erst alles zeigen, was länger nicht dran war, bevor sich etwas wiederholt
@@ -1536,7 +1585,7 @@ function todayKey(){ var d = new Date(); return d.getFullYear() + '-' + (d.getMo
    Kurze Wörter, Training, Blitzlesen, Rechnen: ein Spiel nach drei Runden.
    Lange Wörter: nach zwei Runden. Sätze: sofort, ganz kurz 1, mittel 2, lang 3. */
 var GAME_UNIT = 6, GAME_MAX = 3;
-var GAME_VALUE = {w1: 2, w2: 3, s0: 6, s1: 12, s2: 18, check: 6, bd: 6};
+var GAME_VALUE = {w1: 2, w2: 3, s0: 6, s1: 12, s2: 18, check: 6, fokus: 6};
 function gameValue(mode, sub){ return mode === 'read' && GAME_VALUE[sub] ? GAME_VALUE[sub] : 2; }
 function playOf(pid){
   if (!S.play) S.play = {};
@@ -1774,7 +1823,7 @@ function cityCardHTML(p){
     (nm ? '<div class="citymile">Als Nächstes: ' + esc(nm.name) + ' in ' + (nm.inN === 1 ? '1 Licht' : nm.inN + ' Lichtern') + '</div>' : '') +
     '</div></div></div>' + ballRowHTML(p.id) +
     '<details class="cityhow"><summary>So gibt es Sterne und Bälle</summary><ul>' + SPARK_RULES.map(function(r){ return '<li><span>' + esc(r[0]) + '</span><b>+' + r[1] + '</b></li>'; }).join('') + '</ul>' +
-    '<p>Im Lesecheck zählt jedes gelesene Wort, auch wenn es noch hakt. Jeder volle Ball ist ein Spiel: Dribbling oder Kopfball, jeweils mit fünf Herzen. Eine Runde lange Sätze bringt drei Spiele, mittlere Sätze zwei, ganz kurze Sätze, b und d und der Lesecheck eins. Lange Wörter füllen einen Ball in zwei Runden, kurze Wörter, Training, Blitzlesen und Rechnen in drei Runden. Mehr als drei Spiele gibt es nicht auf Vorrat. Bisher gesammelt: <b>' + total + '</b> Sterne.</p></details>';
+    '<p>Im Lesecheck zählt jedes gelesene Wort, auch wenn es noch hakt. Jeder volle Ball ist ein Spiel: Dribbling oder Kopfball, jeweils mit fünf Herzen. Eine Runde lange Sätze bringt drei Spiele, mittlere Sätze zwei, ganz kurze Sätze, Stolpersteine und der Lesecheck eins. Lange Wörter füllen einen Ball in zwei Runden, kurze Wörter, Training, Blitzlesen und Rechnen in drei Runden. Mehr als drei Spiele gibt es nicht auf Vorrat. Bisher gesammelt: <b>' + total + '</b> Sterne.</p></details>';
 }
 
 /* =====================================================================
@@ -2505,7 +2554,7 @@ function releaseWake(){ try { if (WAKE) WAKE.release(); } catch (e) {} WAKE = nu
 var READ_SUBS = [
   {id:'check', name:'Lesecheck', group:'Gezielt üben', hint:'Rund 50 Wörter in zwei Hälften, einige davon erfunden. Ein Erwachsener drückt Stopp und entscheidet: richtig oder Fehler. Läuft immer per Antippen und ohne Silbenfarben, damit alle Zeiten vergleichbar sind. Dauer etwa acht Minuten.'},
   {id:'train', name:'Training', group:'Gezielt üben', hint:'Stellt die Wörter passend zum Leseprofil zusammen: zuerst die Baustellen vom leichten zum schweren Wort, dazu Wiederholung und häufige kleine Wörter.'},
-  {id:'bd', name:'b und d', group:'Gezielt üben', hint:'Zehn Aufgaben gegen das Verwechseln von kleinem b und d: Wortpaare wie lieb und Lied oder Nabel und Nadel direkt hintereinander, zwei Quatschwörter, bei denen Raten nicht hilft, Wörter mit b und d zugleich und zwei Sätze. Was falsch war, kommt in der nächsten Runde zuerst. Die Sprache wird hier nicht automatisch bewertet: Stopp drücken oder das Codewort sagen, dann entscheidet ein Erwachsener.'},
+  {id:'fokus', name:'Stolpersteine', group:'Gezielt üben', hint:'Gezielt üben, was Kinder oft verwechseln. Oben einen Stolperstein wählen. Jede Runde hat zehn Aufgaben: zwei Wortpaare direkt hintereinander, zwei Quatschwörter, bei denen Raten nicht hilft, zwei längere Wörter und zwei Sätze. Was falsch war, kommt in der nächsten Runde zuerst. Die Sprache wird hier nicht automatisch bewertet: Stopp drücken oder das Codewort sagen, dann entscheidet ein Erwachsener.'},
   {id:'flash', name:'Blitzlesen', group:'Gezielt üben', hint:'Häufige kleine Wörter blitzen kurz auf und verschwinden. Klappt es, wird die Blitzzeit kürzer. Das trainiert das Erkennen auf einen Blick.'},
   {id:'w1', name:'Kurze Wörter', group:'Freies Lesen', hint:'Freies Lesen. Zählt auch fürs Leseprofil.'},
   {id:'w2', name:'Lange Wörter', group:'Freies Lesen', hint:'Freies Lesen. Zählt auch fürs Leseprofil.'},
@@ -2539,6 +2588,36 @@ function timeBarHTML(pid){
     '<div><span class="tbk">Denkzeit</span><b>' + fmtHM(th) + '</b></div></div>' +
     '<div class="tbside"><span>Gespielt <b>' + fmtHM(pm) + '</b>' + (pn ? ' in ' + pn + (pn === 1 ? ' Spiel' : ' Spielen') : '') + '</span>' +
     (ratio != null ? '<span>' + (ratio >= 1 ? 'Auf jede Spielminute kommen ' + (ratio >= 10 ? Math.round(ratio) : ratio.toFixed(1).replace('.', ',')) + ' Denkminuten' : 'Gerade wird mehr gespielt als gedacht') + '</span>' : '<span>So lange hat deine Birne gerechnet und gelesen</span>') + '</div>';
+}
+/* ---------- Stolpersteine: Auswahl und Merkhilfen ---------- */
+var FOCUS_HELP = {
+  bd: {title:'Merkhilfe Bett', text:'Beide Hände zur Faust, Daumen nach oben, die Fäuste aneinander. Links entsteht ein b, rechts ein d. Zusammen sehen sie aus wie ein Bett: b ist das Kopfende, d das Fußende.',
+       pic:'<svg viewBox="0 0 140 64" aria-hidden="true"><text x="6" y="54" class="bdl">b</text><rect x="40" y="33" width="58" height="14" rx="4" class="bdm"/><rect x="42" y="24" width="18" height="10" rx="4" class="bdp"/><text x="98" y="54" class="bdr">d</text></svg>'},
+  ie: {title:'Merkhilfe ie und ei', text:'Bei ie hört man nur ein langes i, das e bleibt stumm: Biene, Lied. Bei ei sagt man ai: Eis, Bein. Genau hinschauen, welcher Buchstabe vorne steht.',
+       tok:[['ie', 'klingt wie iii'], ['ei', 'klingt wie ai']]},
+  lk: {title:'Merkhilfe lang und kurz', text:'Zwei gleiche Mitlaute machen den Selbstlaut davor kurz und knapp: offen, Hütte. Ein Mitlaut oder ein h dahinter: lang und gemütlich: Ofen, Kahn.',
+       tok:[['Ofen', 'lang'], ['offen', 'kurz']]},
+  st: {title:'Merkhilfe st und sp', text:'Am Anfang eines Wortes oder einer Silbe sprichst du st wie scht und sp wie schp: Stein, Spiel. Mitten im Wort bleibt es ein normales s und t: Kiste, Wespe.',
+       tok:[['Stein', 'scht'], ['Kiste', 's und t']]},
+  um: {title:'Merkhilfe ä, ö, ü', text:'Zwei Punkte machen einen neuen Laut: a wird ä, o wird ö, u wird ü. Genau hinschauen: schon oder schön, Bar oder Bär?',
+       tok:[['a ä', ''], ['o ö', ''], ['u ü', '']]}
+};
+function focusStatus(prof, cat){
+  var order = {bad: 3, warn: 2, ok: 1}, best = null;
+  FOCUS[cat].feats.forEach(function(f){ var st = prof.byId[f] && prof.byId[f].status; if (order[st] && (!best || order[st] > order[best])) best = st; });
+  return best;
+}
+function focusPanelHTML(p){
+  var cat = focusCat(), prof = readProfile(p.id), H = FOCUS_HELP[cat], anyStatus = false;
+  var chips = FOCUS_ORDER.map(function(c){
+    var st = focusStatus(prof, c); if (st) anyStatus = true;
+    return '<button type="button" data-fcat="' + c + '" aria-pressed="' + (c === cat) + '">' + (st ? '<i class="fdot ' + st + '"></i>' : '') + esc(FOCUS[c].name) + '</button>';
+  }).join('');
+  var pic = H.pic || '<div class="ftoks">' + H.tok.map(function(t){ return '<span class="ftok"><b>' + esc(t[0]) + '</b>' + (t[1] ? '<small>' + esc(t[1]) + '</small>' : '') + '</span>'; }).join('') + '</div>';
+  return '<span class="lvlabel">Stolperstein wählen</span><div class="rowchips fchips">' + chips + '</div>' +
+    (anyStatus ? '<p class="fleg">Punkte aus dem Leseprofil: rot hakt, gelb unsicher, grün sitzt.</p>' : '') +
+    '<div class="bdhelp">' + pic + '<div><b>' + esc(H.title) + '</b><p>' + esc(H.text) + '</p>' +
+    '<button type="button" class="chip" id="focusColorBtn" aria-pressed="' + !!S.focusColor + '">Farbhilfe: ' + esc(FOCUS[cat].color) + '</button></div></div>';
 }
 function isCheck0(isRead, lv){ return isRead && lv === 'check'; }
 function inp0(){ return effectiveInput(); }
@@ -2576,10 +2655,8 @@ function renderStart(){
       }).join('') + '</div></div>';
     }).join('');
   }
-  var bh = $('#bdHelp'); bh.hidden = !(isRead && lv === 'bd');
-  if (!bh.hidden) bh.innerHTML = '<svg viewBox="0 0 140 64" aria-hidden="true"><text x="6" y="54" class="bdl">b</text><rect x="40" y="33" width="58" height="14" rx="4" class="bdm"/><rect x="42" y="24" width="18" height="10" rx="4" class="bdp"/><text x="98" y="54" class="bdr">d</text></svg>' +
-    '<div><b>Merkhilfe Bett</b><p>Beide Hände zur Faust, Daumen nach oben, die Fäuste aneinander. Links entsteht ein b, rechts ein d. Zusammen sehen sie aus wie ein Bett: b ist das Kopfende, d das Fußende.</p>' +
-    '<button type="button" class="chip" id="bdColorBtn" aria-pressed="' + !!S.bdColor + '">Farbhilfe: b blau, d rot</button></div>';
+  var fp = $('#focusPick'); fp.hidden = !(isRead && lv === 'fokus');
+  if (!fp.hidden) fp.innerHTML = focusPanelHTML(p);
   var hint = $('#subHint'), gi = !isRead ? goalInfo(lv) : null;
   hint.hidden = !(isRead || gi);
   if (isRead) { var gv = gameValue('read', lv); hint.textContent = subInfo(lv).hint + (S.gameOn === false ? '' : gv >= GAME_UNIT ? ' Eine Runde bringt ' + fmtGames(gv / GAME_UNIT) + ', danach darfst du sofort spielen.' : ' Nach ' + (GAME_UNIT / gv === 2 ? 'zwei' : 'drei') + ' Runden gibt es ein Spiel.'); }
@@ -2634,7 +2711,7 @@ function renderStart(){
     var f = el.dataset.for, hide = false;
     if (f === 'voice') hide = inp !== 'voice' || isCheck;
     else if (f === 'input') hide = isCheck;
-    else if (f === 'count') hide = isCheck || isBlock || (isRead && lv === 'bd');
+    else if (f === 'count') hide = isCheck || isBlock || (isRead && lv === 'fokus');
     else if (f === 'retry') hide = isCheck || isBlock || (isRead && lv === 'flash');
     else hide = f !== S.mode;
     el.hidden = hide;
@@ -2663,8 +2740,8 @@ function renderStart(){
   }
   $('#goLabel').textContent = isCheck ? 'Lesecheck starten' : isBlock ? 'Block ' + blockLetter(blockSel(p.id)) + ' starten' : 'Los geht\'s';
 
-  var hist = (S.history[p.id] || []).filter(function(h){ return h.mode === S.mode && h.level === lv; }).slice(-6);
-  $('#histTitle').textContent = 'Letzte Runden von ' + p.name + ' · ' + name;
+  var hist = (S.history[p.id] || []).filter(function(h){ return h.mode === S.mode && h.level === lv && (lv !== 'fokus' || h.cat === focusCat()); }).slice(-6);
+  $('#histTitle').textContent = 'Letzte Runden von ' + p.name + ' · ' + name + (isRead && lv === 'fokus' ? ' · ' + FOCUS[focusCat()].name : '');
   if (!hist.length) {
     $('#hist').innerHTML = '<p class="empty">Noch keine Runden in „' + esc(name) + '“. Nach der ersten Runde stehen hier die Zeiten.</p>';
   } else {
@@ -2696,9 +2773,10 @@ $('#levels').addEventListener('click', function(e){
   var b = e.target.closest('.level'); if (!b) return;
   S.level[levelKey()] = S.mode === 'math' ? +b.dataset.level : b.dataset.level; save(); renderStart();
 });
-$('#bdHelp').addEventListener('click', function(e){
-  if (!e.target.closest('#bdColorBtn')) return;
-  S.bdColor = !S.bdColor; save(); renderStart();
+$('#focusPick').addEventListener('click', function(e){
+  var c = e.target.closest('[data-fcat]');
+  if (c) { S.focusCat = c.dataset.fcat; save(); renderStart(); return; }
+  if (e.target.closest('#focusColorBtn')) { S.focusColor = !S.focusColor; save(); renderStart(); }
 });
 $('#blockPick').addEventListener('click', function(e){
   if (e.target.closest('[data-act="rank"]')) { openRank(blockLetter(blockSel(curPlayer().id))); return; }
@@ -2804,12 +2882,13 @@ function startRound(){
   else if (sub === 'check') { queue = checkQueue(player); save(); }
   else if (sub === 'train') { var tq = trainQueue(player, S.count); queue = tq.items; focus = tq.focus; }
   else if (sub === 'flash') queue = flashQueue(S.count);
-  else if (sub === 'bd') queue = bdQueue(player);
+  else if (sub === 'fokus') { focus = focusCat(); queue = focusQueue(player, focus); }
   else queue = freeQueue(sub, S.count, player.name, player.id);
   var g = G = {mode:mode, level:level, sub:sub, player:player, queue:queue, focus:focus, idx:0, results:[], timing:false, voiceOn:false, tries:0, typed:''};
   g.voiceOn = effectiveInput() === 'voice' && sub !== 'check';
   g.sparkStart = sparksOf(player.id); g.sparks = 0; g.sparkItems = 0; $('#sparkNum').textContent = '0';
-  g.colored = sub === 'check' || (sub === 'bd' && S.bdColor) ? false : S.syl;
+  g.fcat = sub === 'fokus' ? focus : null;
+  g.colored = sub === 'check' || (sub === 'fokus' && S.focusColor) ? false : S.syl;
   g.block = mode === 'math' && level === BLOCK_LV ? blockSel(player.id) : null;
   g.retry = S.retry && sub !== 'check' && sub !== 'flash' && g.block == null;
   if (sub === 'flash') { g.flashMs = S.flash[player.id] || 1000; g.flashStart = g.flashMs; }
@@ -2901,7 +2980,7 @@ function renderTask(){
     layoutMath();
   } else {
     sheet.className = 'sheet read';
-    sheet.innerHTML = '<p class="rtext ' + t.size + (G.colored ? ' syl' : '') + (S.caps ? ' caps' : '') + '" id="rtext">' + (G.sub === 'bd' && S.bdColor && !S.caps ? bdColorHTML(t.html) : t.html) + '</p>';
+    sheet.innerHTML = '<p class="rtext ' + t.size + (G.colored ? ' syl' : '') + (S.caps ? ' caps' : '') + '" id="rtext">' + (G.fcat && S.focusColor && !S.caps ? focusColorHTML(t.html, G.fcat) : t.html) + '</p>';
     layoutRead();
   }
 }
@@ -2992,7 +3071,7 @@ function onVoice(r){
       if (n2.length && n2[n2.length - 1] !== t.ans) { g.tries++; setCue(n2[n2.length - 1] + '? Probier es nochmal.'); }
     }
   } else {
-    if (t.type === 'pseudo' || g.sub === 'bd') { if (checked) finish({method:'check', correct:null, at:r.at}); return; }
+    if (t.type === 'pseudo' || g.sub === 'fokus') { if (checked) finish({method:'check', correct:null, at:r.at}); return; }
     var best = {ratio:0, lastOk:false};
     for (i = 0; i < cands.length; i++) {
       var sc = readScore(t, stripCheck(cands[i]));
@@ -3196,7 +3275,7 @@ function endRound(){
   if (isFlash && n >= 5 && ok.length / n >= .8 && (prev == null || g.flashMs < prev)) { record = true; S.best[k] = g.flashMs; }
   var thinkBefore = thinkOf(g.player.id);
   if (!S.history[g.player.id]) S.history[g.player.id] = [];
-  S.history[g.player.id].push({t:Date.now(), mode:g.mode, level:g.level, n:n, ok:ok.length, avg:avg, total:total, flash: isFlash ? g.flashMs : undefined});
+  S.history[g.player.id].push({t:Date.now(), mode:g.mode, level:g.level, cat: g.fcat || undefined, n:n, ok:ok.length, avg:avg, total:total, flash: isFlash ? g.flashMs : undefined});
   S.history[g.player.id] = S.history[g.player.id].slice(-60);
   var pid = g.player.id, bonus = [];
   bonus.push(g.sub === 'check' ? ['Lesecheck geschafft', 5] : ['Runde geschafft', 3]);
@@ -3230,7 +3309,7 @@ function endRound(){
   var name = g.player.name;
   var titleWord = g.sub === 'check' ? 'Lesecheck geschafft, ' : (stars === 3 ? 'Super, ' : stars === 2 ? 'Stark, ' : 'Geschafft, ');
   $('#doneTitle').textContent = titleWord + name + '!';
-  $('#doneSub').textContent = (g.mode === 'math' ? 'Rechnen · Stufe ' + g.level + ' · ' : 'Lesen · ') + levelName(g.mode, g.level) + (g.mode === 'math' && rowsOf(g.player.id, g.level).length ? ' · ' + rowsText(rowsOf(g.player.id, g.level)) : '');
+  $('#doneSub').textContent = (g.mode === 'math' ? 'Rechnen · Stufe ' + g.level + ' · ' : 'Lesen · ') + levelName(g.mode, g.level) + (g.fcat ? ' · ' + FOCUS[g.fcat].name : '') + (g.mode === 'math' && rowsOf(g.player.id, g.level).length ? ' · ' + rowsText(rowsOf(g.player.id, g.level)) : '');
   var star = '<path d="M12 2.6l2.85 5.95 6.55.8-4.85 4.5 1.3 6.5L12 17.1l-5.85 3.25 1.3-6.5L2.6 9.35l6.55-.8z"/>';
   $('#stars').hidden = true;
   $('#stars').innerHTML = [0, 1, 2].map(function(i){ return '<svg viewBox="0 0 24 24" class="' + (i < stars ? 'on' : 'off') + '" aria-hidden="true">' + star + '</svg>'; }).join('');
@@ -3264,12 +3343,13 @@ function endRound(){
   $('#doneProfileBtn').textContent = isRead ? 'Leseprofil ansehen' : 'Rechenprofil ansehen';
   LAST_DONE_MODE = g.mode;
   dr.hidden = true;
-  if (isRead && g.sub === 'bd') {
-    var miss = first.filter(function(r){ return !r.correct; });
-    if (!S.bdMiss) S.bdMiss = {};
-    S.bdMiss[g.player.id] = miss.map(function(r){ return r.task.raw; }); save();
-    dr.innerHTML = '<h3>b und d</h3><p><b>' + ok.length + ' von ' + n + '</b> richtig gelesen.' + (miss.length ? '' : ' Keine einzige Verwechslung!') + '</p>' +
-      (miss.length ? '<div class="pills">' + miss.map(function(r){ return '<span class="pill bad">' + esc(r.task.plain) + '</span>'; }).join('') + '</div><p class="muted">Diese kommen in der nächsten Runde b und d zuerst dran.</p>' : '');
+  if (isRead && g.fcat) {
+    var miss = first.filter(function(r){ return !r.correct; }), fname = FOCUS[g.fcat].name;
+    if (!S.focusMiss) S.focusMiss = {};
+    if (!S.focusMiss[g.player.id]) S.focusMiss[g.player.id] = {};
+    S.focusMiss[g.player.id][g.fcat] = miss.map(function(r){ return r.task.raw; }); save();
+    dr.innerHTML = '<h3>' + esc(fname) + '</h3><p><b>' + ok.length + ' von ' + n + '</b> richtig gelesen.' + (miss.length ? '' : ' Keine einzige Verwechslung!') + '</p>' +
+      (miss.length ? '<div class="pills">' + miss.map(function(r){ return '<span class="pill bad">' + esc(r.task.plain) + '</span>'; }).join('') + '</div><p class="muted">Diese kommen beim nächsten Mal bei „' + esc(fname) + '“ zuerst dran.</p>' : '');
     dr.hidden = false;
   }
   if (isRead && (g.sub === 'train' || g.sub === 'check')) {
