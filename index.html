@@ -771,6 +771,21 @@ h2,h3{margin:0}
 .rtrow.slow .rtbar i{background:var(--red)}
 .rtrow:not(.full) .rtbar i{background:var(--line)}
 @media (max-width:420px){ .rthead,.rtrow{grid-template-columns:2.4em minmax(20px,1fr) 3.2em 4.3em 4.3em 3.9em;gap:4px;font-size:.76rem} .rthead{font-size:.68rem} }
+
+/* b und d: Merkhilfe und Farbhilfe */
+.bdhelp{display:flex;gap:14px;align-items:center;margin-top:12px;padding:12px 14px;border-radius:14px;background:var(--sheet);border:1px solid var(--line)}
+.bdhelp svg{width:112px;flex:none}
+.bdhelp .bdl,.bdhelp .bdr{font:800 56px var(--f-read)}
+.bdhelp .bdl{fill:var(--syl)}
+.bdhelp .bdr{fill:var(--red)}
+.bdhelp .bdm{fill:var(--mark)}
+.bdhelp .bdp{fill:var(--line)}
+.bdhelp p{margin:2px 0 8px;font-size:.88rem;color:var(--muted)}
+.bdhelp .chip[aria-pressed="true"]{border-color:var(--syl);color:var(--syl);background:transparent}
+.rtext i.lb,.rtext i.ld{font-style:normal;font-weight:800}
+.rtext i.lb{color:var(--syl)}
+.rtext i.ld{color:var(--red)}
+@media (max-width:420px){ .bdhelp{flex-direction:column;align-items:flex-start} }
 </style>
 </head>
 <body>
@@ -810,6 +825,7 @@ h2,h3{margin:0}
     </div>
     <div id="levels"></div>
     <p class="subhint" id="subHint" hidden></p>
+    <div class="bdhelp" id="bdHelp" hidden></div>
     <div class="rowpick" id="rowPick" hidden></div>
     <div class="blockpick" id="blockPick" hidden></div>
     <div class="profmini" id="profMini" hidden>
@@ -1261,7 +1277,7 @@ function checkQueue(player){
   while (half < items.length && items[half].group && items[half].group === items[half - 1].group) half++;
   S.lastCheck[player.id] = items.map(function(it){ return it.raw; });
   return [{kind:'pause', title:'So geht der Lesecheck', countdown:true,
-           text:'Lies jedes Wort laut vor. Manche Wörter sind erfunden, die gibt es gar nicht. Ein Erwachsener drückt Stopp, sobald das Wort fertig gelesen ist, und tippt die Silben an, bei denen es gehakt hat.', btn:'Los geht\'s'}]
+           text:'Lies jedes Wort laut vor. Manche Wörter sind erfunden, die gibt es gar nicht. Ein Erwachsener drückt Stopp, sobald das Wort fertig gelesen ist, und entscheidet: richtig oder Fehler.', btn:'Los geht\'s'}]
     .concat(items.slice(0, half),
             [{kind:'pause', title:'Halbzeit', countdown:true, text:'Kurz durchatmen. Die zweite Hälfte ist genauso lang.', btn:'Weiter'}],
             items.slice(half));
@@ -1312,6 +1328,39 @@ function trainQueue(player, n){
   var sent = shuffle(TRAIN_SENT.filter(function(r){ var it = analyzed(r, 's'); return focus.some(function(f){ return it.feats.indexOf(f) >= 0; }); }));
   if (sent.length && n >= 8) add(buildItem(sent[0], 'sentence', sentenceName(player.name)));
   return {items: out, focus: focus};
+}
+/* ---------- b und d: Fokus Training ---------- */
+var BD = {
+  pairs: [['gelb#bd', 'Geld#bd'], ['Grab#bd', 'Grad#bd'], ['lieb#bd', 'Lied#bd'], ['Leib#bd', 'Leid#bd'], ['Le·ber#bd', 'Le·der#bd'], ['Na·bel#bd', 'Na·del#bd'], ['lie·ber#bd', 'Lie·der#bd'], ['Wa·be#bd', 'Wa·de#bd'], ['O·ber#bd', 'o·der#bd'], ['Bu·be#bd', 'Bu·de#bd'], ['Re·be#bd', 'Re·de#bd']],
+  pseudo: ['ba·do#bd', 'da·bo#bd', 'bo·di#bd', 'di·bo#bd', 'be·du#bd', 'du·be#bd', 'bi·da#bd', 'da·bi#bd', 'bu·do#bd', 'do·bu#bd', 'bal·de#bd', 'dal·be#bd', 'bin·do#bd', 'din·bo#bd', 'bem·da#bd', 'dem·ba#bd'],
+  mixed: ['blind#bd', 'bald#bd', 'da·bei#bd', 'da·ne·ben#bd', 'A·bend#bd', 'A·bend·brot#bd', 'Hand·ball#bd', 'Kle·be·band#bd', 'Fuß·ball·feld#bd', 'Bil·der·buch#bd', 'Kin·der·bett#bd', 'Feld·bett#bd', 'Sand·burg#bd', 'Erd·bee·re#bd', 'Le·der·ball#bd', 'Kin·der·buch#bd', 'Wald·bo·den#bd', 'Ro·bo·ter·hand#bd', 'Lie·der·buch#bd'],
+  sent: ['Der Dieb#bd ba·det#bd den Bä·ren#bd im Bach#bd.', 'Die Bie·ne#bd brummt#bd durch das bun·te#bd Blu·men·beet#bd.', 'Das Ba·by#bd be·kommt#bd drei#bd Ba·na·nen#bd zum A·bend·brot#bd.', 'Der Bau·er#bd baut#bd ein Dach#bd ü·ber#bd die Bank#bd.', 'Dein#bd Bru·der#bd darf den Ball#bd ins Tor schie·ßen.', 'Die Do·se#bd mit den Bon·bons#bd steht auf dem Bo·den#bd.', 'Beim#bd Ba·den#bd macht {name} bun·te#bd Bla·sen#bd.', 'Der Dra·che#bd be·wacht#bd den Berg#bd mit dem Gold#bd.', 'Die Bu·de#bd ist voll, denn Dort·mund#bd spielt heu·te.', 'Der Dok·tor#bd bin·det#bd mir ei·ne Bin·de#bd um das Bein#bd.', 'Dan·ke#bd für das bun·te#bd Bild#bd mit dem Di·no#bd.', 'Das Boot#bd dreht#bd drei#bd Run·den#bd auf dem Bo·den·see#bd.', 'Bald#bd ba·den#bd wir mit der Ba·de·en·te#bd in der Wan·ne.', 'Der Do·ber·mann#bd bellt#bd den Brief·trä·ger#bd an.', 'Im Bil·der·buch#bd sind#bd Dra·chen#bd, Di·nos#bd und Bä·ren#bd.', 'Die Spie·ler von Dort·mund#bd drib·beln#bd durch die Ab·wehr#bd.', 'Der Bus#bd bringt#bd die Kin·der#bd bis#bd zum Bad#bd.', 'Das di·cke#bd Buch#bd liegt un·ter dem Bett#bd.', 'Die Tau·be#bd und die Dros·sel#bd ba·den#bd im Brun·nen#bd.', 'Der Bä·cker#bd backt#bd am A·bend#bd dunk·les#bd Brot#bd.', 'Die bei·den#bd Brü·der#bd bau·en#bd ei·ne Burg#bd aus De·cken#bd.', 'Ich drü·cke#bd dir bei·de#bd Dau·men#bd für das Spiel.', 'Du darfst die Bre·zel#bd mit But·ter#bd be·strei·chen#bd.', 'Ein di·cker#bd Bi·ber#bd baut#bd am Bach#bd ei·nen Damm#bd.']
+};
+// Reihum auswählen: erst was länger nicht dran war, Verwechsler von letzter Runde zuerst
+function pickRot(key, list, k, first){
+  if (!S.recent) S.recent = {};
+  var ids = list.map(function(x, i){ return i; }), recent = (S.recent[key] || []).filter(function(i){ return i < list.length; });
+  var pri = (first || []).filter(function(i){ return i >= 0; });
+  var order = pri.concat(shuffle(ids.filter(function(i){ return recent.indexOf(i) < 0 && pri.indexOf(i) < 0; })), recent.filter(function(i){ return pri.indexOf(i) < 0; }));
+  var take = order.slice(0, k);
+  S.recent[key] = recent.filter(function(i){ return take.indexOf(i) < 0; }).concat(take).slice(-Math.max(0, list.length - k));
+  return take.map(function(i){ return list[i]; });
+}
+function bdQueue(player){
+  var pid = player.id, name = sentenceName(player.name), miss = (S.bdMiss && S.bdMiss[pid]) || [];
+  var idx = function(list, f){ return miss.map(function(raw){ for (var i = 0; i < list.length; i++) if (f(list[i]) === raw) return i; return -1; }); };
+  var pr = pickRot(pid + '|bd:p', BD.pairs, 2, miss.map(function(raw){ for (var i = 0; i < BD.pairs.length; i++) if (BD.pairs[i].indexOf(raw) >= 0) return i; return -1; }));
+  var ps = pickRot(pid + '|bd:q', BD.pseudo, 2, idx(BD.pseudo, function(x){ return x; }));
+  var mx = pickRot(pid + '|bd:m', BD.mixed, 2, idx(BD.mixed, function(x){ return x; }));
+  var se = pickRot(pid + '|bd:s', BD.sent, 2, idx(BD.sent, function(x){ return x; }));
+  var w = function(raw, ty){ return buildItem(raw, ty, name); };
+  var pair = function(p){ return shuffle(p.slice()).map(function(r){ return w(r, 'word'); }); };
+  save();
+  return pair(pr[0]).concat([w(ps[0], 'pseudo'), w(mx[0], 'word')], pair(pr[1]), [w(ps[1], 'pseudo'), w(mx[1], 'word'), w(se[0], 'sentence'), w(se[1], 'sentence')]);
+}
+// Merkhilfe: b und d farbig
+function bdColorHTML(html){
+  return html.replace(/>([^<]+)</g, function(m, txt){ return '>' + txt.replace(/b/g, '<i class="lb">b</i>').replace(/d/g, '<i class="ld">d</i>') + '<'; });
 }
 function flashQueue(n){ return shuffle(BANK.sight.slice()).slice(0, n).map(function(it){ return Object.assign({}, it, {flash: true}); }); }
 // Freies Lesen: erst alles zeigen, was länger nicht dran war, bevor sich etwas wiederholt
@@ -1487,7 +1536,7 @@ function todayKey(){ var d = new Date(); return d.getFullYear() + '-' + (d.getMo
    Kurze Wörter, Training, Blitzlesen, Rechnen: ein Spiel nach drei Runden.
    Lange Wörter: nach zwei Runden. Sätze: sofort, ganz kurz 1, mittel 2, lang 3. */
 var GAME_UNIT = 6, GAME_MAX = 3;
-var GAME_VALUE = {w1: 2, w2: 3, s0: 6, s1: 12, s2: 18, check: 6};
+var GAME_VALUE = {w1: 2, w2: 3, s0: 6, s1: 12, s2: 18, check: 6, bd: 6};
 function gameValue(mode, sub){ return mode === 'read' && GAME_VALUE[sub] ? GAME_VALUE[sub] : 2; }
 function playOf(pid){
   if (!S.play) S.play = {};
@@ -1725,7 +1774,7 @@ function cityCardHTML(p){
     (nm ? '<div class="citymile">Als Nächstes: ' + esc(nm.name) + ' in ' + (nm.inN === 1 ? '1 Licht' : nm.inN + ' Lichtern') + '</div>' : '') +
     '</div></div></div>' + ballRowHTML(p.id) +
     '<details class="cityhow"><summary>So gibt es Sterne und Bälle</summary><ul>' + SPARK_RULES.map(function(r){ return '<li><span>' + esc(r[0]) + '</span><b>+' + r[1] + '</b></li>'; }).join('') + '</ul>' +
-    '<p>Im Lesecheck zählt jedes gelesene Wort, auch wenn es noch hakt. Jeder volle Ball ist ein Spiel: Dribbling oder Kopfball, jeweils mit fünf Herzen. Eine Runde lange Sätze bringt drei Spiele, mittlere Sätze zwei, ganz kurze Sätze und der Lesecheck eins. Lange Wörter füllen einen Ball in zwei Runden, kurze Wörter, Training, Blitzlesen und Rechnen in drei Runden. Mehr als drei Spiele gibt es nicht auf Vorrat. Bisher gesammelt: <b>' + total + '</b> Sterne.</p></details>';
+    '<p>Im Lesecheck zählt jedes gelesene Wort, auch wenn es noch hakt. Jeder volle Ball ist ein Spiel: Dribbling oder Kopfball, jeweils mit fünf Herzen. Eine Runde lange Sätze bringt drei Spiele, mittlere Sätze zwei, ganz kurze Sätze, b und d und der Lesecheck eins. Lange Wörter füllen einen Ball in zwei Runden, kurze Wörter, Training, Blitzlesen und Rechnen in drei Runden. Mehr als drei Spiele gibt es nicht auf Vorrat. Bisher gesammelt: <b>' + total + '</b> Sterne.</p></details>';
 }
 
 /* =====================================================================
@@ -2454,8 +2503,9 @@ function releaseWake(){ try { if (WAKE) WAKE.release(); } catch (e) {} WAKE = nu
    STARTSEITE
    ===================================================================== */
 var READ_SUBS = [
-  {id:'check', name:'Lesecheck', group:'Gezielt üben', hint:'Rund 50 Wörter in zwei Hälften, einige davon erfunden. Ein Erwachsener drückt Stopp und tippt die Silben an, bei denen es gehakt hat. Läuft immer per Antippen und ohne Silbenfarben, damit alle Zeiten vergleichbar sind. Dauer etwa acht Minuten.'},
+  {id:'check', name:'Lesecheck', group:'Gezielt üben', hint:'Rund 50 Wörter in zwei Hälften, einige davon erfunden. Ein Erwachsener drückt Stopp und entscheidet: richtig oder Fehler. Läuft immer per Antippen und ohne Silbenfarben, damit alle Zeiten vergleichbar sind. Dauer etwa acht Minuten.'},
   {id:'train', name:'Training', group:'Gezielt üben', hint:'Stellt die Wörter passend zum Leseprofil zusammen: zuerst die Baustellen vom leichten zum schweren Wort, dazu Wiederholung und häufige kleine Wörter.'},
+  {id:'bd', name:'b und d', group:'Gezielt üben', hint:'Zehn Aufgaben gegen das Verwechseln von kleinem b und d: Wortpaare wie lieb und Lied oder Nabel und Nadel direkt hintereinander, zwei Quatschwörter, bei denen Raten nicht hilft, Wörter mit b und d zugleich und zwei Sätze. Was falsch war, kommt in der nächsten Runde zuerst. Die Sprache wird hier nicht automatisch bewertet: Stopp drücken oder das Codewort sagen, dann entscheidet ein Erwachsener.'},
   {id:'flash', name:'Blitzlesen', group:'Gezielt üben', hint:'Häufige kleine Wörter blitzen kurz auf und verschwinden. Klappt es, wird die Blitzzeit kürzer. Das trainiert das Erkennen auf einen Blick.'},
   {id:'w1', name:'Kurze Wörter', group:'Freies Lesen', hint:'Freies Lesen. Zählt auch fürs Leseprofil.'},
   {id:'w2', name:'Lange Wörter', group:'Freies Lesen', hint:'Freies Lesen. Zählt auch fürs Leseprofil.'},
@@ -2526,6 +2576,10 @@ function renderStart(){
       }).join('') + '</div></div>';
     }).join('');
   }
+  var bh = $('#bdHelp'); bh.hidden = !(isRead && lv === 'bd');
+  if (!bh.hidden) bh.innerHTML = '<svg viewBox="0 0 140 64" aria-hidden="true"><text x="6" y="54" class="bdl">b</text><rect x="40" y="33" width="58" height="14" rx="4" class="bdm"/><rect x="42" y="24" width="18" height="10" rx="4" class="bdp"/><text x="98" y="54" class="bdr">d</text></svg>' +
+    '<div><b>Merkhilfe Bett</b><p>Beide Hände zur Faust, Daumen nach oben, die Fäuste aneinander. Links entsteht ein b, rechts ein d. Zusammen sehen sie aus wie ein Bett: b ist das Kopfende, d das Fußende.</p>' +
+    '<button type="button" class="chip" id="bdColorBtn" aria-pressed="' + !!S.bdColor + '">Farbhilfe: b blau, d rot</button></div>';
   var hint = $('#subHint'), gi = !isRead ? goalInfo(lv) : null;
   hint.hidden = !(isRead || gi);
   if (isRead) { var gv = gameValue('read', lv); hint.textContent = subInfo(lv).hint + (S.gameOn === false ? '' : gv >= GAME_UNIT ? ' Eine Runde bringt ' + fmtGames(gv / GAME_UNIT) + ', danach darfst du sofort spielen.' : ' Nach ' + (GAME_UNIT / gv === 2 ? 'zwei' : 'drei') + ' Runden gibt es ein Spiel.'); }
@@ -2580,7 +2634,7 @@ function renderStart(){
     var f = el.dataset.for, hide = false;
     if (f === 'voice') hide = inp !== 'voice' || isCheck;
     else if (f === 'input') hide = isCheck;
-    else if (f === 'count') hide = isCheck || isBlock;
+    else if (f === 'count') hide = isCheck || isBlock || (isRead && lv === 'bd');
     else if (f === 'retry') hide = isCheck || isBlock || (isRead && lv === 'flash');
     else hide = f !== S.mode;
     el.hidden = hide;
@@ -2641,6 +2695,10 @@ $('#modes').addEventListener('click', function(e){ var b = e.target.closest('.mo
 $('#levels').addEventListener('click', function(e){
   var b = e.target.closest('.level'); if (!b) return;
   S.level[levelKey()] = S.mode === 'math' ? +b.dataset.level : b.dataset.level; save(); renderStart();
+});
+$('#bdHelp').addEventListener('click', function(e){
+  if (!e.target.closest('#bdColorBtn')) return;
+  S.bdColor = !S.bdColor; save(); renderStart();
 });
 $('#blockPick').addEventListener('click', function(e){
   if (e.target.closest('[data-act="rank"]')) { openRank(blockLetter(blockSel(curPlayer().id))); return; }
@@ -2746,11 +2804,12 @@ function startRound(){
   else if (sub === 'check') { queue = checkQueue(player); save(); }
   else if (sub === 'train') { var tq = trainQueue(player, S.count); queue = tq.items; focus = tq.focus; }
   else if (sub === 'flash') queue = flashQueue(S.count);
+  else if (sub === 'bd') queue = bdQueue(player);
   else queue = freeQueue(sub, S.count, player.name, player.id);
   var g = G = {mode:mode, level:level, sub:sub, player:player, queue:queue, focus:focus, idx:0, results:[], timing:false, voiceOn:false, tries:0, typed:''};
   g.voiceOn = effectiveInput() === 'voice' && sub !== 'check';
   g.sparkStart = sparksOf(player.id); g.sparks = 0; g.sparkItems = 0; $('#sparkNum').textContent = '0';
-  g.colored = sub === 'check' ? false : S.syl;
+  g.colored = sub === 'check' || (sub === 'bd' && S.bdColor) ? false : S.syl;
   g.block = mode === 'math' && level === BLOCK_LV ? blockSel(player.id) : null;
   g.retry = S.retry && sub !== 'check' && sub !== 'flash' && g.block == null;
   if (sub === 'flash') { g.flashMs = S.flash[player.id] || 1000; g.flashStart = g.flashMs; }
@@ -2842,7 +2901,7 @@ function renderTask(){
     layoutMath();
   } else {
     sheet.className = 'sheet read';
-    sheet.innerHTML = '<p class="rtext ' + t.size + (G.colored ? ' syl' : '') + (S.caps ? ' caps' : '') + '" id="rtext">' + t.html + '</p>';
+    sheet.innerHTML = '<p class="rtext ' + t.size + (G.colored ? ' syl' : '') + (S.caps ? ' caps' : '') + '" id="rtext">' + (G.sub === 'bd' && S.bdColor && !S.caps ? bdColorHTML(t.html) : t.html) + '</p>';
     layoutRead();
   }
 }
@@ -2933,7 +2992,7 @@ function onVoice(r){
       if (n2.length && n2[n2.length - 1] !== t.ans) { g.tries++; setCue(n2[n2.length - 1] + '? Probier es nochmal.'); }
     }
   } else {
-    if (t.type === 'pseudo') { if (checked) finish({method:'check', correct:null, at:r.at}); return; }
+    if (t.type === 'pseudo' || g.sub === 'bd') { if (checked) finish({method:'check', correct:null, at:r.at}); return; }
     var best = {ratio:0, lastOk:false};
     for (i = 0; i < cands.length; i++) {
       var sc = readScore(t, stripCheck(cands[i]));
@@ -2983,39 +3042,25 @@ function finish(res){
         {label:'Richtig', cls:'yes', fn:function(){ SFX.good(); commit(true); }},
         {label:'Falsch', cls:'no', fn:function(){ SFX.bad(); commit(false); }}
       ]);
-    } else startMarking(g);
+    } else showMark(g);
   }
 }
 
 /* ---------- Fehler antippen ---------- */
 var ERR_TYPES = [['vt', 'vertauscht'], ['lk', 'lang oder kurz'], ['ger', 'geraten'], ['aus', 'ausgelassen'], ['sk', 'selbst verbessert']];
-function startMarking(g){
-  g.marking = true; g.errSyl = {};
-  var rt = $('#rtext'); if (rt) rt.classList.add('markable');
-  showMark(g);
-}
+// Nach dem Lesen: ein Erwachsener entscheidet richtig oder Fehler
 function showMark(g){
-  var t = g.task, keys = Object.keys(g.errSyl).map(Number).sort(function(a, b){ return a - b; });
-  setCue(keys.length ? 'Gehakt bei: ' + keys.map(function(i){ return t.sylText[i]; }).join(', ') : 'Alles richtig? Sonst die Silbe antippen, die gehakt hat.', keys.length ? 'bad' : 'ask');
+  var t = g.task;
+  setCue(t.type === 'pseudo' ? 'Erfundenes Wort. Richtig vorgelesen?' : 'Richtig gelesen?', 'ask');
   showFeedback('ask', '', [
-    {label:'Richtig', cls: keys.length ? 'ghost' : 'yes', fn:function(){ commitRead(true); }},
-    {label:'Fehler', cls: 'no', fn:function(){ commitRead(false); }},
+    {label:'Richtig', cls:'yes', fn:function(){ commitRead(true); }},
+    {label:'Fehler', cls:'no', fn:function(){ commitRead(false); }},
     {label:'', icon:'speak', cls:'ghost icon', aria:'Anhören', fn:function(){ say(t.plain); }}
   ]);
 }
-$('#sheet').addEventListener('click', function(e){
-  var g = G; if (!g || !g.marking) return;
-  var s = e.target.closest('[data-i]'); if (!s) return;
-  var i = +s.dataset.i;
-  if (g.errSyl[i]) delete g.errSyl[i]; else g.errSyl[i] = 1;
-  s.classList.toggle('err', !!g.errSyl[i]);
-  showMark(g);
-});
 function commitRead(ok){
   var g = G; if (!g || !g.pending) return;
-  var keys = Object.keys(g.errSyl || {}).map(Number).sort(function(a, b){ return a - b; });
-  g.pending.es = ok ? [] : keys; g.pending.et = '';
-  g.marking = false;
+  g.pending.es = []; g.pending.et = '';
   if (ok) SFX.good(); else SFX.bad();
   commit(ok);
 }
@@ -3219,6 +3264,14 @@ function endRound(){
   $('#doneProfileBtn').textContent = isRead ? 'Leseprofil ansehen' : 'Rechenprofil ansehen';
   LAST_DONE_MODE = g.mode;
   dr.hidden = true;
+  if (isRead && g.sub === 'bd') {
+    var miss = first.filter(function(r){ return !r.correct; });
+    if (!S.bdMiss) S.bdMiss = {};
+    S.bdMiss[g.player.id] = miss.map(function(r){ return r.task.raw; }); save();
+    dr.innerHTML = '<h3>b und d</h3><p><b>' + ok.length + ' von ' + n + '</b> richtig gelesen.' + (miss.length ? '' : ' Keine einzige Verwechslung!') + '</p>' +
+      (miss.length ? '<div class="pills">' + miss.map(function(r){ return '<span class="pill bad">' + esc(r.task.plain) + '</span>'; }).join('') + '</div><p class="muted">Diese kommen in der nächsten Runde b und d zuerst dran.</p>' : '');
+    dr.hidden = false;
+  }
   if (isRead && (g.sub === 'train' || g.sub === 'check')) {
     var prof = readProfile(g.player.id);
     var html = '';
@@ -3323,7 +3376,7 @@ function openProfile(demo){
     : 'Noch keine Daten';
   var body = $('#profBody'), html = '';
   if (!prof.n) {
-    html += '<div class="pcard"><h3>So entsteht das Profil</h3><p>Im Lesecheck liest ' + esc(p.name) + ' rund 50 ausgewählte Wörter. Du drückst Stopp und tippst an, wo es gehakt hat. Daraus berechnet Blitzbirne für jeden Baustein, wie sicher und wie schnell er sitzt. Jedes Training danach macht das Bild genauer.</p>' +
+    html += '<div class="pcard"><h3>So entsteht das Profil</h3><p>Im Lesecheck liest ' + esc(p.name) + ' rund 50 ausgewählte Wörter. Du drückst Stopp und entscheidest: richtig oder Fehler. Daraus berechnet Blitzbirne für jeden Baustein, wie sicher und wie schnell er sitzt. Jedes Training danach macht das Bild genauer.</p>' +
       '<div class="rowbtns"><button class="btn primary" type="button" data-act="check">Lesecheck starten</button><button class="btn" type="button" data-act="demo">Beispiel ansehen</button></div></div>';
   } else {
     var focus = prof.focus.slice(0, 2);
@@ -3353,7 +3406,7 @@ function openProfile(demo){
         return '<div class="frow"><span class="pill ' + f.status + '">' + STATUS_TXT[f.status] + '</span><span class="fname">' + esc(f.name) + '<small>' + esc(f.ex) + ' · ' + f.n + (f.n === 1 ? ' Wort' : ' Wörter') + '</small></span>' +
           '<span class="fval err">' + (f.err != null ? pct(f.err) : 'offen') + '<span>Fehler</span></span>' +
           '<span class="fval fac">' + (f.factor != null ? '× ' + dec(f.factor) : 'offen') + '<span>Zeit</span></span></div>';
-      }).join('') + '</div><p class="muted">Fehler: Anteil der Wörter mit diesem Baustein, bei denen es genau dort gehakt hat. Zeit: wie viel länger solche Wörter dauern als gleich lange Wörter ohne diesen Baustein. Ab etwa fünf Wörtern pro Baustein wird es aussagekräftig.</p></div>';
+      }).join('') + '</div><p class="muted">Fehler: Anteil der Wörter mit diesem Baustein, die nicht geklappt haben, fair verteilt auf die Bausteine, die auch sonst Fehler machen. Zeit: wie viel länger solche Wörter dauern als gleich lange Wörter ohne diesen Baustein. Ab etwa fünf Wörtern pro Baustein wird es aussagekräftig.</p></div>';
 
     if (prof.errors.length) {
       var ET = {}; ERR_TYPES.forEach(function(e){ ET[e[0]] = e[1]; });
