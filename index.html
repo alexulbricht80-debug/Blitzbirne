@@ -798,6 +798,26 @@ h2,h3{margin:0}
 .ftok{display:grid;justify-items:center;gap:2px;min-width:64px;padding:8px 10px;border-radius:12px;background:var(--band);border:1px solid var(--line)}
 .ftok b{font:800 1.5rem var(--f-read);line-height:1.1}
 .ftok small{font-size:.72rem;color:var(--muted);white-space:nowrap}
+
+/* Leserätsel */
+.rtext.story{font-size:clamp(1.2rem,4.6vw,2.1rem);text-align:left}
+.rtext.story .sline{display:block}
+.sheet .stag{position:absolute;top:10px;left:14px;font-size:.8rem;font-weight:800;letter-spacing:.02em;padding:3px 10px;border-radius:999px;background:var(--ink);color:var(--on-ink);z-index:1}
+.sheet.read:has(.stag){padding-top:42px}
+.quiz{width:100%;display:grid;gap:12px;padding:4px 14px}
+.qq{margin:0;text-align:center;font-family:var(--f-hand);font-weight:800;font-size:clamp(1.4rem,5.5vw,2rem)}
+.qopts{display:grid;gap:8px}
+.qopts button{padding:14px 12px;border-radius:14px;border:2px solid var(--line);background:var(--sheet);color:var(--text);font-size:clamp(1.1rem,4.4vw,1.4rem);font-weight:700}
+.qopts button:active{transform:translateY(1px)}
+.qopts button.right{background:var(--goodbg);border-color:var(--good);color:var(--good)}
+.qopts button.wrong{background:var(--badbg);border-color:var(--red);color:var(--red)}
+.quiz .linkbtn{justify-self:center}
+.qtext .rtext.story{font-size:clamp(1rem,3.8vw,1.5rem);background:none}
+.qres{display:grid;gap:6px}
+.qres div{display:grid;gap:2px;padding:8px 12px;border-radius:12px;background:var(--band)}
+.qres div.ok span{color:var(--good)}
+.qres div.no span{color:var(--red)}
+.qres span{font-size:.9rem}
 </style>
 </head>
 <body>
@@ -1411,6 +1431,68 @@ function focusColorHTML(html, cat){
   }
   return html;
 }
+/* ---------- Leserätsel: drei Sätze, die zusammengehören, dann eine Frage ---------- */
+// k: r Rätsel (Frage steht vorher fest), s kleine Geschichte. a[0] ist die richtige Antwort.
+var STORIES = [
+  {"k": "r", "s": ["Ich bin grau und rie·sig groß.", "Ich ha·be ei·nen lan·gen Rüs·sel.", "Da·mit sprit·ze ich mir Was·ser auf den Rü·cken."], "q": "Wer bin ich?", "a": ["Elefant", "Nashorn", "Nilpferd"]},
+  {"k": "r", "s": ["Ich bin rund und aus Le·der.", "Al·le wol·len mich ins Tor schie·ßen.", "Im Sta·di·on ju·beln dann tau·send Fans."], "q": "Was bin ich?", "a": ["Ball", "Schuh", "Fahne"]},
+  {"k": "r", "s": ["Ich ha·be vie·le Sei·ten und ei·nen De·ckel.", "In mir ste·hen span·nen·de Ge·schich·ten.", "A·bends liest Ma·ma aus mir vor."], "q": "Was bin ich?", "a": ["Buch", "Bett", "Kissen"]},
+  {"k": "r", "s": ["Ich bin gelb und krumm.", "Af·fen fres·sen mich sehr gern.", "Vor dem Es·sen zieht man mei·ne Scha·le ab."], "q": "Was bin ich?", "a": ["Banane", "Zitrone", "Gurke"]},
+  {"k": "r", "s": ["Ich ha·be vier Rä·der und ein Lenk·rad.", "Ich brau·che Ben·zin o·der Strom.", "Mit mir fahrt ihr in den Ur·laub."], "q": "Was bin ich?", "a": ["Auto", "Fahrrad", "Schiff"]},
+  {"k": "r", "s": ["Ich woh·ne im Was·ser.", "Ich ha·be Flos·sen und Schup·pen.", "Spre·chen kann ich nicht, a·ber Bla·sen ma·chen."], "q": "Wer bin ich?", "a": ["Fisch", "Frosch", "Ente"]},
+  {"k": "r", "s": ["Ich bin kalt und weiß.", "Im Win·ter fal·le ich vom Him·mel.", "Kin·der bau·en aus mir ei·nen Mann mit Ka·rot·ten·na·se."], "q": "Was bin ich?", "a": ["Schnee", "Regen", "Nebel"]},
+  {"k": "r", "s": ["Ich ste·he im Wald und bin sehr alt.", "Im Herbst ver·lie·re ich mei·ne Blät·ter.", "Vö·gel bau·en in mir ihr Nest."], "q": "Wer bin ich?", "a": ["Baum", "Pilz", "Stein"]},
+  {"k": "r", "s": ["Ich ha·be Zei·ger und ein Zif·fer·blatt.", "Ich ma·che den gan·zen Tag tick und tack.", "Ich sa·ge dir, wann die Schu·le be·ginnt."], "q": "Was bin ich?", "a": ["Uhr", "Lampe", "Tafel"]},
+  {"k": "r", "s": ["Ich bin klein und grau.", "Ich mag Kä·se sehr gern.", "Vor der Kat·ze ha·be ich gro·ße Angst."], "q": "Wer bin ich?", "a": ["Maus", "Hund", "Igel"]},
+  {"k": "r", "s": ["Ich ha·be ein ro·tes Au·to mit Blau·licht.", "Ich tra·ge ei·nen Helm und lö·sche Feu·er.", "Wenn es brennt, rufst du mich an."], "q": "Wer bin ich?", "a": ["Feuerwehr", "Polizei", "Bäckerei"]},
+  {"k": "r", "s": ["Ich bin schwarz und gelb und kann sum·men.", "Ich flie·ge von Blu·me zu Blu·me.", "Aus mei·nem Nek·tar wird sü·ßer Ho·nig."], "q": "Wer bin ich?", "a": ["Biene", "Fliege", "Käfer"]},
+  {"k": "r", "s": ["Ich ha·be ei·nen Pan·zer auf dem Rü·cken.", "Ich bin sehr, sehr lang·sam.", "Ich kann ü·ber hun·dert Jah·re alt wer·den."], "q": "Wer bin ich?", "a": ["Schildkröte", "Schnecke", "Krokodil"]},
+  {"k": "r", "s": ["Ich bin o·ben am Him·mel und sehr heiß.", "Am Tag ma·che ich al·les hell.", "Am A·bend ge·he ich schla·fen, dann kommt der Mond."], "q": "Wer bin ich?", "a": ["Sonne", "Stern", "Wolke"]},
+  {"k": "r", "s": ["Ich ha·be ei·nen sehr lan·gen Hals.", "Ich fres·se Blät·ter von ho·hen Bäu·men.", "Mein Fell hat brau·ne Fle·cken."], "q": "Wer bin ich?", "a": ["Giraffe", "Zebra", "Kamel"]},
+  {"k": "r", "s": ["Ich ha·be Bors·ten und ei·nen Stiel.", "Mor·gens und a·bends kommst du zu mir.", "Mit Zahn·pas·ta ma·che ich dei·ne Zäh·ne sau·ber."], "q": "Was bin ich?", "a": ["Zahnbürste", "Kamm", "Löffel"]},
+  {"k": "r", "s": ["Ich bin schwarz und weiß.", "Flie·gen kann ich nicht, a·ber gut schwim·men.", "Ich le·be dort, wo es Eis und Schnee gibt."], "q": "Wer bin ich?", "a": ["Pinguin", "Möwe", "Eisbär"]},
+  {"k": "r", "s": ["Ich ha·be zwei Rä·der und ei·ne Klin·gel.", "Du trittst in die Pe·da·le, dann fah·re ich los.", "Ein Helm schützt da·bei dei·nen Kopf."], "q": "Was bin ich?", "a": ["Fahrrad", "Roller", "Bus"]},
+  {"k": "r", "s": ["Ich bin aus Glas und hän·ge an der Wand.", "Wenn du hin·ein·schaust, siehst du dich selbst.", "Mor·gens kämmst du dich vor mir."], "q": "Was bin ich?", "a": ["Spiegel", "Fenster", "Bild"]},
+  {"k": "r", "s": ["Ich bin ein Tier mit Sta·cheln.", "Wenn ich Angst ha·be, rol·le ich mich zu ei·ner Ku·gel.", "Ich fres·se gern Wür·mer und Schne·cken."], "q": "Wer bin ich?", "a": ["Igel", "Hamster", "Hase"]},
+  {"k": "r", "s": ["Ich ha·be vier Bei·ne, a·ber lau·fen kann ich nicht.", "An mir sitzt die Fa·mi·li·e beim Es·sen.", "Auf mir ste·hen Tel·ler und Glä·ser."], "q": "Was bin ich?", "a": ["Tisch", "Stuhl", "Schrank"]},
+  {"k": "r", "s": ["Ich bin weiß und kom·me von der Kuh.", "Du trinkst mich zum Früh·stück o·der im Müs·li.", "Aus mir macht man Kä·se und Jo·ghurt."], "q": "Was bin ich?", "a": ["Milch", "Saft", "Wasser"]},
+  {"k": "r", "s": ["Ich bin grün und hüp·fe gern.", "Ich woh·ne am Teich und ma·che quak.", "Flie·gen fan·ge ich mit mei·ner lan·gen Zun·ge."], "q": "Wer bin ich?", "a": ["Frosch", "Ente", "Fisch"]},
+  {"k": "r", "s": ["Ich bin bunt und kom·me nach dem Re·gen.", "Ich ste·he wie ein gro·ßer Bo·gen am Him·mel.", "Nur wenn auch die Son·ne scheint, kannst du mich se·hen."], "q": "Was bin ich?", "a": ["Regenbogen", "Blitz", "Wolke"]},
+  {"k": "s", "s": ["{name} packt den Ruck·sack für den Aus·flug.", "Ein Ap·fel, ei·ne Fla·sche Was·ser und ei·ne Müt·ze kom·men hin·ein.", "Nur das Pau·sen·brot liegt noch auf dem Tisch."], "q": "Was hat {name} vergessen?", "a": ["Das Pausenbrot", "Den Apfel", "Die Mütze"]},
+  {"k": "s", "s": ["Le·na und Tim spie·len im Gar·ten Fuß·ball.", "Tim schießt den Ball viel zu hoch.", "Jetzt hängt der Ball o·ben im Ap·fel·baum."], "q": "Wo hängt der Ball?", "a": ["Im Apfelbaum", "Im Tor", "Auf dem Dach"]},
+  {"k": "s", "s": ["O·ma backt ei·nen Ku·chen mit Kir·schen.", "Sie stellt ihn zum Ab·küh·len ans Fens·ter.", "Als sie zu·rück·kommt, sitzt der Ka·ter da·ne·ben und leckt sich das Maul."], "q": "Wer war wohl am Kuchen?", "a": ["Der Kater", "Oma", "Der Hund"]},
+  {"k": "s", "s": ["Heu·te reg·net es stark.", "Paul zieht sei·ne Gum·mi·stie·fel und die Re·gen·ja·cke an.", "Dann springt er in die größ·te Pfüt·ze."], "q": "Was zieht Paul an?", "a": ["Gummistiefel und Regenjacke", "Badehose und Sandalen", "Schal und Mütze"]},
+  {"k": "s", "s": ["Im Zoo füt·tert die Wär·te·rin die Pin·gu·i·ne.", "Sie wirft je·dem Pin·gu·in ei·nen Fisch zu.", "Der kleins·te Pin·gu·in fängt sei·nen Fisch zu·erst."], "q": "Wer fängt den Fisch zuerst?", "a": ["Der kleinste Pinguin", "Die Wärterin", "Der größte Pinguin"]},
+  {"k": "s", "s": ["Mia hat heu·te Ge·burts·tag.", "Sie wird acht Jah·re alt.", "Auf ih·rem Ku·chen bren·nen acht Ker·zen."], "q": "Wie alt wird Mia?", "a": ["Acht Jahre", "Sechs Jahre", "Zehn Jahre"]},
+  {"k": "s", "s": ["Der Hund Bel·lo bud·delt im Gar·ten ein Loch.", "Er legt sei·nen Kno·chen hin·ein.", "Dann macht er das Loch wie·der zu."], "q": "Was versteckt Bello?", "a": ["Seinen Knochen", "Einen Ball", "Einen Schuh"]},
+  {"k": "s", "s": ["{name} und Pa·pa fah·ren mit der Bahn zum Sta·di·on.", "Dort spielt heu·te Dort·mund ge·gen Bay·ern.", "Am En·de ju·beln al·le, denn Dort·mund ge·winnt."], "q": "Wer gewinnt das Spiel?", "a": ["Dortmund", "Bayern", "Keiner"]},
+  {"k": "s", "s": ["Ben sucht sei·ne Bril·le.", "Sie ist nicht im Bad und nicht in der Kü·che.", "End·lich fin·det er sie auf sei·nem Kopf."], "q": "Wo war die Brille?", "a": ["Auf seinem Kopf", "Im Bad", "In der Küche"]},
+  {"k": "s", "s": ["Im Win·ter ist der See zu·ge·fro·ren.", "Die Kin·der zie·hen ih·re Schlitt·schu·he an.", "Sie fah·ren vor·sich·tig ü·ber das glat·te Eis."], "q": "Was machen die Kinder?", "a": ["Schlittschuh laufen", "Schwimmen", "Rad fahren"]},
+  {"k": "s", "s": ["Am Mor·gen klin·gelt der We·cker.", "An·na dreht sich um und schläft wei·ter.", "Als sie auf·wacht, ist sie viel zu spät dran."], "q": "Warum ist Anna zu spät?", "a": ["Sie hat weitergeschlafen", "Der Bus kam nicht", "Sie war krank"]},
+  {"k": "s", "s": ["Die Klas·se pflanzt im Schul·gar·ten Son·nen·blu·men.", "Je·den Tag gie·ßen die Kin·der die klei·nen Pflan·zen.", "Nach ein paar Wo·chen sind die Blu·men grö·ßer als die Kin·der."], "q": "Was pflanzt die Klasse?", "a": ["Sonnenblumen", "Tomaten", "Tulpen"]},
+  {"k": "s", "s": ["O·pa und {name} ge·hen an·geln.", "Lan·ge beißt kein Fisch an.", "Dann zap·pelt plötz·lich ein gro·ßer Fisch an der An·gel."], "q": "Was passiert am Ende?", "a": ["Ein Fisch beißt an", "Es fängt an zu regnen", "Opa fällt ins Wasser"]},
+  {"k": "s", "s": ["Li·sa malt ein Bild für ih·re Ma·ma.", "Sie malt ei·ne Son·ne, ein Haus und ei·nen Hund.", "Ma·ma hängt das Bild an den Kühl·schrank."], "q": "Wo hängt das Bild?", "a": ["Am Kühlschrank", "Im Flur", "In der Schule"]},
+  {"k": "s", "s": ["Der Bus kommt heu·te zu spät.", "Die Kin·der war·ten an der Hal·te·stel·le.", "End·lich biegt der gel·be Bus um die E·cke."], "q": "Welche Farbe hat der Bus?", "a": ["Gelb", "Rot", "Blau"]},
+  {"k": "s", "s": ["In der Nacht hört Max ein Ge·räusch.", "Er schaut un·ter das Bett und fin·det nichts.", "Dann sieht er die Kat·ze auf dem Schrank sit·zen."], "q": "Wer hat das Geräusch gemacht?", "a": ["Die Katze", "Ein Gespenst", "Papa"]},
+  {"k": "s", "s": ["Fa·mi·li·e We·ber fährt in den Ur·laub ans Meer.", "Die Kin·der bau·en am Strand ei·ne gro·ße Sand·burg.", "Am A·bend kommt die Flut und spült al·les weg."], "q": "Was macht die Flut mit der Sandburg?", "a": ["Sie spült sie weg", "Sie macht sie größer", "Nichts"]},
+  {"k": "s", "s": ["{name} hat Bauch·weh.", "Zum Früh·stück gab es drei Stü·cke Ku·chen und viel Scho·ko·la·de.", "Pa·pa sagt: Mor·gen gibt es wie·der Müs·li."], "q": "Warum hat {name} Bauchweh?", "a": ["Zu viel Süßes gegessen", "Zu wenig geschlafen", "Zu schnell gerannt"]},
+  {"k": "s", "s": ["Im Herbst sam·meln Jo·nas und El·la Kas·ta·ni·en.", "Sie fül·len da·mit zwei gro·ße Kör·be.", "Zu Hau·se bas·teln sie dar·aus lus·ti·ge Tie·re."], "q": "Was basteln die Kinder?", "a": ["Lustige Tiere", "Eine Kette", "Einen Drachen"]},
+  {"k": "s", "s": ["Der Brief·trä·ger klin·gelt an der Tür.", "Er bringt ein gro·ßes Pa·ket von Tan·te E·va.", "Dar·in ist ein neu·es Fuß·ball·tri·kot."], "q": "Was ist im Paket?", "a": ["Ein Fußballtrikot", "Ein Buch", "Ein Teddy"]},
+  {"k": "s", "s": ["Ein klei·ner Vo·gel ist aus dem Nest ge·fal·len.", "E·mil bringt ihn vor·sich·tig zur Tier·ärz·tin.", "Nach ei·ner Wo·che kann der Vo·gel wie·der flie·gen."], "q": "Wohin bringt Emil den Vogel?", "a": ["Zur Tierärztin", "In die Schule", "Nach Hause"]},
+  {"k": "s", "s": ["Beim Elf·me·ter läuft {name} an.", "Der Tor·wart springt in die lin·ke E·cke.", "Der Ball fliegt a·ber ge·nau in die rech·te E·cke."], "q": "Ist der Ball im Tor?", "a": ["Ja, Tor!", "Nein, gehalten", "Nein, daneben"]}
+];
+function buildStory(st, name){
+  var parts = st.s.map(function(s){ return buildItem(s, 'sentence', name); });
+  var sub = function(x){ return x.replace(/\{name\}/g, name); };
+  var words = 0; parts.forEach(function(p){ words += p.words.length; });
+  return {kind:'read', type:'story', riddle: st.k === 'r', raw: st.s.join(' '), key: st.s[0],
+          html: parts.map(function(p){ return '<span class="sline">' + p.html + '</span>'; }).join(' '),
+          plain: parts.map(function(p){ return p.plain; }).join(' '), label: (st.k === 'r' ? 'Rätsel: ' : 'Geschichte: ') + sub(st.a[0]),
+          size: 'story', words: [], nwords: words, feats: [], sylText: [], q: sub(st.q), opts: st.a.map(sub)};
+}
+function storyQueue(player, n){
+  return pickRot(player.id + '|story', STORIES, n).map(function(st){ return buildStory(st, sentenceName(player.name)); });
+}
 function flashQueue(n){ return shuffle(BANK.sight.slice()).slice(0, n).map(function(it){ return Object.assign({}, it, {flash: true}); }); }
 // Freies Lesen: erst alles zeigen, was länger nicht dran war, bevor sich etwas wiederholt
 function freeQueue(sub, n, name, pid){
@@ -1554,7 +1636,7 @@ var SPARK_RULES = [
 ];
 // Rechenstufen 1 bis 11: Plus bis 10, Plus/Minus bis 10, bis 20, bis 100, Einmaleins, Geteilt, Gemischt, gezielt bis 10, Zehnerübergang, über die 20, Schwächen
 var MATH_SPARK = [1, 1, 2, 3, 2, 3, 3, 1, 2, 3, 2, 2, 3, 3, 3];
-var FREE_SPARK = {w1: 1, w2: 2, s0: 2, s1: 3, s2: 5};
+var FREE_SPARK = {w1: 1, w2: 2, s0: 2, s1: 3, s2: 5, story: 10};
 function sparkValue(g, t){
   if (t.kind === 'math') return MATH_SPARK[(g.level || 1) - 1] || 1;
   if (t.flash || t.type === 'sight') return 1;
@@ -1585,7 +1667,7 @@ function todayKey(){ var d = new Date(); return d.getFullYear() + '-' + (d.getMo
    Kurze Wörter, Training, Blitzlesen, Rechnen: ein Spiel nach drei Runden.
    Lange Wörter: nach zwei Runden. Sätze: sofort, ganz kurz 1, mittel 2, lang 3. */
 var GAME_UNIT = 6, GAME_MAX = 3;
-var GAME_VALUE = {w1: 2, w2: 3, s0: 6, s1: 12, s2: 18, check: 6, fokus: 6};
+var GAME_VALUE = {w1: 2, w2: 3, s0: 6, s1: 12, s2: 18, check: 6, fokus: 6, story: 18};
 function gameValue(mode, sub){ return mode === 'read' && GAME_VALUE[sub] ? GAME_VALUE[sub] : 2; }
 function playOf(pid){
   if (!S.play) S.play = {};
@@ -1823,7 +1905,7 @@ function cityCardHTML(p){
     (nm ? '<div class="citymile">Als Nächstes: ' + esc(nm.name) + ' in ' + (nm.inN === 1 ? '1 Licht' : nm.inN + ' Lichtern') + '</div>' : '') +
     '</div></div></div>' + ballRowHTML(p.id) +
     '<details class="cityhow"><summary>So gibt es Sterne und Bälle</summary><ul>' + SPARK_RULES.map(function(r){ return '<li><span>' + esc(r[0]) + '</span><b>+' + r[1] + '</b></li>'; }).join('') + '</ul>' +
-    '<p>Im Lesecheck zählt jedes gelesene Wort, auch wenn es noch hakt. Jeder volle Ball ist ein Spiel: Dribbling oder Kopfball, jeweils mit fünf Herzen. Eine Runde lange Sätze bringt drei Spiele, mittlere Sätze zwei, ganz kurze Sätze, Stolpersteine und der Lesecheck eins. Lange Wörter füllen einen Ball in zwei Runden, kurze Wörter, Training, Blitzlesen und Rechnen in drei Runden. Mehr als drei Spiele gibt es nicht auf Vorrat. Bisher gesammelt: <b>' + total + '</b> Sterne.</p></details>';
+    '<p>Im Lesecheck zählt jedes gelesene Wort, auch wenn es noch hakt. Jeder volle Ball ist ein Spiel: Dribbling oder Kopfball, jeweils mit fünf Herzen. Eine Runde lange Sätze oder Leserätsel bringt drei Spiele, mittlere Sätze zwei, ganz kurze Sätze, Stolpersteine und der Lesecheck eins. Lange Wörter füllen einen Ball in zwei Runden, kurze Wörter, Training, Blitzlesen und Rechnen in drei Runden. Mehr als drei Spiele gibt es nicht auf Vorrat. Bisher gesammelt: <b>' + total + '</b> Sterne.</p></details>';
 }
 
 /* =====================================================================
@@ -2560,7 +2642,8 @@ var READ_SUBS = [
   {id:'w2', name:'Lange Wörter', group:'Freies Lesen', hint:'Freies Lesen. Zählt auch fürs Leseprofil.'},
   {id:'s0', name:'Ganz kurze Sätze', group:'Freies Lesen', hint:'Sätze mit zwei bis vier Wörtern. Zählt auch fürs Leseprofil.'},
   {id:'s1', name:'Mittlere Sätze', group:'Freies Lesen', hint:'Sätze mit fünf bis sechs Wörtern. Zählt auch fürs Leseprofil.'},
-  {id:'s2', name:'Lange Sätze', group:'Freies Lesen', hint:'Lange Sätze mit sieben und mehr Wörtern. Zählt auch fürs Leseprofil.'}
+  {id:'s2', name:'Lange Sätze', group:'Freies Lesen', hint:'Lange Sätze mit sieben und mehr Wörtern. Zählt auch fürs Leseprofil.'},
+  {id:'story', name:'Leserätsel', group:'Lesen und verstehen', hint:'Drei kleine Lesehäppchen aus je drei Sätzen, die zusammengehören. Bei einem Rätsel steht die Frage „Wer bin ich?“ schon vorher da, bei einer kleinen Geschichte kommt die Frage erst danach. Erst laut lesen und Stopp drücken, dann tippt das Kind die richtige Antwort an. Gemessen wird das Lesetempo in Wörtern pro Minute.'}
 ];
 function subInfo(id){ return READ_SUBS.filter(function(s){ return s.id === id; })[0] || READ_SUBS[0]; }
 function levelName(mode, level){ return mode === 'math' ? MATH[level - 1].name : subInfo(level).name; }
@@ -2711,8 +2794,8 @@ function renderStart(){
     var f = el.dataset.for, hide = false;
     if (f === 'voice') hide = inp !== 'voice' || isCheck;
     else if (f === 'input') hide = isCheck;
-    else if (f === 'count') hide = isCheck || isBlock || (isRead && lv === 'fokus');
-    else if (f === 'retry') hide = isCheck || isBlock || (isRead && lv === 'flash');
+    else if (f === 'count') hide = isCheck || isBlock || (isRead && (lv === 'fokus' || lv === 'story'));
+    else if (f === 'retry') hide = isCheck || isBlock || (isRead && (lv === 'flash' || lv === 'story'));
     else hide = f !== S.mode;
     el.hidden = hide;
   });
@@ -2730,6 +2813,9 @@ function renderStart(){
     bl.innerHTML = lv === 'check'
       ? (prof.lastCheck ? 'Letzter Lesecheck von ' + esc(p.name) + ': <b>' + dateDE(prof.lastCheck) + '</b>' : 'Noch kein Lesecheck von ' + esc(p.name))
       : (prof.n ? 'Trainiert nach dem Leseprofil von ' + esc(p.name) : 'Ohne Lesecheck mischt das Training breit');
+  } else if (isRead && lv === 'story') {
+    var bw = S.bestWpm && S.bestWpm[p.id];
+    bl.innerHTML = bw ? 'Bestes Lesetempo von ' + esc(p.name) + ': <b>' + bw + ' Wörter pro Minute</b>' : 'Noch kein Lesetempo für ' + esc(p.name) + ' gemessen';
   } else if (isBlock) {
     var be = blocksOf(p.id)[blockLetter(blockSel(p.id))];
     bl.innerHTML = 'Block ' + blockLetter(blockSel(p.id)) + ' mit ' + blockFacts(blockSel(p.id)).length + ' Aufgaben' + (be ? ', Bestzeit von ' + esc(p.name) + ': <b>' + fmtDur(be.best) + '</b>' : ', noch keine Zeit');
@@ -2745,14 +2831,14 @@ function renderStart(){
   if (!hist.length) {
     $('#hist').innerHTML = '<p class="empty">Noch keine Runden in „' + esc(name) + '“. Nach der ersten Runde stehen hier die Zeiten.</p>';
   } else {
-    var isFlash = isRead && lv === 'flash';
-    var val = function(h){ return isFlash ? h.flash : h.avg; };
+    var isFlash = isRead && lv === 'flash', isSt = isRead && lv === 'story';
+    var val = function(h){ return isFlash ? h.flash : isSt ? h.wpm : h.avg; };
     var max = Math.max.apply(null, hist.map(function(h){ return val(h) || 0; })) || 1;
     var good = hist.filter(function(h){ return val(h) != null; }).map(val);
-    var minV = good.length ? Math.min.apply(null, good) : null;
+    var minV = good.length ? (isSt ? Math.max : Math.min).apply(null, good) : null;
     $('#hist').innerHTML = hist.map(function(h){
       var v = val(h), w = v != null ? Math.max(4, v / max * 100) : 0;
-      return '<div class="hrow' + (v != null && v === minV ? ' top' : '') + '"><span class="hdate">' + dateDE(h.t) + '</span><span class="hbar"><i style="width:' + w.toFixed(1) + '%"></i></span><span class="htime">' + (v != null ? (isFlash ? sec2(v) : sec(v)) + ' s' : 'keine') + '</span><span class="hok">' + h.ok + '/' + h.n + '</span></div>';
+      return '<div class="hrow' + (v != null && v === minV ? ' top' : '') + '"><span class="hdate">' + dateDE(h.t) + '</span><span class="hbar"><i style="width:' + w.toFixed(1) + '%"></i></span><span class="htime">' + (v != null ? (isFlash ? sec2(v) + ' s' : isSt ? v + ' W/min' : sec(v) + ' s') : 'keine') + '</span><span class="hok">' + h.ok + '/' + h.n + '</span></div>';
     }).join('');
   }
 }
@@ -2883,6 +2969,7 @@ function startRound(){
   else if (sub === 'train') { var tq = trainQueue(player, S.count); queue = tq.items; focus = tq.focus; }
   else if (sub === 'flash') queue = flashQueue(S.count);
   else if (sub === 'fokus') { focus = focusCat(); queue = focusQueue(player, focus); }
+  else if (sub === 'story') queue = storyQueue(player, 3);
   else queue = freeQueue(sub, S.count, player.name, player.id);
   var g = G = {mode:mode, level:level, sub:sub, player:player, queue:queue, focus:focus, idx:0, results:[], timing:false, voiceOn:false, tries:0, typed:''};
   g.voiceOn = effectiveInput() === 'voice' && sub !== 'check';
@@ -2890,7 +2977,7 @@ function startRound(){
   g.fcat = sub === 'fokus' ? focus : null;
   g.colored = sub === 'check' || (sub === 'fokus' && S.focusColor) ? false : S.syl;
   g.block = mode === 'math' && level === BLOCK_LV ? blockSel(player.id) : null;
-  g.retry = S.retry && sub !== 'check' && sub !== 'flash' && g.block == null;
+  g.retry = S.retry && sub !== 'check' && sub !== 'flash' && sub !== 'story' && g.block == null;
   if (sub === 'flash') { g.flashMs = S.flash[player.id] || 1000; g.flashStart = g.flashMs; }
   show('play');
   $('#playWho').textContent = player.name;
@@ -2927,6 +3014,7 @@ function cueText(){
   var t = G && G.task, code = '„' + (S.code || 'Check') + '“';
   if (!t) return '';
   if (t.kind === 'read' && G.sub === 'check') return t.type === 'pseudo' ? 'Ein erfundenes Wort. Lies es trotzdem vor.' : 'Lies laut vor.';
+  if (t.kind === 'read' && t.type === 'story') return 'Lies alles laut vor, dann ' + (G.voiceOn ? 'sag ' + code + ' oder drück Stopp.' : 'drück Stopp.');
   if (t.kind === 'read' && t.type === 'pseudo') return 'Ein erfundenes Wort. Lies es vor, dann ' + (G.voiceOn ? 'sag ' + code + ' oder drück Stopp.' : 'drück Stopp.');
   if (G.voiceOn) {
     if (t.kind === 'math') return S.auto ? 'Sag die Antwort laut. Oder sag ' + code + '.' : 'Sag die Antwort und dann ' + code + '.';
@@ -2980,7 +3068,7 @@ function renderTask(){
     layoutMath();
   } else {
     sheet.className = 'sheet read';
-    sheet.innerHTML = '<p class="rtext ' + t.size + (G.colored ? ' syl' : '') + (S.caps ? ' caps' : '') + '" id="rtext">' + (G.fcat && S.focusColor && !S.caps ? focusColorHTML(t.html, G.fcat) : t.html) + '</p>';
+    sheet.innerHTML = (t.type === 'story' ? '<span class="stag">' + (t.riddle ? 'Rätsel: ' + esc(t.q) : 'Kleine Geschichte') + '</span>' : '') + '<p class="rtext ' + t.size + (G.colored ? ' syl' : '') + (S.caps ? ' caps' : '') + '" id="rtext">' + (G.fcat && S.focusColor && !S.caps ? focusColorHTML(t.html, G.fcat) : t.html) + '</p>';
     layoutRead();
   }
 }
@@ -3012,7 +3100,7 @@ function syncStop(){ var g = G; $('#stopBtn').hidden = !!(g && (g.sub === 'flash
 function updatePad(){ var g = G; $('#pad').hidden = !(g && g.task && g.task.kind === 'math' && !g.voiceOn && !g.pending); syncStop(); }
 
 function startTask(){
-  var g = G; g.task = g.queue[g.idx]; g.tries = 0; g.typed = ''; g.pending = null; g.marking = false;
+  var g = G; g.task = g.queue[g.idx]; g.tries = 0; g.typed = ''; g.pending = null; g.marking = false; g.quiz = null;
   hideFeedback(); renderDots(); $('#heard').textContent = '';
   if (g.task.kind === 'pause') return showPause(g);
   renderTask(); setClock(0, 'idle'); updatePad(); $('#stopBtn').disabled = true;
@@ -3071,7 +3159,7 @@ function onVoice(r){
       if (n2.length && n2[n2.length - 1] !== t.ans) { g.tries++; setCue(n2[n2.length - 1] + '? Probier es nochmal.'); }
     }
   } else {
-    if (t.type === 'pseudo' || g.sub === 'fokus') { if (checked) finish({method:'check', correct:null, at:r.at}); return; }
+    if (t.type === 'pseudo' || g.sub === 'fokus' || t.type === 'story') { if (checked) finish({method:'check', correct:null, at:r.at}); return; }
     var best = {ratio:0, lastOk:false};
     for (i = 0; i < cands.length; i++) {
       var sc = readScore(t, stripCheck(cands[i]));
@@ -3121,9 +3209,35 @@ function finish(res){
         {label:'Richtig', cls:'yes', fn:function(){ SFX.good(); commit(true); }},
         {label:'Falsch', cls:'no', fn:function(){ SFX.bad(); commit(false); }}
       ]);
-    } else showMark(g);
+    } else if (t.type === 'story') showQuestion(g);
+    else showMark(g);
   }
 }
+/* ---------- Leserätsel: Frage nach dem Lesen ---------- */
+function showQuestion(g){
+  var t = g.task, order = shuffle([0, 1, 2].slice(0, t.opts.length));
+  g.quiz = {order: order, done: false};
+  $('#sheet').className = 'sheet read';
+  $('#sheet').innerHTML = '<div class="quiz"><div class="qtext" id="qText" hidden><p class="rtext story">' + t.html + '</p></div><p class="qq">' + esc(t.q) + '</p><div class="qopts">' +
+    order.map(function(i){ return '<button type="button" data-o="' + i + '">' + esc(t.opts[i]) + '</button>'; }).join('') +
+    '</div><button type="button" class="linkbtn" id="qPeek">Nochmal lesen</button></div>';
+  setCue('Tippe die richtige Antwort an.', 'ask');
+  $('#stopBtn').hidden = true;
+}
+$('#sheet').addEventListener('click', function(e){
+  var g = G; if (!g || !g.quiz || g.quiz.done || !g.pending) return;
+  if (e.target.closest('#qPeek')) { var q = $('#qText'); q.hidden = !q.hidden; e.target.closest('#qPeek').textContent = q.hidden ? 'Nochmal lesen' : 'Text ausblenden'; return; }
+  var b = e.target.closest('[data-o]'); if (!b) return;
+  var t = g.task, right = +b.dataset.o === 0;
+  g.quiz.done = true;
+  $$('#sheet [data-o]').forEach(function(x){ x.disabled = true; if (+x.dataset.o === 0) x.classList.add('right'); });
+  if (!right) b.classList.add('wrong');
+  g.pending.answer = t.opts[+b.dataset.o];
+  if (right) SFX.good(); else SFX.bad();
+  setCue(right ? pick(PRAISE) + ' Genau: ' + t.opts[0] + '.' : 'Nicht ganz. Richtig ist: ' + t.opts[0] + '.', right ? 'good' : 'bad');
+  showFeedback(right ? 'good' : 'bad', '', [{label:'Weiter', cls:'primary', fn:function(){ g.quiz = null; commit(right); }}]);
+  if (right) g.autoNext = setTimeout(function(){ if (G === g && g.pending) { g.quiz = null; commit(true); } }, 2200);
+});
 
 /* ---------- Fehler antippen ---------- */
 var ERR_TYPES = [['vt', 'vertauscht'], ['lk', 'lang oder kurz'], ['ger', 'geraten'], ['aus', 'ausgelassen'], ['sk', 'selbst verbessert']];
@@ -3205,7 +3319,7 @@ function hideFeedback(){
 }
 function logRead(g, r){
   var t = r.task, pid = g.player.id;
-  if (t.kind !== 'read') return;
+  if (t.kind !== 'read' || t.type === 'story') return;
   if (!S.log[pid]) S.log[pid] = [];
   S.log[pid].push({t:Date.now(), raw:t.raw, ty: t.flash ? 'g' : TYMAP[t.type] || 'w', ms:Math.round(r.ms), ok:r.correct ? 1 : 0,
                    es:r.es || [], et:r.et || '', md: t.flash ? 'flash' : g.sub === 'check' ? 'check' : g.sub === 'train' ? 'train' : 'free', col:g.colored ? 1 : 0});
@@ -3273,9 +3387,17 @@ function endRound(){
   var allowRecord = g.mode === 'math' || (g.sub && /^[ws]\d$/.test(g.sub));
   if (allowRecord && n >= 5 && ok.length / n >= .8 && avg != null && (prev == null || avg < prev)) { record = true; S.best[k] = avg; }
   if (isFlash && n >= 5 && ok.length / n >= .8 && (prev == null || g.flashMs < prev)) { record = true; S.best[k] = g.flashMs; }
+  var isStory = g.sub === 'story', wpm = null, wpmPrev = null, wpmRec = false;
+  if (isStory) {
+    var wsum = 0, msum = 0; all.forEach(function(r){ if (r.task.nwords && r.ms >= r.task.nwords * 200) { wsum += r.task.nwords; msum += r.ms; } }); // schneller als 300 Wörter pro Minute zählt nicht
+    wpm = msum ? Math.round(wsum / (msum / 60000)) : null;
+    if (!S.bestWpm) S.bestWpm = {};
+    wpmPrev = S.bestWpm[g.player.id] || null;
+    if (wpm && ok.length >= n - 1 && (!wpmPrev || wpm > wpmPrev)) { S.bestWpm[g.player.id] = wpm; wpmRec = true; }
+  }
   var thinkBefore = thinkOf(g.player.id);
   if (!S.history[g.player.id]) S.history[g.player.id] = [];
-  S.history[g.player.id].push({t:Date.now(), mode:g.mode, level:g.level, cat: g.fcat || undefined, n:n, ok:ok.length, avg:avg, total:total, flash: isFlash ? g.flashMs : undefined});
+  S.history[g.player.id].push({t:Date.now(), mode:g.mode, level:g.level, cat: g.fcat || undefined, wpm: wpm || undefined, n:n, ok:ok.length, avg:avg, total:total, flash: isFlash ? g.flashMs : undefined});
   S.history[g.player.id] = S.history[g.player.id].slice(-60);
   var pid = g.player.id, bonus = [];
   bonus.push(g.sub === 'check' ? ['Lesecheck geschafft', 5] : ['Runde geschafft', 3]);
@@ -3322,6 +3444,10 @@ function endRound(){
     $('#statTotal').textContent = clockText(total) + ' s'; $('#statTotalK').textContent = 'Denkzeit dieser Runde';
   }
   $('#statOk').textContent = ok.length + ' von ' + n;
+  if (isStory) {
+    $('#statAvg').textContent = wpm ? wpm : 'keine'; $('#statAvgK').textContent = 'Wörter pro Minute';
+    $('#statOkK').textContent = 'Fragen richtig beantwortet';
+  } else $('#statOkK').textContent = 'beim ersten Versuch richtig';
   var bc = $('#blockCard'); bc.hidden = !blockRes;
   if (blockRes) {
     var tt = blockRes.tot, tb = blockRes.totBefore;
@@ -3337,12 +3463,19 @@ function endRound(){
     rec.textContent = isFlash ? 'Schnellste Blitzzeit bisher!' : prev == null ? 'Erste Bestzeit auf dieser Stufe!' : 'Neue Bestzeit! Vorher ' + sec(prev) + ' s';
     SFX.record();
   } else rec.hidden = true;
+  if (wpmRec) { rec.hidden = false; rec.textContent = wpmPrev ? 'Neuer Rekord im Lesetempo! Vorher ' + wpmPrev + ' Wörter pro Minute.' : 'Erstes Lesetempo gemessen: ' + wpm + ' Wörter pro Minute.'; if (wpmPrev) SFX.record(); }
 
   var dr = $('#doneRead'), isRead = g.mode === 'read';
   $('#doneProfileBtn').hidden = !(isRead || (g.mode === 'math' && (g.level >= 8 || g.level === 5)));
   $('#doneProfileBtn').textContent = isRead ? 'Leseprofil ansehen' : 'Rechenprofil ansehen';
   LAST_DONE_MODE = g.mode;
   dr.hidden = true;
+  if (isStory) {
+    dr.innerHTML = '<h3>Leserätsel</h3><div class="qres">' + first.map(function(r){
+      return '<div class="' + (r.correct ? 'ok' : 'no') + '"><b>' + esc(r.task.q) + '</b><span>' + (r.correct ? '✓ ' + esc(r.task.opts[0]) : '✗ ' + esc(r.answer || '') + ', richtig: ' + esc(r.task.opts[0])) + '</span></div>';
+    }).join('') + '</div>' + (wpm ? '<p class="muted">Lesetempo ' + wpm + ' Wörter pro Minute' + (S.bestWpm[g.player.id] ? ', Rekord ' + S.bestWpm[g.player.id] : '') + '.</p>' : '');
+    dr.hidden = false;
+  }
   if (isRead && g.fcat) {
     var miss = first.filter(function(r){ return !r.correct; }), fname = FOCUS[g.fcat].name;
     if (!S.focusMiss) S.focusMiss = {};
