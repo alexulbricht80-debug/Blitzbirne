@@ -824,6 +824,15 @@ h2,h3{margin:0}
 .gdrag svg{width:48px;height:24px;flex:none;fill:none;stroke:currentColor;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
 .gamewrap canvas{touch-action:none}
 .playbtns .btn{flex:1 1 30%}
+
+/* Spiele immer sichtbar, ohne vollen Ball gesperrt */
+.ballrow.wait .playbtns{flex-basis:100%}
+.ballrow.wait .playbtns .btn{flex:1}
+.btn.play[aria-disabled="true"]{background:transparent;border-color:#3a3d48;color:#8a90a0}
+.btn.play[aria-disabled="true"]::before{content:'';display:inline-block;width:.8em;height:.8em;margin-right:.35em;vertical-align:-.05em;background:currentColor;-webkit-mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><rect x='5' y='11' width='14' height='10' rx='2'/><path d='M8 11V8a4 4 0 0 1 8 0v3' fill='none' stroke='black' stroke-width='2.4'/></svg>") center/contain no-repeat;mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><rect x='5' y='11' width='14' height='10' rx='2'/><path d='M8 11V8a4 4 0 0 1 8 0v3' fill='none' stroke='black' stroke-width='2.4'/></svg>") center/contain no-repeat}
+.ballrow.off{justify-content:space-between}
+#ballSub.flash{animation:subflash 1.2s}
+@keyframes subflash{0%,40%{color:#fde100}100%{color:inherit}}
 </style>
 </head>
 <body>
@@ -883,7 +892,7 @@ h2,h3{margin:0}
       <div class="opt" data-for="read"><label class="opt-label" for="optSyl">Silben färben<span class="opt-hint">Blau und rot mit Silbenbögen, wie in der Schule. Im Lesecheck immer aus.</span></label><span class="switch"><input type="checkbox" id="optSyl"><span class="knob"></span></span></div>
       <div class="opt" data-for="read"><label class="opt-label" for="optCaps">Großbuchstaben</label><span class="switch"><input type="checkbox" id="optCaps"><span class="knob"></span></span></div>
       <div class="opt" data-for="retry"><label class="opt-label" for="optRetry">Fehler am Ende wiederholen</label><span class="switch"><input type="checkbox" id="optRetry"><span class="knob"></span></span></div>
-      <div class="opt"><label class="opt-label" for="optGame">Minispiele<span class="opt-hint">Lesen und Rechnen füllen Bälle. Jeder volle Ball ist ein Spiel von einer Minute, Dribbling oder Kopfball.</span></label><span class="switch"><input type="checkbox" id="optGame"><span class="knob"></span></span></div>
+      <div class="opt"><label class="opt-label" for="optGame">Minispiele<span class="opt-hint">Lesen und Rechnen füllen Bälle. Jeder volle Ball ist ein Spiel: Dribbling, Kopfball oder Torwand.</span></label><span class="switch"><input type="checkbox" id="optGame"><span class="knob"></span></span></div>
       <div class="opt"><label class="opt-label" for="optSound">Töne</label><span class="switch"><input type="checkbox" id="optSound"><span class="knob"></span></span></div>
       <div class="opt" id="resetRow"><span class="opt-label">Neu anfangen<span class="opt-hint" id="resetHint"></span></span><div class="resetbtns"><button class="btn" type="button" data-reset="city">Stadt dunkel</button><button class="btn danger" type="button" data-reset="all">Alles löschen</button></div></div>
     </div>
@@ -1892,14 +1901,15 @@ function setBulb(el, frac, animate){
 
 /* ---------- Karte auf der Startseite ---------- */
 function ballRowHTML(pid){
-  if (S.gameOn === false) return '';
+  if (S.gameOn === false) return '<div class="ballrow off"><div class="balltext"><b>Minispiele sind ausgeschaltet</b><span>Dribbling, Kopfball und Torwand</span></div><button class="btn play" type="button" data-act="gameon">Einschalten</button></div>';
   var v = playOf(pid), n = Math.floor(v / GAME_UNIT), adult = isAdult(curPlayer()), lvl = gameLevelOf(pid);
-  var rd = recOf(pid, 'dribble', lvl), rh = recOf(pid, 'header', lvl);
-  var rec = [rd ? 'Dribbling ' + rd : '', rh ? 'Kopfball ' + rh : ''].filter(Boolean).join(' · ');
+  var rd = recOf(pid, 'dribble', lvl), rh = recOf(pid, 'header', lvl), rw = recOf(pid, 'wall', lvl);
+  var rec = [rd ? 'Dribbling ' + rd : '', rh ? 'Kopfball ' + rh : '', rw ? 'Torwand ' + rw : ''].filter(Boolean).join(' · ');
   var head = n >= 1 ? (n === 1 ? 'Ein Spiel bereit! Such dir eins aus.' : (n === 2 ? 'Zwei' : 'Drei') + ' Spiele bereit! Such dir eins aus.') : (v % GAME_UNIT ? 'Dein Ball füllt sich' : 'Noch kein Spiel bereit');
   var sub = n >= 1 ? (rec ? 'Rekorde ' + GAME_LEVELS[lvl].name + ': ' + rec : 'Jeder volle Ball ist ein Spiel') : adult ? 'Drei Runden Rechnen bringen ein Spiel' : 'Sätze bringen sofort Spiele: kurze 1, mittlere 2, lange 3';
-  return '<div class="ballrow' + (n >= 1 ? ' ready' : '') + '"><div class="balls">' + ballIcons(v) + '</div><div class="balltext"><b>' + head + '</b><span>' + sub + '</span></div>' +
-    (n >= 1 ? playBtns('data-act="game"') : '') + '</div>';
+  // Die Spiele sind immer zu sehen, ohne vollen Ball nur gesperrt
+  return '<div class="ballrow ' + (n >= 1 ? 'ready' : 'wait') + '"><div class="balls">' + ballIcons(v) + '</div><div class="balltext"><b>' + head + '</b><span id="ballSub">' + sub + '</span></div>' +
+    playBtns(n >= 1 ? 'data-act="game"' : 'data-act="gamelock" aria-disabled="true"') + '</div>';
 }
 function cityCardHTML(p){
   var total = sparksOf(p.id), lv = levelInfo(total), lit = lv.level, nm = nextMilestone(lit);
@@ -2898,6 +2908,11 @@ $('#cityCard').addEventListener('click', function(e){
   var b = e.target.closest('[data-act]'); if (!b) return;
   if (b.dataset.act === 'figure') openFigure();
   if (b.dataset.act === 'game') startGame(b.dataset.kind);
+  if (b.dataset.act === 'gameon') { S.gameOn = true; save(); renderStart(); }
+  if (b.dataset.act === 'gamelock') {
+    var sb = $('#ballSub'), p = curPlayer();
+    if (sb) { sb.textContent = 'Noch kein voller Ball. ' + (isAdult(p) ? 'Drei Runden Rechnen bringen ein Spiel.' : 'Lange Sätze und Leserätsel bringen sofort drei Spiele.'); sb.classList.remove('flash'); void sb.offsetWidth; sb.classList.add('flash'); }
+  }
 });
 [['optAuto','auto'],['optSpeak','speak'],['optSyl','syl'],['optCaps','caps'],['optRetry','retry'],['optSound','sound']].forEach(function(pair){
   $('#' + pair[0]).addEventListener('change', function(e){ S[pair[1]] = e.target.checked; save(); });
