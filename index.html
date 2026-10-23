@@ -818,6 +818,12 @@ h2,h3{margin:0}
 .qres div.ok span{color:var(--good)}
 .qres div.no span{color:var(--red)}
 .qres span{font-size:.9rem}
+
+/* Spiele: Schiebeleiste für den Finger */
+.gdrag{margin-top:12px;height:84px;border-radius:18px;background:var(--ink);color:var(--on-ink);display:flex;align-items:center;justify-content:center;gap:12px;touch-action:none;user-select:none;-webkit-user-select:none;font-weight:800;font-size:.95rem;padding:0 16px;text-align:center}
+.gdrag svg{width:48px;height:24px;flex:none;fill:none;stroke:currentColor;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+.gamewrap canvas{touch-action:none}
+.playbtns .btn{flex:1 1 30%}
 </style>
 </head>
 <body>
@@ -976,6 +982,7 @@ h2,h3{margin:0}
     <button type="button" id="gLeft" aria-label="Nach links"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 4 L7 12 L15 20"/></svg></button>
     <button type="button" id="gRight" aria-label="Nach rechts"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4 L17 12 L9 20"/></svg></button>
   </div>
+  <div class="gdrag" id="gDrag" hidden><svg viewBox="0 0 48 24" aria-hidden="true"><path d="M10 5 L3 12 L10 19 M38 5 L45 12 L38 19 M4 12 H44"/></svg><span>Hier mit dem Finger hin und her schieben</span></div>
 </section>
 
 <section id="screen-profile" hidden>
@@ -1688,13 +1695,13 @@ function ballIcon(state){
   return '<svg class="ballico' + (full ? ' full' : part ? ' part' : '') + '" viewBox="0 0 24 24" aria-hidden="true">' + inner + '</svg>';
 }
 function ballIcons(v){ var s = ''; for (var i = 0; i < GAME_MAX; i++) s += ballIcon((v - i * GAME_UNIT) / GAME_UNIT); return s; }
-function playBtns(attr){ return '<div class="playbtns"><button class="btn play" type="button" ' + (attr || '') + ' data-kind="dribble">Dribbling</button><button class="btn play" type="button" ' + (attr || '') + ' data-kind="header">Kopfball</button></div>'; }
+function playBtns(attr){ return '<div class="playbtns">' + [['dribble', 'Dribbling'], ['header', 'Kopfball'], ['wall', 'Torwand']].map(function(k){ return '<button class="btn play" type="button" ' + (attr || '') + ' data-kind="' + k[0] + '">' + k[1] + '</button>'; }).join('') + '</div>'; }
 
 /* Schwierigkeit der Minispiele und Rekorde je Stufe */
 var GAME_LEVELS = [null,
-  {name:'Leicht', drib:0.55, gap:1.6,  twoAt:35, twoP:0.10, twoDiv:600, grav:0.42, head:1.25, second:16, redAt:25, redP:0.30, extraV:0.6},
-  {name:'Mittel', drib:0.75, gap:1.25, twoAt:22, twoP:0.18, twoDiv:360, grav:0.65, head:1.1,  second:12, redAt:16, redP:0.45, extraV:0.8},
-  {name:'Schwer', drib:1,    gap:1,    twoAt:15, twoP:0.25, twoDiv:240, grav:1,    head:1,    second:8,  redAt:12, redP:0.60, extraV:1}];
+  {name:'Leicht', drib:0.55, gap:1.6,  twoAt:35, twoP:0.10, twoDiv:600, grav:0.42, head:1.25, second:16, redAt:25, redP:0.30, extraV:0.6, pad:0.38, wspeed:0.50},
+  {name:'Mittel', drib:0.75, gap:1.25, twoAt:22, twoP:0.18, twoDiv:360, grav:0.65, head:1.1,  second:12, redAt:16, redP:0.45, extraV:0.8, pad:0.30, wspeed:0.62},
+  {name:'Schwer', drib:1,    gap:1,    twoAt:15, twoP:0.25, twoDiv:240, grav:1,    head:1,    second:8,  redAt:12, redP:0.60, extraV:1,   pad:0.24, wspeed:0.75}];
 function gameLevelOf(pid){ var l = S.gameLevel && S.gameLevel[pid]; return l >= 1 && l <= 3 ? l : 1; }
 function recOf(pid, kind, lvl){
   if (!S.gameRec) S.gameRec = {};
@@ -1905,7 +1912,7 @@ function cityCardHTML(p){
     (nm ? '<div class="citymile">Als Nächstes: ' + esc(nm.name) + ' in ' + (nm.inN === 1 ? '1 Licht' : nm.inN + ' Lichtern') + '</div>' : '') +
     '</div></div></div>' + ballRowHTML(p.id) +
     '<details class="cityhow"><summary>So gibt es Sterne und Bälle</summary><ul>' + SPARK_RULES.map(function(r){ return '<li><span>' + esc(r[0]) + '</span><b>+' + r[1] + '</b></li>'; }).join('') + '</ul>' +
-    '<p>Im Lesecheck zählt jedes gelesene Wort, auch wenn es noch hakt. Jeder volle Ball ist ein Spiel: Dribbling oder Kopfball, jeweils mit fünf Herzen. Eine Runde lange Sätze oder Leserätsel bringt drei Spiele, mittlere Sätze zwei, ganz kurze Sätze, Stolpersteine und der Lesecheck eins. Lange Wörter füllen einen Ball in zwei Runden, kurze Wörter, Training, Blitzlesen und Rechnen in drei Runden. Mehr als drei Spiele gibt es nicht auf Vorrat. Bisher gesammelt: <b>' + total + '</b> Sterne.</p></details>';
+    '<p>Im Lesecheck zählt jedes gelesene Wort, auch wenn es noch hakt. Jeder volle Ball ist ein Spiel: Dribbling, Kopfball oder Torwand, jeweils mit fünf Herzen. Eine Runde lange Sätze oder Leserätsel bringt drei Spiele, mittlere Sätze zwei, ganz kurze Sätze, Stolpersteine und der Lesecheck eins. Lange Wörter füllen einen Ball in zwei Runden, kurze Wörter, Training, Blitzlesen und Rechnen in drei Runden. Mehr als drei Spiele gibt es nicht auf Vorrat. Bisher gesammelt: <b>' + total + '</b> Sterne.</p></details>';
 }
 
 /* =====================================================================
@@ -3793,13 +3800,16 @@ $('#figBack').addEventListener('click', function(){
    vom Kopf. Ab und zu ein zweiter Ball, rote Bälle nicht köpfen,
    goldene Sterne bringen drei Punkte. Beide: 60 Sekunden, fünf Herzen,
    drei Stufen (Leicht, Mittel, Schwer), Rekorde je Stufe.
+   Torwand: Ball mit dem gespannten Schal hochhalten und oben die Kacheln
+   abräumen. Level für Level, ohne Zeit, bis alle Herzen weg sind.
    ===================================================================== */
 var GAME = null;
 var GAME_SECONDS = 60;
 var GAME_HEARTS = 5;
 var GAMES = {
   dribble: {name:'Dribbling', unit:['Ball gesammelt', 'Bälle gesammelt'], hint:'Links und rechts tippen'},
-  header:  {name:'Kopfball',  unit:['Kopfball', 'Kopfbälle'],             hint:'Figur hin und her schieben'}
+  header:  {name:'Kopfball',  unit:['Kopfball', 'Kopfbälle'],             hint:'Mit dem Finger hin und her schieben'},
+  wall:    {name:'Torwand',   unit:['Kachel', 'Kacheln'],                   hint:'Mit dem Finger hin und her schieben'}
 };
 function svgImage(svg){
   return new Promise(function(resolve){
@@ -3815,7 +3825,7 @@ function heartSVG(full){
   return '<svg viewBox="0 0 24 24" class="heart' + (full ? '' : ' empty') + '" aria-hidden="true"><path d="M12 21 C5 15.5 2 12.3 2 8.4 2 5.4 4.4 3 7.3 3 9.2 3 11 4 12 5.6 13 4 14.8 3 16.7 3 19.6 3 22 5.4 22 8.4 22 12.3 19 15.5 12 21 Z"/></svg>';
 }
 function startGame(kind){
-  kind = kind === 'header' ? 'header' : 'dribble';
+  kind = kind === 'header' || kind === 'wall' ? kind : 'dribble';
   var p = curPlayer();
   if (gamesOf(p.id) < 1) return;
   unlockAudio();
@@ -3831,11 +3841,13 @@ function startGame(kind){
   $('#gameWho').textContent = GAMES[kind].name;
   $('#gameOver').hidden = true;
   $('#screen-game').dataset.kind = kind;
+  $('.gamectl').hidden = kind !== 'dribble'; $('#gDrag').hidden = kind === 'dribble';
   renderHud();
   var cv = $('#gameCanvas');
   g.ctx = cv.getContext('2d');
   sizeGame();
   if (kind === 'header') { g.hx = g.w / 2; }
+  if (kind === 'wall') initWall(g);
   var imgs = [svgImage(avatarSVG(av, {pose: 'stand'})), svgImage(avatarSVG(av, {pose: 'cheer'}))];
   if (kind === 'dribble') imgs = imgs.concat(foes.map(function(f){ return svgImage(avatarSVG(f, {pose: 'stand'})); }));
   Promise.all(imgs).then(function(list){
@@ -3879,6 +3891,7 @@ function renderHud(){
   var g = GAME; if (!g) return;
   var hs = ''; for (var i = 0; i < GAME_HEARTS; i++) hs += heartSVG(i < g.hearts); $('#hearts').innerHTML = hs;
   $('#gscore').innerHTML = ballIcon(true) + '<b>' + g.score + '</b>';
+  if (g.kind === 'wall') { $('#gtime').textContent = 'Level ' + (g.wl || 1); return; }
   var left = Math.max(0, Math.ceil(GAME_SECONDS - g.t));
   $('#gtime').textContent = '0:' + (left < 10 ? '0' : '') + left;
 }
@@ -3887,7 +3900,7 @@ function move(dir){
   if (g.kind === 'dribble') g.lane = Math.max(0, Math.min(2, g.lane + dir));
   else { g.dir = dir; g.target = null; }
 }
-function stopMove(){ var g = GAME; if (g && g.kind === 'header') g.dir = 0; }
+function stopMove(){ var g = GAME; if (g && g.kind !== 'dribble') g.dir = 0; }
 function loseHeart(){
   var g = GAME;
   g.hearts--; g.inv = 1.3; g.hit = 0.35; SFX.bad(); renderHud();
@@ -3958,7 +3971,7 @@ function updateHeader(dt){
   if (!g.balls.length && g.state === 'run' && !g.started) { g.balls.push(newBall('ball')); g.started = true; }
   // Figur bewegen
   var speed = w * 1.25;
-  if (g.target != null) g.hx += Math.max(-speed * dt, Math.min(speed * dt, g.target - g.hx));
+  if (g.target != null) g.hx += (g.target - g.hx) * Math.min(1, dt * 16);
   else if (g.dir) g.hx += g.dir * speed * dt;
   g.hx = Math.max(G2.aw * 0.4, Math.min(w - G2.aw * 0.4, g.hx));
   var L = g.L, grav = h * 0.95 * L.grav, k = Math.sqrt(L.grav);
@@ -4035,6 +4048,109 @@ function drawHeader(){
   g.pops.forEach(function(p){ popText(ctx, p.x, p.y, p.txt, Math.min(1, p.t / 0.4), G2.R * 1.2); });
 }
 
+/* ---------- Torwand ---------- */
+var WALLS = [
+  ['11111111', '11111111', '1g1111g1'],
+  ['..1111..', '.111111.', '11g11g11', '11111111'],
+  ['22222222', '1g1111g1', '11111111', '1..11..1'],
+  ['11111111', '12222221', '1.2gg2.1', '1......1'],
+  ['2g2g2g2g', '11111111', '22222222', '11111111'],
+  ['1.1.1.1.', '.2g2g2g2', '1.1.1.1.', '22222222', '11111111']
+];
+function wallGeom(){
+  var g = GAME, size = Math.min(g.h * 0.2, g.w * 0.3 * 170 / 120), aw = size * 120 / 170;
+  var ph = Math.max(10, g.h * 0.026), py = g.h - size * 0.9 - ph * 0.5;
+  return {size: size, aw: aw, pw: g.w * g.L.pad, ph: ph, py: py, r: Math.max(6, Math.min(g.w, g.h) * 0.022)};
+}
+function wallSpeed(g){ return g.h * g.L.wspeed * Math.min(1.6, 1 + 0.07 * (g.wl - 1)); }
+function buildWall(g){
+  var pat = WALLS[(g.wl - 1) % WALLS.length], cols = 8, left = g.w * 0.04, bw = g.w * 0.92 / cols, bh = Math.max(14, g.h * 0.045), top = g.h * 0.08;
+  g.bricks = [];
+  pat.forEach(function(row, ri){
+    row.split('').forEach(function(c, ci){
+      if (c === '.') return;
+      g.bricks.push({x: left + ci * bw + 2, y: top + ri * (bh + 4), w: bw - 4, h: bh, hp: c === '2' ? 2 : 1, gold: c === 'g', alive: true});
+    });
+  });
+}
+function serveWall(g){ g.serve = true; g.serveT = 1.1; g.ball = {x: g.px, y: 0, vx: 0, vy: 0}; }
+function initWall(g){ g.wl = 1; g.px = g.w / 2; buildWall(g); serveWall(g); }
+function updateWall(dt){
+  var g = GAME, W = wallGeom(), w = g.w, h = g.h, b = g.ball, sp = wallSpeed(g), i;
+  if (g.target != null) g.px += (g.target - g.px) * Math.min(1, dt * 18);
+  else if (g.dir) g.px += g.dir * w * 1.6 * dt;
+  g.px = Math.max(W.pw / 2, Math.min(w - W.pw / 2, g.px));
+  g.pops.forEach(function(p){ p.t -= dt; p.y -= 40 * dt; });
+  g.pops = g.pops.filter(function(p){ return p.t > 0; });
+  if (g.serve) {
+    b.x = g.px; b.y = W.py - W.r - 1; g.serveT -= dt;
+    if (g.serveT <= 0) { var a = (Math.random() - 0.5) * 0.8; b.vx = sp * Math.sin(a); b.vy = -sp * Math.cos(a); g.serve = false; }
+    return;
+  }
+  var steps = Math.max(1, Math.ceil(sp * dt / (W.r * 0.7))), st = dt / steps;
+  for (var s = 0; s < steps; s++) {
+    b.x += b.vx * st; b.y += b.vy * st;
+    if (b.x < W.r) { b.x = W.r; b.vx = Math.abs(b.vx); }
+    if (b.x > w - W.r) { b.x = w - W.r; b.vx = -Math.abs(b.vx); }
+    if (b.y < W.r) { b.y = W.r; b.vy = Math.abs(b.vy); }
+    // Schal
+    if (b.vy > 0 && b.y + W.r >= W.py && b.y - W.r <= W.py + W.ph && b.x >= g.px - W.pw / 2 - W.r && b.x <= g.px + W.pw / 2 + W.r) {
+      var rel = Math.max(-1, Math.min(1, (b.x - g.px) / (W.pw / 2))), ang = rel * 1.05;
+      b.vx = sp * Math.sin(ang); b.vy = -sp * Math.cos(ang); b.y = W.py - W.r;
+      tone(520 + Math.round(Math.abs(rel) * 200), 0, .06, 'sine', .05); g.nod = 0.12;
+    }
+    // Kacheln
+    for (i = 0; i < g.bricks.length; i++) {
+      var k = g.bricks[i]; if (!k.alive) continue;
+      var nx = Math.max(k.x, Math.min(b.x, k.x + k.w)), ny = Math.max(k.y, Math.min(b.y, k.y + k.h));
+      if ((b.x - nx) * (b.x - nx) + (b.y - ny) * (b.y - ny) > W.r * W.r) continue;
+      var ox = Math.min(b.x + W.r - k.x, k.x + k.w - (b.x - W.r)), oy = Math.min(b.y + W.r - k.y, k.y + k.h - (b.y - W.r));
+      if (ox < oy) { b.vx = b.x < k.x + k.w / 2 ? -Math.abs(b.vx) : Math.abs(b.vx); } else { b.vy = b.y < k.y + k.h / 2 ? -Math.abs(b.vy) : Math.abs(b.vy); }
+      k.hp--;
+      if (k.hp <= 0) {
+        k.alive = false; var pts = k.gold ? 3 : 1; g.score += pts;
+        g.pops.push({x: k.x + k.w / 2, y: k.y + k.h, txt: '+' + pts, t: 0.6}); SFX.spark(); renderHud();
+      } else tone(330, 0, .05, 'square', .04);
+      break;
+    }
+    if (b.y - W.r > h) {
+      loseHeart();
+      if (g.state === 'run') serveWall(g);
+      return;
+    }
+  }
+  if (!g.bricks.some(function(k){ return k.alive; })) {
+    g.wl++; g.score += 5; buildWall(g); serveWall(g); g.serveT = 1.6;
+    g.pops.push({x: w / 2, y: h * 0.45, txt: 'Level ' + g.wl + '!', t: 1.4}); SFX.record && SFX.record(); renderHud();
+  }
+  if (g.nod > 0) g.nod -= dt;
+}
+function drawWall(){
+  var g = GAME, ctx = g.ctx, w = g.w, h = g.h, W = wallGeom();
+  var sky = ctx.createLinearGradient(0, 0, 0, h);
+  sky.addColorStop(0, '#07080d'); sky.addColorStop(0.55, '#141a2e'); sky.addColorStop(1, '#1e6b38');
+  ctx.fillStyle = sky; ctx.fillRect(0, 0, w, h);
+  ctx.strokeStyle = 'rgba(255,255,255,.18)'; ctx.lineWidth = 2;
+  for (var x = 0; x < w; x += 22) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h * 0.5); ctx.stroke(); }
+  (g.bricks || []).forEach(function(k){
+    if (!k.alive) return;
+    ctx.fillStyle = k.gold ? '#f0b400' : k.hp >= 2 ? '#1b1b1f' : '#fde100';
+    ctx.strokeStyle = k.hp >= 2 ? '#fde100' : '#16171b'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.roundRect ? ctx.roundRect(k.x, k.y, k.w, k.h, 5) : ctx.rect(k.x, k.y, k.w, k.h); ctx.fill(); ctx.stroke();
+    if (k.gold) drawStar(ctx, k.x + k.w / 2, k.y + k.h / 2, k.h * 0.36);
+  });
+  // Figur mit gespanntem Schal
+  var nod = g.nod > 0 ? -4 : 0;
+  shadow(ctx, g.px, h - 6, W.aw * 0.36, 5);
+  var img = g.meCheer || g.me;
+  if (img && !blinking(g)) ctx.drawImage(img, g.px - W.aw / 2, h - W.size + nod, W.aw, W.size);
+  var sx = g.px - W.pw / 2, seg = W.pw / 8;
+  for (var i2 = 0; i2 < 8; i2++) { ctx.fillStyle = i2 % 2 ? '#16171b' : '#fde100'; ctx.fillRect(sx + i2 * seg, W.py + nod, seg + 0.5, W.ph); }
+  ctx.strokeStyle = '#16171b'; ctx.lineWidth = 2; ctx.strokeRect(sx, W.py + nod, W.pw, W.ph);
+  if (g.ball) drawBall(ctx, g.ball.x, g.ball.y, W.r, '');
+  if (g.serve && g.state === 'run') { ctx.fillStyle = 'rgba(255,255,255,.85)'; ctx.font = '700 ' + Math.round(h * 0.035) + 'px Arial, sans-serif'; ctx.textAlign = 'center'; ctx.fillText('Tippen zum Abstoß', w / 2, h * 0.62); }
+  g.pops.forEach(function(p){ popText(ctx, p.x, p.y, p.txt, Math.min(1, p.t / 0.4), p.txt.length > 3 ? h * 0.07 : W.r * 2.2); });
+}
 /* ---------- gemeinsam ---------- */
 function blinking(g){ return g.inv > 0 && Math.floor(g.inv * 10) % 2 === 0; }
 function shadow(ctx, x, y, rx, ry){ ctx.fillStyle = 'rgba(0,0,0,.2)'; ctx.beginPath(); ctx.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2); ctx.fill(); }
@@ -4074,8 +4190,8 @@ function loop(now){
       g.t += dt;
       if (g.inv > 0) g.inv -= dt;
       if (g.hit > 0) g.hit -= dt;
-      if (g.kind === 'dribble') updateDribble(dt); else updateHeader(dt);
-      if (g.state === 'run' && g.t >= GAME_SECONDS) endGame('time');
+      if (g.kind === 'dribble') updateDribble(dt); else if (g.kind === 'wall') updateWall(dt); else updateHeader(dt);
+      if (g.state === 'run' && g.kind !== 'wall' && g.t >= GAME_SECONDS) endGame('time');
       if (Math.floor(g.t * 4) !== Math.floor((g.t - dt) * 4)) renderHud();
     }
   }
@@ -4085,7 +4201,7 @@ function loop(now){
 function draw(){
   var g = GAME, ctx = g.ctx, w = g.w, h = g.h;
   ctx.setTransform(g.dpr, 0, 0, g.dpr, 0, 0);
-  if (g.kind === 'dribble') drawDribble(); else drawHeader();
+  if (g.kind === 'dribble') drawDribble(); else if (g.kind === 'wall') drawWall(); else drawHeader();
   if (g.hit > 0) { ctx.fillStyle = 'rgba(224,71,60,' + (g.hit * 0.8).toFixed(2) + ')'; ctx.fillRect(0, 0, w, h); }
   if (g.state === 'count' || g.paused) {
     ctx.fillStyle = 'rgba(0,0,0,.4)'; ctx.fillRect(0, 0, w, h);
@@ -4094,6 +4210,7 @@ function draw(){
     ctx.font = '700 ' + Math.round(h * 0.04) + 'px Arial, sans-serif'; ctx.fillStyle = '#ffffff';
     ctx.fillText(g.paused ? 'Tippen zum Weiterspielen' : GAMES[g.kind].hint, w / 2, h * 0.52);
     if (g.kind === 'header' && !g.paused) ctx.fillText('Rote Bälle nicht köpfen, Sterne fangen!', w / 2, h * 0.58);
+    if (g.kind === 'wall' && !g.paused) ctx.fillText('Räum die ganze Torwand ab!', w / 2, h * 0.58);
   }
 }
 function endGame(why){
@@ -4109,7 +4226,7 @@ function endGame(why){
   var ov = $('#gameOver');
   ov.innerHTML = '<div class="gocard"><div class="gotitle">Abpfiff!</div>' +
     '<div class="goscore">' + ballIcon(true) + '<b>' + g.score + '</b><span>' + (g.score === 1 ? u[0] : u[1]) + '</span></div>' +
-    '<p>' + (why === 'hearts' ? 'Alle Herzen weg. ' : why === 'time' ? 'Die Zeit ist um. ' : '') + (rec && g.score > 0 ? 'Neuer Rekord auf ' + g.L.name + ', ' + esc(g.name) + '!' : prev ? 'Rekord auf ' + g.L.name + ': ' + prev : '') + '</p>' +
+    '<p>' + (why === 'hearts' ? 'Alle Herzen weg. ' : why === 'time' ? 'Die Zeit ist um. ' : '') + (g.kind === 'wall' ? 'Bis Level ' + g.wl + ' gekommen. ' : '') + (rec && g.score > 0 ? 'Neuer Rekord auf ' + g.L.name + ', ' + esc(g.name) + '!' : prev ? 'Rekord auf ' + g.L.name + ': ' + prev : '') + '</p>' +
     (left >= 1 ? '<p class="goagain">Du hast noch ' + fmtGames(left) + '!</p>' + playBtns('data-again="1"') : '<p class="gonext">Fürs nächste Spiel wieder lesen oder rechnen. Lange Sätze bringen gleich drei Spiele.</p>') +
     '<button class="go' + (left >= 1 ? ' ghost' : '') + '" type="button" id="gameDone">Zurück zur Stadt</button></div>';
   ov.hidden = false;
@@ -4119,15 +4236,19 @@ function endGame(why){
 /* Steuerung */
 var cvEl = $('#gameCanvas');
 function canvasX(e){ var r = cvEl.getBoundingClientRect(); return e.clientX - r.left; }
-cvEl.addEventListener('pointerdown', function(e){
-  var g = GAME; if (!g) return;
-  if (g.paused) { g.paused = false; g.last = performance.now(); return; }
-  if (g.kind === 'dribble') { move(canvasX(e) < g.w / 2 ? -1 : 1); return; }
-  g.drag = true; g.target = canvasX(e);
-  try { cvEl.setPointerCapture(e.pointerId); } catch (err) {}
+[cvEl, $('#gDrag')].forEach(function(el){
+  el.addEventListener('pointerdown', function(e){
+    var g = GAME; if (!g) return;
+    if (g.paused) { g.paused = false; g.last = performance.now(); return; }
+    if (g.kind === 'dribble') { move(canvasX(e) < g.w / 2 ? -1 : 1); return; }
+    e.preventDefault();
+    g.drag = true; g.target = canvasX(e);
+    if (g.kind === 'wall' && g.serve && g.state === 'run') g.serveT = Math.min(g.serveT, 0.15);
+    try { el.setPointerCapture(e.pointerId); } catch (err) {}
+  });
+  el.addEventListener('pointermove', function(e){ var g = GAME; if (g && g.kind !== 'dribble' && g.drag) g.target = canvasX(e); });
+  ['pointerup', 'pointercancel'].forEach(function(t){ el.addEventListener(t, function(){ var g = GAME; if (g) g.drag = false; }); });
 });
-cvEl.addEventListener('pointermove', function(e){ var g = GAME; if (g && g.kind === 'header' && g.drag) g.target = canvasX(e); });
-['pointerup', 'pointercancel'].forEach(function(t){ cvEl.addEventListener(t, function(){ var g = GAME; if (g) { g.drag = false; g.target = null; } }); });
 [['#gLeft', -1], ['#gRight', 1]].forEach(function(pair){
   var b = $(pair[0]);
   b.addEventListener('pointerdown', function(e){ e.preventDefault(); move(pair[1]); });
