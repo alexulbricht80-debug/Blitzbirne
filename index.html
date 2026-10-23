@@ -4063,7 +4063,11 @@ function drawHeader(){
   g.pops.forEach(function(p){ popText(ctx, p.x, p.y, p.txt, Math.min(1, p.t / 0.4), G2.R * 1.2); });
 }
 
-/* ---------- Torwand ---------- */
+/* ---------- Torwand ----------
+   In jedem Level gibt es eine Kachel mit einem Ball: sie bringt einen zweiten Ball.
+   Gerettete Bälle kommen mit ins nächste Level. Ein Herz geht erst verloren, wenn
+   der letzte Ball runterfällt. Ab und zu schwebt ein blaues Monster herunter:
+   Wer es mit dem Ball trifft, bekommt 10 Punkte und für eine Weile einen breiten Schal. */
 var WALLS = [
   ['11111111', '11111111', '1g1111g1'],
   ['..1111..', '.111111.', '11g11g11', '11111111'],
@@ -4072,10 +4076,11 @@ var WALLS = [
   ['2g2g2g2g', '11111111', '22222222', '11111111'],
   ['1.1.1.1.', '.2g2g2g2', '1.1.1.1.', '22222222', '11111111']
 ];
+var WALL_MAX_BALLS = 4;
 function wallGeom(){
   var g = GAME, size = Math.min(g.h * 0.2, g.w * 0.3 * 170 / 120), aw = size * 120 / 170;
   var ph = Math.max(10, g.h * 0.026), py = g.h - size * 0.9 - ph * 0.5;
-  return {size: size, aw: aw, pw: g.w * g.L.pad, ph: ph, py: py, r: Math.max(6, Math.min(g.w, g.h) * 0.022)};
+  return {size: size, aw: aw, pw: Math.min(g.w * 0.7, g.w * g.L.pad * (g.wide > 0 ? 1.5 : 1)), ph: ph, py: py, r: Math.max(6, Math.min(g.w, g.h) * 0.022)};
 }
 function wallSpeed(g){ return g.h * g.L.wspeed * Math.min(1.6, 1 + 0.07 * (g.wl - 1)); }
 function buildWall(g){
@@ -4084,61 +4089,140 @@ function buildWall(g){
   pat.forEach(function(row, ri){
     row.split('').forEach(function(c, ci){
       if (c === '.') return;
-      g.bricks.push({x: left + ci * bw + 2, y: top + ri * (bh + 4), w: bw - 4, h: bh, hp: c === '2' ? 2 : 1, gold: c === 'g', alive: true});
+      g.bricks.push({x: left + ci * bw + 2, y: top + ri * (bh + 4), w: bw - 4, h: bh, hp: c === '2' ? 2 : 1, gold: c === 'g', alive: true, row: ri});
     });
   });
+  // eine Ballkachel pro Level, möglichst weit unten, damit man sie erreicht
+  var cand = g.bricks.filter(function(k){ return !k.gold; }), maxRow = Math.max.apply(null, cand.map(function(k){ return k.row; }));
+  var low = cand.filter(function(k){ return k.row >= maxRow - 1; }), pickK = low[Math.floor(Math.random() * low.length)];
+  if (pickK) { pickK.multi = true; pickK.hp = 1; }
+  g.mon = null; g.monT = 7 + Math.random() * 4;
 }
-function serveWall(g){ g.serve = true; g.serveT = 1.1; g.ball = {x: g.px, y: 0, vx: 0, vy: 0}; }
-function initWall(g){ g.wl = 1; g.px = g.w / 2; buildWall(g); serveWall(g); }
+function serveWall(g, n){
+  n = Math.max(1, Math.min(WALL_MAX_BALLS, n || 1));
+  g.serve = true; g.serveT = 1.1; g.wb = [];
+  var W = wallGeom();
+  for (var i = 0; i < n; i++) { var off = i - (n - 1) / 2; g.wb.push({x: Math.max(W.r, Math.min(g.w - W.r, g.px + off * W.r * 3)), y: W.py - W.r - 1, vx: 0, vy: 0, off: off}); }
+}
+function initWall(g){ g.wl = 1; g.px = g.w / 2; g.wide = 0; buildWall(g); serveWall(g, 1); }
+function wallPop(g, x, y, txt, t){ g.pops.push({x: x, y: y, txt: txt, t: t || 0.7}); }
 function updateWall(dt){
-  var g = GAME, W = wallGeom(), w = g.w, h = g.h, b = g.ball, sp = wallSpeed(g), i;
+  var g = GAME, W = wallGeom(), w = g.w, h = g.h, sp = wallSpeed(g), i;
   if (g.target != null) g.px += (g.target - g.px) * Math.min(1, dt * 18);
   else if (g.dir) g.px += g.dir * w * 1.6 * dt;
   g.px = Math.max(W.pw / 2, Math.min(w - W.pw / 2, g.px));
+  if (g.wide > 0) { g.wide -= dt; if (g.wide <= 0) wallPop(g, g.px, W.py - 20, 'Schal wieder normal', 0.9); }
   g.pops.forEach(function(p){ p.t -= dt; p.y -= 40 * dt; });
   g.pops = g.pops.filter(function(p){ return p.t > 0; });
+  if (g.nod > 0) g.nod -= dt;
   if (g.serve) {
-    b.x = g.px; b.y = W.py - W.r - 1; g.serveT -= dt;
-    if (g.serveT <= 0) { var a = (Math.random() - 0.5) * 0.8; b.vx = sp * Math.sin(a); b.vy = -sp * Math.cos(a); g.serve = false; }
+    g.wb.forEach(function(b){ b.x = Math.max(W.r, Math.min(w - W.r, g.px + b.off * W.r * 3)); b.y = W.py - W.r - 1; });
+    g.serveT -= dt;
+    if (g.serveT <= 0) {
+      g.wb.forEach(function(b){ var a = b.off * 0.35 + (Math.random() - 0.5) * 0.4; b.vx = sp * Math.sin(a); b.vy = -sp * Math.cos(a); });
+      g.serve = false;
+    }
     return;
   }
-  var steps = Math.max(1, Math.ceil(sp * dt / (W.r * 0.7))), st = dt / steps;
-  for (var s = 0; s < steps; s++) {
-    b.x += b.vx * st; b.y += b.vy * st;
-    if (b.x < W.r) { b.x = W.r; b.vx = Math.abs(b.vx); }
-    if (b.x > w - W.r) { b.x = w - W.r; b.vx = -Math.abs(b.vx); }
-    if (b.y < W.r) { b.y = W.r; b.vy = Math.abs(b.vy); }
-    // Schal
-    if (b.vy > 0 && b.y + W.r >= W.py && b.y - W.r <= W.py + W.ph && b.x >= g.px - W.pw / 2 - W.r && b.x <= g.px + W.pw / 2 + W.r) {
-      var rel = Math.max(-1, Math.min(1, (b.x - g.px) / (W.pw / 2))), ang = rel * 1.05;
-      b.vx = sp * Math.sin(ang); b.vy = -sp * Math.cos(ang); b.y = W.py - W.r;
-      tone(520 + Math.round(Math.abs(rel) * 200), 0, .06, 'sine', .05); g.nod = 0.12;
+  updateMonster(dt, W);
+  var spawn = [];
+  g.wb.forEach(function(b){
+    var steps = Math.max(1, Math.ceil(sp * dt / (W.r * 0.7))), st = dt / steps;
+    for (var s = 0; s < steps && !b.gone; s++) {
+      b.x += b.vx * st; b.y += b.vy * st;
+      if (b.x < W.r) { b.x = W.r; b.vx = Math.abs(b.vx); }
+      if (b.x > w - W.r) { b.x = w - W.r; b.vx = -Math.abs(b.vx); }
+      if (b.y < W.r) { b.y = W.r; b.vy = Math.abs(b.vy); }
+      // Schal
+      if (b.vy > 0 && b.y + W.r >= W.py && b.y - W.r <= W.py + W.ph && b.x >= g.px - W.pw / 2 - W.r && b.x <= g.px + W.pw / 2 + W.r) {
+        var rel = Math.max(-1, Math.min(1, (b.x - g.px) / (W.pw / 2))), ang = rel * 1.05;
+        b.vx = sp * Math.sin(ang); b.vy = -sp * Math.cos(ang); b.y = W.py - W.r;
+        tone(520 + Math.round(Math.abs(rel) * 200), 0, .06, 'sine', .05); g.nod = 0.12;
+      }
+      // Monster
+      var m = g.mon;
+      if (m && !m.dead) {
+        var dx = b.x - m.x, dy = b.y - m.y, dd = Math.sqrt(dx * dx + dy * dy);
+        if (dd < W.r + m.r) {
+          var nx2 = dx / (dd || 1), ny2 = dy / (dd || 1), dot = b.vx * nx2 + b.vy * ny2;
+          if (dot < 0) { b.vx -= 2 * dot * nx2; b.vy -= 2 * dot * ny2; }
+          m.dead = 0.5; g.score += 10; g.wide = 10; SFX.record(); renderHud();
+          wallPop(g, m.x, m.y - m.r, '+10 Monster erwischt!', 1.2);
+          wallPop(g, w / 2, h * 0.55, 'Breiter Schal!', 1.2);
+        }
+      }
+      // Kacheln
+      for (i = 0; i < g.bricks.length; i++) {
+        var k = g.bricks[i]; if (!k.alive) continue;
+        var nx = Math.max(k.x, Math.min(b.x, k.x + k.w)), ny = Math.max(k.y, Math.min(b.y, k.y + k.h));
+        if ((b.x - nx) * (b.x - nx) + (b.y - ny) * (b.y - ny) > W.r * W.r) continue;
+        var ox = Math.min(b.x + W.r - k.x, k.x + k.w - (b.x - W.r)), oy = Math.min(b.y + W.r - k.y, k.y + k.h - (b.y - W.r));
+        if (ox < oy) { b.vx = b.x < k.x + k.w / 2 ? -Math.abs(b.vx) : Math.abs(b.vx); } else { b.vy = b.y < k.y + k.h / 2 ? -Math.abs(b.vy) : Math.abs(b.vy); }
+        k.hp--;
+        if (k.hp <= 0) {
+          k.alive = false; var pts = k.gold ? 3 : 1; g.score += pts;
+          if (k.multi) {
+            if (g.wb.length + spawn.length < WALL_MAX_BALLS) { var a2 = (Math.random() - 0.5) * 1.2; spawn.push({x: k.x + k.w / 2, y: k.y + k.h + W.r + 1, vx: sp * Math.sin(a2), vy: sp * Math.cos(a2)}); wallPop(g, k.x + k.w / 2, k.y + k.h, 'Neuer Ball!', 1); }
+            tone(880, 0, .12, 'triangle', .07); tone(1320, .1, .16, 'triangle', .07);
+          } else wallPop(g, k.x + k.w / 2, k.y + k.h, '+' + pts, 0.6);
+          SFX.spark(); renderHud();
+        } else tone(330, 0, .05, 'square', .04);
+        break;
+      }
+      if (b.y - W.r > h) b.gone = true;
     }
-    // Kacheln
-    for (i = 0; i < g.bricks.length; i++) {
-      var k = g.bricks[i]; if (!k.alive) continue;
-      var nx = Math.max(k.x, Math.min(b.x, k.x + k.w)), ny = Math.max(k.y, Math.min(b.y, k.y + k.h));
-      if ((b.x - nx) * (b.x - nx) + (b.y - ny) * (b.y - ny) > W.r * W.r) continue;
-      var ox = Math.min(b.x + W.r - k.x, k.x + k.w - (b.x - W.r)), oy = Math.min(b.y + W.r - k.y, k.y + k.h - (b.y - W.r));
-      if (ox < oy) { b.vx = b.x < k.x + k.w / 2 ? -Math.abs(b.vx) : Math.abs(b.vx); } else { b.vy = b.y < k.y + k.h / 2 ? -Math.abs(b.vy) : Math.abs(b.vy); }
-      k.hp--;
-      if (k.hp <= 0) {
-        k.alive = false; var pts = k.gold ? 3 : 1; g.score += pts;
-        g.pops.push({x: k.x + k.w / 2, y: k.y + k.h, txt: '+' + pts, t: 0.6}); SFX.spark(); renderHud();
-      } else tone(330, 0, .05, 'square', .04);
-      break;
-    }
-    if (b.y - W.r > h) {
-      loseHeart();
-      if (g.state === 'run') serveWall(g);
-      return;
-    }
+  });
+  g.wb = g.wb.filter(function(b){ return !b.gone; }).concat(spawn);
+  if (!g.wb.length) {
+    loseHeart();
+    if (g.state === 'run') serveWall(g, 1);
+    return;
   }
   if (!g.bricks.some(function(k){ return k.alive; })) {
-    g.wl++; g.score += 5; buildWall(g); serveWall(g); g.serveT = 1.6;
-    g.pops.push({x: w / 2, y: h * 0.45, txt: 'Level ' + g.wl + '!', t: 1.4}); SFX.record && SFX.record(); renderHud();
+    var keep = g.wb.length;
+    g.wl++; g.score += 5; buildWall(g); serveWall(g, keep); g.serveT = 1.6;
+    wallPop(g, w / 2, h * 0.45, 'Level ' + g.wl + '!', 1.4);
+    if (keep > 1) wallPop(g, w / 2, h * 0.53, keep + ' Bälle gerettet!', 1.6);
+    SFX.record(); renderHud();
   }
-  if (g.nod > 0) g.nod -= dt;
+}
+/* Das blaue Monster schwebt im Zickzack herunter */
+function updateMonster(dt, W){
+  var g = GAME, w = g.w, h = g.h, m = g.mon;
+  if (!m) {
+    g.monT -= dt;
+    if (g.monT <= 0) {
+      var r = Math.max(20, Math.min(w, h) * 0.075);
+      g.mon = {x0: w * (0.25 + Math.random() * 0.5), x: 0, y: -r, r: r, t: 0, amp: w * (0.18 + Math.random() * 0.12), vy: h * (0.045 + 0.01 * Math.min(4, g.wl - 1))};
+      tone(220, 0, .2, 'sawtooth', .04); tone(180, .18, .25, 'sawtooth', .04);
+    }
+    return;
+  }
+  if (m.dead) { m.dead -= dt; if (m.dead <= 0) { g.mon = null; g.monT = 14 + Math.random() * 6; } return; }
+  m.t += dt; m.y += m.vy * dt; m.x = Math.max(m.r, Math.min(w - m.r, m.x0 + Math.sin(m.t * 1.4) * m.amp));
+  if (m.y - m.r > W.py) { wallPop(g, m.x, W.py - 10, 'Entwischt!', 0.9); g.mon = null; g.monT = 12 + Math.random() * 6; }
+}
+function drawMonster(ctx, m){
+  var r = m.r, x = m.x, y = m.y + Math.sin(m.t * 6) * r * 0.06;
+  ctx.save();
+  if (m.dead) { var k = m.dead / 0.5; ctx.globalAlpha = k; ctx.translate(x, y); ctx.scale(1 + (1 - k) * 0.8, 1 + (1 - k) * 0.8); ctx.translate(-x, -y); }
+  // Hörnchen
+  ctx.fillStyle = '#ffffff'; ctx.strokeStyle = '#0e2a63'; ctx.lineWidth = 2;
+  [-1, 1].forEach(function(s){ ctx.beginPath(); ctx.moveTo(x + s * r * 0.45, y - r * 0.75); ctx.lineTo(x + s * r * 0.75, y - r * 1.25); ctx.lineTo(x + s * r * 0.85, y - r * 0.55); ctx.closePath(); ctx.fill(); ctx.stroke(); });
+  // Körper königsblau mit weißem Bauch
+  ctx.beginPath(); ctx.ellipse(x, y, r, r * 0.92, 0, 0, Math.PI * 2); ctx.fillStyle = '#1c4ba0'; ctx.fill(); ctx.stroke();
+  ctx.beginPath(); ctx.ellipse(x, y + r * 0.35, r * 0.55, r * 0.42, 0, 0, Math.PI * 2); ctx.fillStyle = '#ffffff'; ctx.fill();
+  // Füßchen
+  ctx.fillStyle = '#0e2a63'; [-1, 1].forEach(function(s){ ctx.beginPath(); ctx.ellipse(x + s * r * 0.45, y + r * 0.9, r * 0.25, r * 0.13, 0, 0, Math.PI * 2); ctx.fill(); });
+  // Augen mit grimmigen Brauen
+  [-1, 1].forEach(function(s){
+    ctx.beginPath(); ctx.arc(x + s * r * 0.36, y - r * 0.22, r * 0.22, 0, Math.PI * 2); ctx.fillStyle = '#ffffff'; ctx.fill();
+    ctx.beginPath(); ctx.arc(x + s * r * 0.32, y - r * 0.18, r * 0.1, 0, Math.PI * 2); ctx.fillStyle = '#111111'; ctx.fill();
+    ctx.beginPath(); ctx.moveTo(x + s * r * 0.15, y - r * 0.5); ctx.lineTo(x + s * r * 0.58, y - r * 0.38); ctx.lineWidth = Math.max(2, r * 0.1); ctx.strokeStyle = '#0e2a63'; ctx.stroke();
+  });
+  // Grinsen mit Zähnchen
+  ctx.beginPath(); ctx.moveTo(x - r * 0.3, y + r * 0.12); ctx.quadraticCurveTo(x, y + r * 0.32, x + r * 0.3, y + r * 0.12); ctx.lineWidth = Math.max(2, r * 0.08); ctx.strokeStyle = '#0e2a63'; ctx.stroke();
+  ctx.restore();
 }
 function drawWall(){
   var g = GAME, ctx = g.ctx, w = g.w, h = g.h, W = wallGeom();
@@ -4149,11 +4233,13 @@ function drawWall(){
   for (var x = 0; x < w; x += 22) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h * 0.5); ctx.stroke(); }
   (g.bricks || []).forEach(function(k){
     if (!k.alive) return;
-    ctx.fillStyle = k.gold ? '#f0b400' : k.hp >= 2 ? '#1b1b1f' : '#fde100';
-    ctx.strokeStyle = k.hp >= 2 ? '#fde100' : '#16171b'; ctx.lineWidth = 2;
+    ctx.fillStyle = k.multi ? '#ffffff' : k.gold ? '#f0b400' : k.hp >= 2 ? '#1b1b1f' : '#fde100';
+    ctx.strokeStyle = k.multi ? '#fde100' : k.hp >= 2 ? '#fde100' : '#16171b'; ctx.lineWidth = k.multi ? 3 : 2;
     ctx.beginPath(); ctx.roundRect ? ctx.roundRect(k.x, k.y, k.w, k.h, 5) : ctx.rect(k.x, k.y, k.w, k.h); ctx.fill(); ctx.stroke();
     if (k.gold) drawStar(ctx, k.x + k.w / 2, k.y + k.h / 2, k.h * 0.36);
+    if (k.multi) drawBall(ctx, k.x + k.w / 2, k.y + k.h / 2, k.h * 0.36, '');
   });
+  if (g.mon) drawMonster(ctx, g.mon);
   // Figur mit gespanntem Schal
   var nod = g.nod > 0 ? -4 : 0;
   shadow(ctx, g.px, h - 6, W.aw * 0.36, 5);
@@ -4161,10 +4247,11 @@ function drawWall(){
   if (img && !blinking(g)) ctx.drawImage(img, g.px - W.aw / 2, h - W.size + nod, W.aw, W.size);
   var sx = g.px - W.pw / 2, seg = W.pw / 8;
   for (var i2 = 0; i2 < 8; i2++) { ctx.fillStyle = i2 % 2 ? '#16171b' : '#fde100'; ctx.fillRect(sx + i2 * seg, W.py + nod, seg + 0.5, W.ph); }
-  ctx.strokeStyle = '#16171b'; ctx.lineWidth = 2; ctx.strokeRect(sx, W.py + nod, W.pw, W.ph);
-  if (g.ball) drawBall(ctx, g.ball.x, g.ball.y, W.r, '');
+  ctx.strokeStyle = g.wide > 0 && (g.wide > 2 || Math.floor(g.wide * 6) % 2) ? '#ffffff' : '#16171b'; ctx.lineWidth = 2; ctx.strokeRect(sx, W.py + nod, W.pw, W.ph);
+  (g.wb || []).forEach(function(b){ drawBall(ctx, b.x, b.y, W.r, ''); });
+  if (g.wb && g.wb.length > 1) { ctx.fillStyle = 'rgba(255,255,255,.8)'; ctx.font = '700 ' + Math.round(h * 0.03) + 'px Arial, sans-serif'; ctx.textAlign = 'right'; ctx.fillText(g.wb.length + ' Bälle', w - 10, h - 10); }
   if (g.serve && g.state === 'run') { ctx.fillStyle = 'rgba(255,255,255,.85)'; ctx.font = '700 ' + Math.round(h * 0.035) + 'px Arial, sans-serif'; ctx.textAlign = 'center'; ctx.fillText('Tippen zum Abstoß', w / 2, h * 0.62); }
-  g.pops.forEach(function(p){ popText(ctx, p.x, p.y, p.txt, Math.min(1, p.t / 0.4), p.txt.length > 3 ? h * 0.07 : W.r * 2.2); });
+  g.pops.forEach(function(p){ popText(ctx, p.x, p.y, p.txt, Math.min(1, p.t / 0.4), p.txt.length > 3 ? Math.min(h * 0.06, w * 0.07) : W.r * 2.2); });
 }
 /* ---------- gemeinsam ---------- */
 function blinking(g){ return g.inv > 0 && Math.floor(g.inv * 10) % 2 === 0; }
@@ -4225,7 +4312,7 @@ function draw(){
     ctx.font = '700 ' + Math.round(h * 0.04) + 'px Arial, sans-serif'; ctx.fillStyle = '#ffffff';
     ctx.fillText(g.paused ? 'Tippen zum Weiterspielen' : GAMES[g.kind].hint, w / 2, h * 0.52);
     if (g.kind === 'header' && !g.paused) ctx.fillText('Rote Bälle nicht köpfen, Sterne fangen!', w / 2, h * 0.58);
-    if (g.kind === 'wall' && !g.paused) ctx.fillText('Räum die ganze Torwand ab!', w / 2, h * 0.58);
+    if (g.kind === 'wall' && !g.paused) { ctx.fillText('Räum die Torwand ab!', w / 2, h * 0.58); ctx.fillText('Ballkachel: zweiter Ball!', w / 2, h * 0.64); ctx.fillText('Triff das blaue Monster!', w / 2, h * 0.70); }
   }
 }
 function endGame(why){
