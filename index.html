@@ -3896,10 +3896,20 @@ function sizeGame(){
   var g = GAME; if (!g) return;
   var cv = $('#gameCanvas'), wrap = cv.parentNode, dpr = Math.min(2, window.devicePixelRatio || 1);
   var w = wrap.clientWidth, h = Math.round(Math.min(620, Math.max(360, window.innerHeight * 0.62)));
-  var ow = g.w;
+  var ow = g.w, oh = g.h;
   cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); cv.style.height = h + 'px';
   g.w = w; g.h = h; g.dpr = dpr;
   if (ow && g.hx != null) g.hx = g.hx / ow * w;
+  // Torwand: Kacheln, Bälle, Monster und Biene mitskalieren, damit nichts außerhalb landet
+  if (g.kind === 'wall' && ow && oh && (ow !== w || oh !== h)) {
+    var sx = w / ow, sy = h / oh;
+    (g.bricks || []).forEach(function(k){ k.x *= sx; k.w *= sx; k.y *= sy; k.h *= sy; });
+    (g.wb || []).forEach(function(b){ b.x *= sx; b.y *= sy; b.tr = []; });
+    if (g.px != null) g.px *= sx;
+    if (g.target != null) g.target *= sx;
+    if (g.mon) { g.mon.x0 *= sx; g.mon.x *= sx; g.mon.amp *= sx; g.mon.y *= sy; }
+    if (g.bee) { g.bee.x *= sx; g.bee.y *= sy; g.bee.step *= sy; g.bee.r *= sy; }
+  }
 }
 function laneX(i){ var g = GAME; return g.w * (0.2 + 0.3 * i); }
 function renderHud(){
@@ -4112,7 +4122,7 @@ function serveWall(g, n){
   var W = wallGeom();
   for (var i = 0; i < n; i++) { var off = i - (n - 1) / 2; g.wb.push({x: Math.max(W.r, Math.min(g.w - W.r, g.px + off * W.r * 3)), y: W.py - W.r - 1, vx: 0, vy: 0, off: off}); }
 }
-function initWall(g){ g.wl = 1; g.px = g.w / 2; g.wide = 0; g.fx = null; buildWall(g); serveWall(g, 1); }
+function initWall(g){ g.wl = 1; g.px = g.w / 2; g.wide = 0; g.fx = null; g.lastHit = 0; buildWall(g); serveWall(g, 1); }
 var FX_MULT = {fire: 1.6, ice: 0.55}, FX_NAME = {fire: 'Feuerball', ice: 'Eisball'};
 function wallSpeedNow(g){ return wallSpeed(g) * (g.fx ? FX_MULT[g.fx.type] : 1); }
 function wallPop(g, x, y, txt, t){ g.pops.push({x: x, y: y, txt: txt, t: t || 0.7}); }
@@ -4148,6 +4158,7 @@ function updateWall(dt){
       if (b.x < W.r) { b.x = W.r; b.vx = Math.abs(b.vx); }
       if (b.x > w - W.r) { b.x = w - W.r; b.vx = -Math.abs(b.vx); }
       if (b.y < W.r) { b.y = W.r; b.vy = Math.abs(b.vy); }
+      if (Math.abs(b.vy) < sp * 0.3) { b.vy = (b.vy < 0 ? -1 : 1) * sp * 0.3; b.vx = (b.vx < 0 ? -1 : 1) * Math.sqrt(Math.max(0, sp * sp - b.vy * b.vy)); }
       // Schal
       if (b.vy > 0 && b.y + W.r >= W.py && b.y - W.r <= W.py + W.ph && b.x >= g.px - W.pw / 2 - W.r && b.x <= g.px + W.pw / 2 + W.r) {
         var rel = Math.max(-1, Math.min(1, (b.x - g.px) / (W.pw / 2))), ang = rel * 1.05;
@@ -4173,7 +4184,7 @@ function updateWall(dt){
         if ((b.x - nx) * (b.x - nx) + (b.y - ny) * (b.y - ny) > W.r * W.r) continue;
         var ox = Math.min(b.x + W.r - k.x, k.x + k.w - (b.x - W.r)), oy = Math.min(b.y + W.r - k.y, k.y + k.h - (b.y - W.r));
         if (ox < oy) { b.vx = b.x < k.x + k.w / 2 ? -Math.abs(b.vx) : Math.abs(b.vx); } else { b.vy = b.y < k.y + k.h / 2 ? -Math.abs(b.vy) : Math.abs(b.vy); }
-        k.hp = g.fx && g.fx.type === 'fire' ? 0 : k.hp - 1;
+        k.hp = g.fx && g.fx.type === 'fire' ? 0 : k.hp - 1; g.lastHit = g.t;
         if (k.timer > 0) { startBee(g, k); k.hp = 0; }
         if (k.hp <= 0) {
           k.alive = false; var pts = k.gold ? 3 : 1; g.score += pts;
@@ -4196,9 +4207,19 @@ function updateWall(dt){
     if (g.state === 'run') serveWall(g, 1);
     return;
   }
-  if (!g.bricks.some(function(k){ return k.alive; })) {
+  // Kacheln außerhalb des Spielfelds zählen nicht (Sicherheit nach Drehen oder Größenänderung)
+  g.bricks.forEach(function(k){ if (k.alive && (k.x + k.w < 0 || k.x > w || k.y > h || k.y + k.h < 0)) k.alive = false; });
+  var left = g.bricks.filter(function(k){ return k.alive; });
+  // Wächter: wenn lange keine Kachel getroffen wurde und nur noch wenige übrig sind, fliegen die letzten von selbst weg
+  if (g.lastHit == null) g.lastHit = g.t;
+  if (left.length && left.length <= 4 && g.t - g.lastHit > 25) {
+    left.forEach(function(k){ k.alive = false; g.score += 1; });
+    wallPop(g, w / 2, h * 0.4, 'Weiter geht\'s!', 1.2); left = [];
+  }
+  g.stuckBlink = left.length && left.length <= 4 && g.t - g.lastHit > 15;
+  if (!left.length) {
     var keep = g.wb.length;
-    g.wl++; g.score += 5; buildWall(g); serveWall(g, keep); g.serveT = 1.6;
+    g.wl++; g.score += 5; buildWall(g); serveWall(g, keep); g.serveT = 1.6; g.lastHit = g.t;
     wallPop(g, w / 2, h * 0.45, 'Level ' + g.wl + '!', 1.4);
     if (keep > 1) wallPop(g, w / 2, h * 0.53, keep + ' Bälle gerettet!', 1.6);
     SFX.record(); renderHud();
@@ -4257,7 +4278,7 @@ function updateBee(dt){
   var r = b.r;
   g.bricks.forEach(function(k){
     if (!k.alive || k.x > b.x + r || k.x + k.w < b.x - r || k.y > b.y + r || k.y + k.h < b.y - r) return;
-    k.alive = false; var pts = k.gold ? 3 : 1; g.score += pts; SFX.spark();
+    k.alive = false; var pts = k.gold ? 3 : 1; g.score += pts; SFX.spark(); g.lastHit = g.t;
     if (k.multi && g.wb.length < WALL_MAX_BALLS) { var a2 = (Math.random() - 0.5) * 1.2, sp = wallSpeedNow(g); g.wb.push({x: k.x + k.w / 2, y: k.y + k.h + 8, vx: sp * Math.sin(a2), vy: sp * Math.cos(a2)}); }
     if (k.rocket) g.fx = {type: 'fire', t: 8};
     if (k.ice) g.fx = {type: 'ice', t: 8};
@@ -4307,6 +4328,7 @@ function drawWall(){
   (g.bricks || []).forEach(function(k){
     if (!k.alive) return;
     var cx = k.x + k.w / 2, cy = k.y + k.h / 2, tm = k.timer > 0;
+    if (g.stuckBlink && Math.floor(g.t * 4) % 2) { ctx.fillStyle = 'rgba(255,255,255,.35)'; ctx.fillRect(k.x - 4, k.y - 4, k.w + 8, k.h + 8); }
     ctx.fillStyle = tm ? (Math.floor(k.timer * 4) % 2 ? '#ffffff' : '#fde100') : k.multi ? '#ffffff' : k.rocket ? '#e8501f' : k.ice ? '#bfe6ff' : k.gold ? '#f0b400' : k.hp >= 2 ? '#1b1b1f' : '#fde100';
     ctx.strokeStyle = tm ? '#16171b' : k.multi ? '#fde100' : k.rocket ? '#7a1d06' : k.ice ? '#3b8fd1' : k.hp >= 2 ? '#fde100' : '#16171b'; ctx.lineWidth = k.multi || tm ? 3 : 2;
     ctx.beginPath(); ctx.roundRect ? ctx.roundRect(k.x, k.y, k.w, k.h, 5) : ctx.rect(k.x, k.y, k.w, k.h); ctx.fill(); ctx.stroke();
@@ -4459,7 +4481,11 @@ $('#gameQuit').addEventListener('click', function(){
   clearTimeout(b._t); b.classList.remove('armed'); b.textContent = 'Beenden';
   if (GAME && (GAME.state === 'run' || GAME.state === 'count')) endGame('quit'); else { GAME = null; show('start'); renderStart(); }
 });
-if (/debug/.test(location.hash)) window.__bbGame = function(){ return GAME; };
+if (/debug/.test(location.hash)) {
+  window.__bbGame = function(){ return GAME; };
+  window.__bbTick = function(dt){ var g = GAME; if (!g || g.state !== 'run') return; g.t += dt; if (g.inv > 0) g.inv -= dt; if (g.kind === 'wall') updateWall(dt); };
+  window.__bbResize = function(){ sizeGame(); };
+}
 /* =====================================================================
    RANGLISTE ONLINE: Rechenblöcke im großen Einmaleins
    Speicherort ist eine Google Tabelle mit kleinem Skript (Web App).
