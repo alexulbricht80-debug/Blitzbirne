@@ -1683,7 +1683,7 @@ function todayKey(){ var d = new Date(); return d.getFullYear() + '-' + (d.getMo
    Kurze Wörter, Training, Blitzlesen, Rechnen: ein Spiel nach drei Runden.
    Lange Wörter: nach zwei Runden. Sätze: sofort, ganz kurz 1, mittel 2, lang 3. */
 var GAME_UNIT = 6, GAME_MAX = 3;
-var GAME_VALUE = {w1: 2, w2: 3, s0: 6, s1: 12, s2: 18, check: 6, fokus: 6, story: 18};
+var GAME_VALUE = {w1: 2, w2: 3, s0: 6, s1: 12, s2: 18, check: 6, fokus: 6, story: 6};
 function gameValue(mode, sub){ return mode === 'read' && GAME_VALUE[sub] ? GAME_VALUE[sub] : 2; }
 function playOf(pid){
   if (!S.play) S.play = {};
@@ -1922,7 +1922,7 @@ function cityCardHTML(p){
     (nm ? '<div class="citymile">Als Nächstes: ' + esc(nm.name) + ' in ' + (nm.inN === 1 ? '1 Licht' : nm.inN + ' Lichtern') + '</div>' : '') +
     '</div></div></div>' + ballRowHTML(p.id) +
     '<details class="cityhow"><summary>So gibt es Sterne und Bälle</summary><ul>' + SPARK_RULES.map(function(r){ return '<li><span>' + esc(r[0]) + '</span><b>+' + r[1] + '</b></li>'; }).join('') + '</ul>' +
-    '<p>Im Lesecheck zählt jedes gelesene Wort, auch wenn es noch hakt. Jeder volle Ball ist ein Spiel: Dribbling, Kopfball oder Torwand, jeweils mit fünf Herzen. Eine Runde lange Sätze oder Leserätsel bringt drei Spiele, mittlere Sätze zwei, ganz kurze Sätze, Stolpersteine und der Lesecheck eins. Lange Wörter füllen einen Ball in zwei Runden, kurze Wörter, Training, Blitzlesen und Rechnen in drei Runden. Mehr als drei Spiele gibt es nicht auf Vorrat. Bisher gesammelt: <b>' + total + '</b> Sterne.</p></details>';
+    '<p>Im Lesecheck zählt jedes gelesene Wort, auch wenn es noch hakt. Jeder volle Ball ist ein Spiel: Dribbling, Kopfball oder Torwand, jeweils mit fünf Herzen. Eine Runde lange Sätze bringt drei Spiele, mittlere Sätze zwei, ganz kurze Sätze, Leserätsel mit vier Rätseln, Stolpersteine und der Lesecheck eins. Lange Wörter füllen einen Ball in zwei Runden, kurze Wörter, Training, Blitzlesen und Rechnen in drei Runden. Mehr als drei Spiele gibt es nicht auf Vorrat. Bisher gesammelt: <b>' + total + '</b> Sterne.</p></details>';
 }
 
 /* =====================================================================
@@ -2660,7 +2660,7 @@ var READ_SUBS = [
   {id:'s0', name:'Ganz kurze Sätze', group:'Freies Lesen', hint:'Sätze mit zwei bis vier Wörtern. Zählt auch fürs Leseprofil.'},
   {id:'s1', name:'Mittlere Sätze', group:'Freies Lesen', hint:'Sätze mit fünf bis sechs Wörtern. Zählt auch fürs Leseprofil.'},
   {id:'s2', name:'Lange Sätze', group:'Freies Lesen', hint:'Lange Sätze mit sieben und mehr Wörtern. Zählt auch fürs Leseprofil.'},
-  {id:'story', name:'Leserätsel', group:'Lesen und verstehen', hint:'Drei kleine Lesehäppchen aus je drei Sätzen, die zusammengehören. Bei einem Rätsel steht die Frage „Wer bin ich?“ schon vorher da, bei einer kleinen Geschichte kommt die Frage erst danach. Erst laut lesen und Stopp drücken, dann tippt das Kind die richtige Antwort an. Gemessen wird das Lesetempo in Wörtern pro Minute.'}
+  {id:'story', name:'Leserätsel', group:'Lesen und verstehen', hint:'Vier kleine Lesehäppchen aus je drei Sätzen, die zusammengehören. Bei einem Rätsel steht die Frage „Wer bin ich?“ schon vorher da, bei einer kleinen Geschichte kommt die Frage erst danach. Erst laut lesen und Stopp drücken, dann tippt das Kind die richtige Antwort an. Gemessen wird das Lesetempo in Wörtern pro Minute.'}
 ];
 function subInfo(id){ return READ_SUBS.filter(function(s){ return s.id === id; })[0] || READ_SUBS[0]; }
 function levelName(mode, level){ return mode === 'math' ? MATH[level - 1].name : subInfo(level).name; }
@@ -2911,7 +2911,7 @@ $('#cityCard').addEventListener('click', function(e){
   if (b.dataset.act === 'gameon') { S.gameOn = true; save(); renderStart(); }
   if (b.dataset.act === 'gamelock') {
     var sb = $('#ballSub'), p = curPlayer();
-    if (sb) { sb.textContent = 'Noch kein voller Ball. ' + (isAdult(p) ? 'Drei Runden Rechnen bringen ein Spiel.' : 'Lange Sätze und Leserätsel bringen sofort drei Spiele.'); sb.classList.remove('flash'); void sb.offsetWidth; sb.classList.add('flash'); }
+    if (sb) { sb.textContent = 'Noch kein voller Ball. ' + (isAdult(p) ? 'Drei Runden Rechnen bringen ein Spiel.' : 'Lange Sätze bringen sofort drei Spiele, Leserätsel eins.'); sb.classList.remove('flash'); void sb.offsetWidth; sb.classList.add('flash'); }
   }
 });
 [['optAuto','auto'],['optSpeak','speak'],['optSyl','syl'],['optCaps','caps'],['optRetry','retry'],['optSound','sound']].forEach(function(pair){
@@ -2991,7 +2991,7 @@ function startRound(){
   else if (sub === 'train') { var tq = trainQueue(player, S.count); queue = tq.items; focus = tq.focus; }
   else if (sub === 'flash') queue = flashQueue(S.count);
   else if (sub === 'fokus') { focus = focusCat(); queue = focusQueue(player, focus); }
-  else if (sub === 'story') queue = storyQueue(player, 3);
+  else if (sub === 'story') queue = storyQueue(player, 4);
   else queue = freeQueue(sub, S.count, player.name, player.id);
   var g = G = {mode:mode, level:level, sub:sub, player:player, queue:queue, focus:focus, idx:0, results:[], timing:false, voiceOn:false, tries:0, typed:''};
   g.voiceOn = effectiveInput() === 'voice' && sub !== 'check';
@@ -4067,7 +4067,12 @@ function drawHeader(){
    In jedem Level gibt es eine Kachel mit einem Ball: sie bringt einen zweiten Ball.
    Gerettete Bälle kommen mit ins nächste Level. Ein Herz geht erst verloren, wenn
    der letzte Ball runterfällt. Ab und zu schwebt ein blaues Monster herunter:
-   Wer es mit dem Ball trifft, bekommt 10 Punkte und für eine Weile einen breiten Schal. */
+   Wer es mit dem Ball trifft, bekommt 10 Punkte und für eine Weile einen breiten Schal,
+   entwischt es nach unten, kostet das ein Herz.
+   Spezialkacheln: Rakete macht einen schnellen Feuerball, der auch harte Kacheln
+   mit einem Treffer knackt. Eiszapfen macht den Ball langsam. Ab und zu zählt eine
+   Kachel 3, 2, 1 herunter: wer sie rechtzeitig trifft, holt die Biene, die quer durch
+   die Torwand saust und alles wegräumt, was sie berührt. */
 var WALLS = [
   ['11111111', '11111111', '1g1111g1'],
   ['..1111..', '.111111.', '11g11g11', '11111111'],
@@ -4096,7 +4101,10 @@ function buildWall(g){
   var cand = g.bricks.filter(function(k){ return !k.gold; }), maxRow = Math.max.apply(null, cand.map(function(k){ return k.row; }));
   var low = cand.filter(function(k){ return k.row >= maxRow - 1; }), pickK = low[Math.floor(Math.random() * low.length)];
   if (pickK) { pickK.multi = true; pickK.hp = 1; }
-  g.mon = null; g.monT = 7 + Math.random() * 4;
+  var free = function(){ return g.bricks.filter(function(k){ return !k.gold && !k.multi && !k.rocket && !k.ice; }); };
+  var f1 = free(), rk = f1[Math.floor(Math.random() * f1.length)]; if (rk) { rk.rocket = true; rk.hp = 1; }
+  var f2 = free(), ic = f2[Math.floor(Math.random() * f2.length)]; if (ic) { ic.ice = true; ic.hp = 1; }
+  g.mon = null; g.monT = 7 + Math.random() * 4; g.bee = null; g.beeT = 9 + Math.random() * 5;
 }
 function serveWall(g, n){
   n = Math.max(1, Math.min(WALL_MAX_BALLS, n || 1));
@@ -4104,10 +4112,12 @@ function serveWall(g, n){
   var W = wallGeom();
   for (var i = 0; i < n; i++) { var off = i - (n - 1) / 2; g.wb.push({x: Math.max(W.r, Math.min(g.w - W.r, g.px + off * W.r * 3)), y: W.py - W.r - 1, vx: 0, vy: 0, off: off}); }
 }
-function initWall(g){ g.wl = 1; g.px = g.w / 2; g.wide = 0; buildWall(g); serveWall(g, 1); }
+function initWall(g){ g.wl = 1; g.px = g.w / 2; g.wide = 0; g.fx = null; buildWall(g); serveWall(g, 1); }
+var FX_MULT = {fire: 1.6, ice: 0.55}, FX_NAME = {fire: 'Feuerball', ice: 'Eisball'};
+function wallSpeedNow(g){ return wallSpeed(g) * (g.fx ? FX_MULT[g.fx.type] : 1); }
 function wallPop(g, x, y, txt, t){ g.pops.push({x: x, y: y, txt: txt, t: t || 0.7}); }
 function updateWall(dt){
-  var g = GAME, W = wallGeom(), w = g.w, h = g.h, sp = wallSpeed(g), i;
+  var g = GAME, W = wallGeom(), w = g.w, h = g.h, sp = wallSpeedNow(g), i;
   if (g.target != null) g.px += (g.target - g.px) * Math.min(1, dt * 18);
   else if (g.dir) g.px += g.dir * w * 1.6 * dt;
   g.px = Math.max(W.pw / 2, Math.min(w - W.pw / 2, g.px));
@@ -4115,6 +4125,7 @@ function updateWall(dt){
   g.pops.forEach(function(p){ p.t -= dt; p.y -= 40 * dt; });
   g.pops = g.pops.filter(function(p){ return p.t > 0; });
   if (g.nod > 0) g.nod -= dt;
+  if (g.fx) { g.fx.t -= dt; if (g.fx.t <= 0) { g.fx = null; sp = wallSpeedNow(g); } }
   if (g.serve) {
     g.wb.forEach(function(b){ b.x = Math.max(W.r, Math.min(w - W.r, g.px + b.off * W.r * 3)); b.y = W.py - W.r - 1; });
     g.serveT -= dt;
@@ -4125,8 +4136,12 @@ function updateWall(dt){
     return;
   }
   updateMonster(dt, W);
+  updateBee(dt);
+  if (g.state !== 'run') return;
   var spawn = [];
   g.wb.forEach(function(b){
+    var v0 = Math.sqrt(b.vx * b.vx + b.vy * b.vy) || 1; b.vx *= sp / v0; b.vy *= sp / v0;
+    b.tr = (b.tr || []).concat([[b.x, b.y]]).slice(-6);
     var steps = Math.max(1, Math.ceil(sp * dt / (W.r * 0.7))), st = dt / steps;
     for (var s = 0; s < steps && !b.gone; s++) {
       b.x += b.vx * st; b.y += b.vy * st;
@@ -4158,9 +4173,12 @@ function updateWall(dt){
         if ((b.x - nx) * (b.x - nx) + (b.y - ny) * (b.y - ny) > W.r * W.r) continue;
         var ox = Math.min(b.x + W.r - k.x, k.x + k.w - (b.x - W.r)), oy = Math.min(b.y + W.r - k.y, k.y + k.h - (b.y - W.r));
         if (ox < oy) { b.vx = b.x < k.x + k.w / 2 ? -Math.abs(b.vx) : Math.abs(b.vx); } else { b.vy = b.y < k.y + k.h / 2 ? -Math.abs(b.vy) : Math.abs(b.vy); }
-        k.hp--;
+        k.hp = g.fx && g.fx.type === 'fire' ? 0 : k.hp - 1;
+        if (k.timer > 0) { startBee(g, k); k.hp = 0; }
         if (k.hp <= 0) {
           k.alive = false; var pts = k.gold ? 3 : 1; g.score += pts;
+          if (k.rocket) { g.fx = {type: 'fire', t: 8}; wallPop(g, w / 2, h * 0.55, 'Feuerball!', 1.2); tone(300, 0, .3, 'sawtooth', .05); tone(900, .05, .3, 'sawtooth', .04); }
+          if (k.ice) { g.fx = {type: 'ice', t: 8}; wallPop(g, w / 2, h * 0.55, 'Eisball, ganz langsam!', 1.2); tone(1400, 0, .15, 'sine', .05); tone(1100, .12, .2, 'sine', .05); }
           if (k.multi) {
             if (g.wb.length + spawn.length < WALL_MAX_BALLS) { var a2 = (Math.random() - 0.5) * 1.2; spawn.push({x: k.x + k.w / 2, y: k.y + k.h + W.r + 1, vx: sp * Math.sin(a2), vy: sp * Math.cos(a2)}); wallPop(g, k.x + k.w / 2, k.y + k.h, 'Neuer Ball!', 1); }
             tone(880, 0, .12, 'triangle', .07); tone(1320, .1, .16, 'triangle', .07);
@@ -4200,7 +4218,7 @@ function updateMonster(dt, W){
   }
   if (m.dead) { m.dead -= dt; if (m.dead <= 0) { g.mon = null; g.monT = 14 + Math.random() * 6; } return; }
   m.t += dt; m.y += m.vy * dt; m.x = Math.max(m.r, Math.min(w - m.r, m.x0 + Math.sin(m.t * 1.4) * m.amp));
-  if (m.y - m.r > W.py) { wallPop(g, m.x, W.py - 10, 'Entwischt!', 0.9); g.mon = null; g.monT = 12 + Math.random() * 6; }
+  if (m.y - m.r > W.py) { wallPop(g, m.x, W.py - 10, 'Entwischt!', 0.9); g.mon = null; g.monT = 12 + Math.random() * 6; loseHeart(); }
 }
 function drawMonster(ctx, m){
   var r = m.r, x = m.x, y = m.y + Math.sin(m.t * 6) * r * 0.06;
@@ -4224,6 +4242,61 @@ function drawMonster(ctx, m){
   ctx.beginPath(); ctx.moveTo(x - r * 0.3, y + r * 0.12); ctx.quadraticCurveTo(x, y + r * 0.32, x + r * 0.3, y + r * 0.12); ctx.lineWidth = Math.max(2, r * 0.08); ctx.strokeStyle = '#0e2a63'; ctx.stroke();
   ctx.restore();
 }
+/* Bienenkachel: zählt 3, 2, 1 herunter. Rechtzeitig getroffen, saust die Biene los. */
+function updateBee(dt){
+  var g = GAME, w = g.w;
+  var tk = g.bricks.filter(function(k){ return k.alive && k.timer > 0; })[0];
+  if (tk) { tk.timer -= dt; if (tk.timer <= 0) { tk.timer = 0; wallPop(g, tk.x + tk.w / 2, tk.y + tk.h, 'Zu spät!', 0.8); g.beeT = 12 + Math.random() * 6; } }
+  else if (!g.bee) {
+    g.beeT -= dt;
+    var cand = g.bricks.filter(function(k){ return k.alive && !k.multi && !k.rocket && !k.ice; });
+    if (g.beeT <= 0 && cand.length >= 4) { var k = cand[Math.floor(Math.random() * cand.length)]; k.timer = 4.5; tone(660, 0, .1, 'square', .04); tone(660, .2, .1, 'square', .04); }
+  }
+  var b = g.bee; if (!b) return;
+  b.t += dt; b.x += b.dir * w * 0.95 * dt;
+  var r = b.r;
+  g.bricks.forEach(function(k){
+    if (!k.alive || k.x > b.x + r || k.x + k.w < b.x - r || k.y > b.y + r || k.y + k.h < b.y - r) return;
+    k.alive = false; var pts = k.gold ? 3 : 1; g.score += pts; SFX.spark();
+    if (k.multi && g.wb.length < WALL_MAX_BALLS) { var a2 = (Math.random() - 0.5) * 1.2, sp = wallSpeedNow(g); g.wb.push({x: k.x + k.w / 2, y: k.y + k.h + 8, vx: sp * Math.sin(a2), vy: sp * Math.cos(a2)}); }
+    if (k.rocket) g.fx = {type: 'fire', t: 8};
+    if (k.ice) g.fx = {type: 'ice', t: 8};
+  });
+  renderHud();
+  if ((b.dir > 0 && b.x > w + r * 2) || (b.dir < 0 && b.x < -r * 2)) {
+    b.rows--;
+    if (b.rows <= 0) { g.bee = null; g.beeT = 16 + Math.random() * 6; return; }
+    b.dir = -b.dir; b.y += b.step;
+  }
+}
+function startBee(g, k){
+  k.timer = 0;
+  var alive = g.bricks.filter(function(q){ return q.alive; }), top = Math.min.apply(null, alive.map(function(q){ return q.y; }));
+  var bh = k.h + 4;
+  g.bee = {x: -k.h, y: top + k.h / 2, dir: 1, rows: 3, step: bh, r: k.h * 1.05, t: 0};
+  wallPop(g, g.w / 2, g.h * 0.55, 'Die Biene kommt!', 1.4);
+  [523, 659, 784, 1047].forEach(function(f, i){ tone(f, i * .08, .14, 'triangle', .06); });
+}
+function drawBee(ctx, b){
+  var r = b.r, x = b.x, y = b.y + Math.sin(b.t * 12) * r * 0.12, d = b.dir;
+  ctx.save(); ctx.translate(x, y); ctx.scale(d, 1);
+  // Flügel
+  var flap = Math.abs(Math.sin(b.t * 30));
+  ctx.fillStyle = 'rgba(220,240,255,.85)'; ctx.strokeStyle = 'rgba(80,110,140,.8)'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.ellipse(-r * 0.15, -r * 0.7, r * 0.45, r * (0.3 + flap * 0.25), -0.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+  ctx.beginPath(); ctx.ellipse(r * 0.2, -r * 0.75, r * 0.4, r * (0.25 + flap * 0.2), 0.4, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+  // Körper gelb mit schwarzen Streifen
+  ctx.beginPath(); ctx.ellipse(0, 0, r, r * 0.68, 0, 0, Math.PI * 2); ctx.fillStyle = '#fde100'; ctx.fill();
+  ctx.save(); ctx.clip(); ctx.fillStyle = '#16171b'; [-0.45, 0, 0.45].forEach(function(o){ ctx.fillRect(o * r - r * 0.11, -r, r * 0.22, r * 2); }); ctx.restore();
+  ctx.lineWidth = 2; ctx.strokeStyle = '#16171b'; ctx.beginPath(); ctx.ellipse(0, 0, r, r * 0.68, 0, 0, Math.PI * 2); ctx.stroke();
+  // Stachel und Kopf
+  ctx.fillStyle = '#16171b'; ctx.beginPath(); ctx.moveTo(-r, -r * 0.1); ctx.lineTo(-r * 1.35, 0); ctx.lineTo(-r, r * 0.1); ctx.fill();
+  ctx.beginPath(); ctx.arc(r * 0.95, -r * 0.05, r * 0.42, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.arc(r * 1.08, -r * 0.14, r * 0.13, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#16171b'; ctx.beginPath(); ctx.arc(r * 1.12, -r * 0.14, r * 0.06, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = '#16171b'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(r * 1.1, -r * 0.42); ctx.quadraticCurveTo(r * 1.2, -r * 0.8, r * 1.45, -r * 0.75); ctx.stroke();
+  ctx.restore();
+}
 function drawWall(){
   var g = GAME, ctx = g.ctx, w = g.w, h = g.h, W = wallGeom();
   var sky = ctx.createLinearGradient(0, 0, 0, h);
@@ -4233,11 +4306,15 @@ function drawWall(){
   for (var x = 0; x < w; x += 22) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h * 0.5); ctx.stroke(); }
   (g.bricks || []).forEach(function(k){
     if (!k.alive) return;
-    ctx.fillStyle = k.multi ? '#ffffff' : k.gold ? '#f0b400' : k.hp >= 2 ? '#1b1b1f' : '#fde100';
-    ctx.strokeStyle = k.multi ? '#fde100' : k.hp >= 2 ? '#fde100' : '#16171b'; ctx.lineWidth = k.multi ? 3 : 2;
+    var cx = k.x + k.w / 2, cy = k.y + k.h / 2, tm = k.timer > 0;
+    ctx.fillStyle = tm ? (Math.floor(k.timer * 4) % 2 ? '#ffffff' : '#fde100') : k.multi ? '#ffffff' : k.rocket ? '#e8501f' : k.ice ? '#bfe6ff' : k.gold ? '#f0b400' : k.hp >= 2 ? '#1b1b1f' : '#fde100';
+    ctx.strokeStyle = tm ? '#16171b' : k.multi ? '#fde100' : k.rocket ? '#7a1d06' : k.ice ? '#3b8fd1' : k.hp >= 2 ? '#fde100' : '#16171b'; ctx.lineWidth = k.multi || tm ? 3 : 2;
     ctx.beginPath(); ctx.roundRect ? ctx.roundRect(k.x, k.y, k.w, k.h, 5) : ctx.rect(k.x, k.y, k.w, k.h); ctx.fill(); ctx.stroke();
-    if (k.gold) drawStar(ctx, k.x + k.w / 2, k.y + k.h / 2, k.h * 0.36);
-    if (k.multi) drawBall(ctx, k.x + k.w / 2, k.y + k.h / 2, k.h * 0.36, '');
+    if (tm) { ctx.fillStyle = '#16171b'; ctx.font = '800 ' + Math.round(k.h * 0.85) + 'px Arial, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(String(Math.ceil(k.timer / 1.5)), cx, cy + 1); ctx.textBaseline = 'alphabetic'; return; }
+    if (k.gold) drawStar(ctx, cx, cy, k.h * 0.36);
+    if (k.multi) drawBall(ctx, cx, cy, k.h * 0.36, '');
+    if (k.rocket) { var s2 = k.h * 0.32; ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.moveTo(cx + s2 * 1.4, cy); ctx.lineTo(cx - s2 * 0.6, cy - s2 * 0.7); ctx.lineTo(cx - s2 * 0.6, cy + s2 * 0.7); ctx.closePath(); ctx.fill(); ctx.fillStyle = '#fde100'; ctx.beginPath(); ctx.moveTo(cx - s2 * 0.6, cy - s2 * 0.45); ctx.lineTo(cx - s2 * 1.6, cy); ctx.lineTo(cx - s2 * 0.6, cy + s2 * 0.45); ctx.closePath(); ctx.fill(); }
+    if (k.ice) { ctx.fillStyle = '#ffffff'; for (var q = -1; q <= 1; q++) { ctx.beginPath(); ctx.moveTo(cx + q * k.h * 0.45 - k.h * 0.14, k.y + 3); ctx.lineTo(cx + q * k.h * 0.45 + k.h * 0.14, k.y + 3); ctx.lineTo(cx + q * k.h * 0.45, k.y + k.h * (q ? 0.65 : 0.85)); ctx.closePath(); ctx.fill(); } }
   });
   if (g.mon) drawMonster(ctx, g.mon);
   // Figur mit gespanntem Schal
@@ -4248,7 +4325,15 @@ function drawWall(){
   var sx = g.px - W.pw / 2, seg = W.pw / 8;
   for (var i2 = 0; i2 < 8; i2++) { ctx.fillStyle = i2 % 2 ? '#16171b' : '#fde100'; ctx.fillRect(sx + i2 * seg, W.py + nod, seg + 0.5, W.ph); }
   ctx.strokeStyle = g.wide > 0 && (g.wide > 2 || Math.floor(g.wide * 6) % 2) ? '#ffffff' : '#16171b'; ctx.lineWidth = 2; ctx.strokeRect(sx, W.py + nod, W.pw, W.ph);
-  (g.wb || []).forEach(function(b){ drawBall(ctx, b.x, b.y, W.r, ''); });
+  if (g.bee) drawBee(ctx, g.bee);
+  (g.wb || []).forEach(function(b){
+    if (g.fx && g.fx.type === 'fire') {
+      (b.tr || []).forEach(function(p, i){ ctx.fillStyle = 'rgba(255,' + (90 + i * 25) + ',0,' + (0.12 + i * 0.1).toFixed(2) + ')'; ctx.beginPath(); ctx.arc(p[0], p[1], W.r * (0.6 + i * 0.1), 0, Math.PI * 2); ctx.fill(); });
+      ctx.fillStyle = 'rgba(255,150,20,.75)'; ctx.beginPath(); ctx.arc(b.x, b.y, W.r * 1.7, 0, Math.PI * 2); ctx.fill();
+    } else if (g.fx && g.fx.type === 'ice') { ctx.fillStyle = 'rgba(170,225,255,.8)'; ctx.beginPath(); ctx.arc(b.x, b.y, W.r * 1.6, 0, Math.PI * 2); ctx.fill(); }
+    drawBall(ctx, b.x, b.y, W.r, '');
+  });
+  if (g.fx) { ctx.fillStyle = g.fx.type === 'fire' ? '#ff8a3d' : '#9fd8ff'; ctx.font = '800 ' + Math.round(h * 0.03) + 'px Arial, sans-serif'; ctx.textAlign = 'left'; ctx.fillText(FX_NAME[g.fx.type] + ' ' + Math.ceil(g.fx.t), 10, h - 10); }
   if (g.wb && g.wb.length > 1) { ctx.fillStyle = 'rgba(255,255,255,.8)'; ctx.font = '700 ' + Math.round(h * 0.03) + 'px Arial, sans-serif'; ctx.textAlign = 'right'; ctx.fillText(g.wb.length + ' Bälle', w - 10, h - 10); }
   if (g.serve && g.state === 'run') { ctx.fillStyle = 'rgba(255,255,255,.85)'; ctx.font = '700 ' + Math.round(h * 0.035) + 'px Arial, sans-serif'; ctx.textAlign = 'center'; ctx.fillText('Tippen zum Abstoß', w / 2, h * 0.62); }
   g.pops.forEach(function(p){ popText(ctx, p.x, p.y, p.txt, Math.min(1, p.t / 0.4), p.txt.length > 3 ? Math.min(h * 0.06, w * 0.07) : W.r * 2.2); });
@@ -4312,7 +4397,7 @@ function draw(){
     ctx.font = '700 ' + Math.round(h * 0.04) + 'px Arial, sans-serif'; ctx.fillStyle = '#ffffff';
     ctx.fillText(g.paused ? 'Tippen zum Weiterspielen' : GAMES[g.kind].hint, w / 2, h * 0.52);
     if (g.kind === 'header' && !g.paused) ctx.fillText('Rote Bälle nicht köpfen, Sterne fangen!', w / 2, h * 0.58);
-    if (g.kind === 'wall' && !g.paused) { ctx.fillText('Räum die Torwand ab!', w / 2, h * 0.58); ctx.fillText('Ballkachel: zweiter Ball!', w / 2, h * 0.64); ctx.fillText('Triff das blaue Monster!', w / 2, h * 0.70); }
+    if (g.kind === 'wall' && !g.paused) { ctx.fillText('Räum die Torwand ab!', w / 2, h * 0.58); ctx.fillText('Spezialkacheln ausprobieren!', w / 2, h * 0.64); ctx.fillText('Triff das blaue Monster!', w / 2, h * 0.70); }
   }
 }
 function endGame(why){
