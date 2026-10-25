@@ -833,6 +833,19 @@ h2,h3{margin:0}
 .ballrow.off{justify-content:space-between}
 #ballSub.flash{animation:subflash 1.2s}
 @keyframes subflash{0%,40%{color:#fde100}100%{color:inherit}}
+
+/* Torwand: Powerpunkte */
+.gpowers{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:10px}
+.gpow{display:flex;align-items:center;gap:6px;padding:6px 8px;min-height:48px;border-radius:14px;border:2px solid var(--line);background:var(--sheet);color:var(--muted);text-align:left;touch-action:manipulation;font:inherit}
+.gpow svg{width:18px;height:22px;flex:none}
+.gpow span{display:grid;min-width:0;line-height:1.15}
+.gpow b{font-size:.78rem;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gpow small{font-size:.72rem}
+.gpow.on{border-color:#fde100;background:#16171b;color:#fde100;animation:powpulse 1.2s ease-in-out infinite}
+.gpow.on b{color:#fde100}
+.gpow.act{border-color:#ffffff}
+@keyframes powpulse{0%,100%{box-shadow:0 0 0 0 rgba(253,225,0,.6)}50%{box-shadow:0 0 0 5px rgba(253,225,0,0)}}
+#screen-game.haspow .gdrag{height:64px;margin-top:10px}
 </style>
 </head>
 <body>
@@ -991,6 +1004,7 @@ h2,h3{margin:0}
     <button type="button" id="gLeft" aria-label="Nach links"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 4 L7 12 L15 20"/></svg></button>
     <button type="button" id="gRight" aria-label="Nach rechts"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4 L17 12 L9 20"/></svg></button>
   </div>
+  <div class="gpowers" id="gPowers" hidden></div>
   <div class="gdrag" id="gDrag" hidden><svg viewBox="0 0 48 24" aria-hidden="true"><path d="M10 5 L3 12 L10 19 M38 5 L45 12 L38 19 M4 12 H44"/></svg><span>Hier mit dem Finger hin und her schieben</span></div>
 </section>
 
@@ -3856,7 +3870,8 @@ function startGame(kind){
   $('#gameWho').textContent = GAMES[kind].name;
   $('#gameOver').hidden = true;
   $('#screen-game').dataset.kind = kind;
-  $('.gamectl').hidden = kind !== 'dribble'; $('#gDrag').hidden = kind === 'dribble';
+  $('.gamectl').hidden = kind !== 'dribble'; $('#gDrag').hidden = kind === 'dribble'; $('#gPowers').hidden = kind !== 'wall';
+  $('#screen-game').classList.toggle('haspow', kind === 'wall');
   renderHud();
   var cv = $('#gameCanvas');
   g.ctx = cv.getContext('2d');
@@ -3895,7 +3910,7 @@ function beginGame(lvl){
 function sizeGame(){
   var g = GAME; if (!g) return;
   var cv = $('#gameCanvas'), wrap = cv.parentNode, dpr = Math.min(2, window.devicePixelRatio || 1);
-  var w = wrap.clientWidth, h = Math.round(Math.min(620, Math.max(360, window.innerHeight * 0.62)));
+  var wall = g.kind === 'wall', w = wrap.clientWidth, h = Math.round(Math.min(620, Math.max(wall ? 320 : 360, window.innerHeight * (wall ? 0.56 : 0.62))));
   var ow = g.w, oh = g.h;
   cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); cv.style.height = h + 'px';
   g.w = w; g.h = h; g.dpr = dpr;
@@ -3909,6 +3924,7 @@ function sizeGame(){
     if (g.target != null) g.target *= sx;
     if (g.mon) { g.mon.x0 *= sx; g.mon.x *= sx; g.mon.amp *= sx; g.mon.y *= sy; }
     if (g.bee) { g.bee.x *= sx; g.bee.y *= sy; g.bee.step *= sy; g.bee.r *= sy; }
+    (g.drops || []).forEach(function(d){ d.x *= sx; d.y *= sy; });
   }
 }
 function laneX(i){ var g = GAME; return g.w * (0.2 + 0.3 * i); }
@@ -4082,7 +4098,10 @@ function drawHeader(){
    Spezialkacheln: Rakete macht einen schnellen Feuerball, der auch harte Kacheln
    mit einem Treffer knackt. Eiszapfen macht den Ball langsam. Ab und zu zählt eine
    Kachel 3, 2, 1 herunter: wer sie rechtzeitig trifft, holt die Biene, die quer durch
-   die Torwand saust und alles wegräumt, was sie berührt. */
+   die Torwand saust und alles wegräumt, was sie berührt.
+   Steine: in jedem Level stecken grüne, rote und schwarze Steine in Kacheln. Sie fallen
+   heraus und werden mit dem Schal gefangen. Fünf einer Farbe ergeben einen Powerpunkt,
+   den man jederzeit auslösen kann: Grün Doppelball, Schwarz Superschal, Rot Ultrarakete. */
 var WALLS = [
   ['11111111', '11111111', '1g1111g1'],
   ['..1111..', '.111111.', '11g11g11', '11111111'],
@@ -4095,7 +4114,8 @@ var WALL_MAX_BALLS = 4;
 function wallGeom(){
   var g = GAME, size = Math.min(g.h * 0.2, g.w * 0.3 * 170 / 120), aw = size * 120 / 170;
   var ph = Math.max(10, g.h * 0.026), py = g.h - size * 0.9 - ph * 0.5;
-  return {size: size, aw: aw, pw: Math.min(g.w * 0.7, g.w * g.L.pad * (g.wide > 0 ? 1.5 : 1)), ph: ph, py: py, r: Math.max(6, Math.min(g.w, g.h) * 0.022)};
+  var pw = g.shield > 0 ? g.w : Math.min(g.w * 0.7, g.w * g.L.pad * (g.wide > 0 ? 1.5 : 1));
+  return {size: size, aw: aw, pw: pw, ph: ph, py: py, r: Math.max(6, Math.min(g.w, g.h) * 0.022)};
 }
 function wallSpeed(g){ return g.h * g.L.wspeed * Math.min(1.6, 1 + 0.07 * (g.wl - 1)); }
 function buildWall(g){
@@ -4114,7 +4134,8 @@ function buildWall(g){
   var free = function(){ return g.bricks.filter(function(k){ return !k.gold && !k.multi && !k.rocket && !k.ice; }); };
   var f1 = free(), rk = f1[Math.floor(Math.random() * f1.length)]; if (rk) { rk.rocket = true; rk.hp = 1; }
   var f2 = free(), ic = f2[Math.floor(Math.random() * f2.length)]; if (ic) { ic.ice = true; ic.hp = 1; }
-  g.mon = null; g.monT = 7 + Math.random() * 4; g.bee = null; g.beeT = 9 + Math.random() * 5;
+  ['gr', 'rd', 'bk'].forEach(function(c){ for (var n = 0; n < 2; n++) { var f = free().filter(function(k){ return !k.gem; }), q = f[Math.floor(Math.random() * f.length)]; if (q) q.gem = c; } });
+  g.mon = null; g.monT = 7 + Math.random() * 4; g.bee = null; g.beeT = 9 + Math.random() * 5; g.drops = [];
 }
 function serveWall(g, n){
   n = Math.max(1, Math.min(WALL_MAX_BALLS, n || 1));
@@ -4122,9 +4143,44 @@ function serveWall(g, n){
   var W = wallGeom();
   for (var i = 0; i < n; i++) { var off = i - (n - 1) / 2; g.wb.push({x: Math.max(W.r, Math.min(g.w - W.r, g.px + off * W.r * 3)), y: W.py - W.r - 1, vx: 0, vy: 0, off: off}); }
 }
-function initWall(g){ g.wl = 1; g.px = g.w / 2; g.wide = 0; g.fx = null; g.lastHit = 0; buildWall(g); serveWall(g, 1); }
+function initWall(g){ g.wl = 1; g.px = g.w / 2; g.wide = 0; g.fx = null; g.lastHit = 0; g.gems = {gr: 0, rd: 0, bk: 0}; g.charge = {gr: 0, rd: 0, bk: 0}; g.shield = 0; g.ultra = 0; buildWall(g); serveWall(g, 1); renderPowers(); }
+/* ---------- Steine und Powerpunkte ---------- */
+var GEM_NEED = 5, GEM_COL = {gr: '#22c55e', rd: '#ef4444', bk: '#16171b'}, POWER = {gr: ['split', 'Doppelball'], bk: ['shield', 'Superschal'], rd: ['ultra', 'Ultrarakete']};
+function drawGem(ctx, x, y, s, c){
+  ctx.beginPath(); ctx.moveTo(x, y - s); ctx.lineTo(x + s * 0.8, y); ctx.lineTo(x, y + s); ctx.lineTo(x - s * 0.8, y); ctx.closePath();
+  ctx.fillStyle = GEM_COL[c]; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = c === 'bk' ? '#fde100' : '#ffffff'; ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x - s * 0.3, y - s * 0.35); ctx.lineTo(x, y - s * 0.7); ctx.strokeStyle = 'rgba(255,255,255,.8)'; ctx.stroke();
+}
+function gemIcon(c){ return '<svg viewBox="0 0 20 24" aria-hidden="true"><path d="M10 2 L18 12 L10 22 L2 12 Z" fill="' + GEM_COL[c] + '" stroke="' + (c === 'bk' ? '#fde100' : '#ffffff') + '" stroke-width="2"/></svg>'; }
+function renderPowers(){
+  var g = GAME; if (!g || g.kind !== 'wall') return;
+  $('#gPowers').innerHTML = ['gr', 'bk', 'rd'].map(function(c){
+    var ch = g.charge[c], act = (c === 'bk' && g.shield > 0) || (c === 'rd' && g.ultra > 0);
+    return '<button type="button" class="gpow' + (ch ? ' on' : '') + (act ? ' act' : '') + '" data-pow="' + c + '"' + (ch ? '' : ' aria-disabled="true"') + '>' + gemIcon(c) +
+      '<span><b>' + POWER[c][1] + '</b><small>' + (ch ? (ch > 1 ? ch + ' bereit' : 'bereit') : g.gems[c] + ' von ' + GEM_NEED) + '</small></span></button>';
+  }).join('');
+}
+function addGem(g, c){
+  g.gems[c]++;
+  if (g.gems[c] >= GEM_NEED) { g.gems[c] -= GEM_NEED; g.charge[c] = Math.min(3, g.charge[c] + 1); wallPop(g, g.w / 2, g.h * 0.5, 'Powerpunkt: ' + POWER[c][1] + '!', 1.4); [660, 880, 1100].forEach(function(f, i){ tone(f, i * .07, .12, 'triangle', .06); }); }
+  else tone(990, 0, .08, 'triangle', .05);
+  renderPowers();
+}
+function usePower(c){
+  var g = GAME; if (!g || g.kind !== 'wall' || g.state !== 'run' || !g.charge[c]) return;
+  g.charge[c]--;
+  if (c === 'gr') {
+    if (g.serve) g.serveT = 0;
+    var sp = wallSpeedNow(g), add = [];
+    g.wb.forEach(function(b){ if (g.wb.length + add.length >= 8) return; var a = Math.atan2(b.vx, -b.vy) + 0.5; add.push({x: b.x, y: b.y, vx: sp * Math.sin(a), vy: -Math.abs(sp * Math.cos(a)), off: 0}); });
+    g.wb = g.wb.concat(add);
+    wallPop(g, g.w / 2, g.h * 0.5, 'Doppelball!', 1.2);
+  } else if (c === 'bk') { g.shield = 10; wallPop(g, g.w / 2, g.h * 0.5, 'Superschal!', 1.2); }
+  else { g.ultra = 7; wallPop(g, g.w / 2, g.h * 0.5, 'Ultrarakete!', 1.2); }
+  SFX.record(); renderPowers();
+}
 var FX_MULT = {fire: 1.6, ice: 0.55}, FX_NAME = {fire: 'Feuerball', ice: 'Eisball'};
-function wallSpeedNow(g){ return wallSpeed(g) * (g.fx ? FX_MULT[g.fx.type] : 1); }
+function wallSpeedNow(g){ return wallSpeed(g) * (g.ultra > 0 ? 2 : g.fx ? FX_MULT[g.fx.type] : 1); }
 function wallPop(g, x, y, txt, t){ g.pops.push({x: x, y: y, txt: txt, t: t || 0.7}); }
 function updateWall(dt){
   var g = GAME, W = wallGeom(), w = g.w, h = g.h, sp = wallSpeedNow(g), i;
@@ -4136,6 +4192,14 @@ function updateWall(dt){
   g.pops = g.pops.filter(function(p){ return p.t > 0; });
   if (g.nod > 0) g.nod -= dt;
   if (g.fx) { g.fx.t -= dt; if (g.fx.t <= 0) { g.fx = null; sp = wallSpeedNow(g); } }
+  if (g.shield > 0) { g.shield -= dt; if (g.shield <= 0) { g.shield = 0; renderPowers(); } }
+  if (g.ultra > 0) { g.ultra -= dt; if (g.ultra <= 0) { g.ultra = 0; sp = wallSpeedNow(g); renderPowers(); } }
+  var cxp = g.shield > 0 ? w / 2 : g.px;
+  (g.drops || []).forEach(function(d){
+    d.y += h * 0.3 * dt;
+    if (!d.got && d.y + d.s >= W.py && d.y - d.s <= W.py + W.ph && Math.abs(d.x - cxp) <= W.pw / 2 + d.s) { d.got = true; addGem(g, d.c); wallPop(g, d.x, W.py - 10, '+1', 0.6); }
+  });
+  g.drops = (g.drops || []).filter(function(d){ return !d.got && d.y - d.s < h; });
   if (g.serve) {
     g.wb.forEach(function(b){ b.x = Math.max(W.r, Math.min(w - W.r, g.px + b.off * W.r * 3)); b.y = W.py - W.r - 1; });
     g.serveT -= dt;
@@ -4151,7 +4215,7 @@ function updateWall(dt){
   var spawn = [];
   g.wb.forEach(function(b){
     var v0 = Math.sqrt(b.vx * b.vx + b.vy * b.vy) || 1; b.vx *= sp / v0; b.vy *= sp / v0;
-    b.tr = (b.tr || []).concat([[b.x, b.y]]).slice(-6);
+    b.tr = (b.tr || []).concat([[b.x, b.y]]).slice(g.ultra > 0 ? -12 : -6);
     var steps = Math.max(1, Math.ceil(sp * dt / (W.r * 0.7))), st = dt / steps;
     for (var s = 0; s < steps && !b.gone; s++) {
       b.x += b.vx * st; b.y += b.vy * st;
@@ -4160,8 +4224,8 @@ function updateWall(dt){
       if (b.y < W.r) { b.y = W.r; b.vy = Math.abs(b.vy); }
       if (Math.abs(b.vy) < sp * 0.3) { b.vy = (b.vy < 0 ? -1 : 1) * sp * 0.3; b.vx = (b.vx < 0 ? -1 : 1) * Math.sqrt(Math.max(0, sp * sp - b.vy * b.vy)); }
       // Schal
-      if (b.vy > 0 && b.y + W.r >= W.py && b.y - W.r <= W.py + W.ph && b.x >= g.px - W.pw / 2 - W.r && b.x <= g.px + W.pw / 2 + W.r) {
-        var rel = Math.max(-1, Math.min(1, (b.x - g.px) / (W.pw / 2))), ang = rel * 1.05;
+      if (b.vy > 0 && b.y + W.r >= W.py && b.y - W.r <= W.py + W.ph && b.x >= cxp - W.pw / 2 - W.r && b.x <= cxp + W.pw / 2 + W.r) {
+        var rel = g.shield > 0 ? Math.max(-1, Math.min(1, (b.x - g.px) / (g.w * g.L.pad / 2))) * 0.8 : Math.max(-1, Math.min(1, (b.x - g.px) / (W.pw / 2))), ang = rel * 1.05;
         b.vx = sp * Math.sin(ang); b.vy = -sp * Math.cos(ang); b.y = W.py - W.r;
         tone(520 + Math.round(Math.abs(rel) * 200), 0, .06, 'sine', .05); g.nod = 0.12;
       }
@@ -4183,11 +4247,12 @@ function updateWall(dt){
         var nx = Math.max(k.x, Math.min(b.x, k.x + k.w)), ny = Math.max(k.y, Math.min(b.y, k.y + k.h));
         if ((b.x - nx) * (b.x - nx) + (b.y - ny) * (b.y - ny) > W.r * W.r) continue;
         var ox = Math.min(b.x + W.r - k.x, k.x + k.w - (b.x - W.r)), oy = Math.min(b.y + W.r - k.y, k.y + k.h - (b.y - W.r));
-        if (ox < oy) { b.vx = b.x < k.x + k.w / 2 ? -Math.abs(b.vx) : Math.abs(b.vx); } else { b.vy = b.y < k.y + k.h / 2 ? -Math.abs(b.vy) : Math.abs(b.vy); }
-        k.hp = g.fx && g.fx.type === 'fire' ? 0 : k.hp - 1; g.lastHit = g.t;
+        if (g.ultra > 0) { /* fliegt einfach durch */ } else if (ox < oy) { b.vx = b.x < k.x + k.w / 2 ? -Math.abs(b.vx) : Math.abs(b.vx); } else { b.vy = b.y < k.y + k.h / 2 ? -Math.abs(b.vy) : Math.abs(b.vy); }
+        k.hp = g.ultra > 0 || (g.fx && g.fx.type === 'fire') ? 0 : k.hp - 1; g.lastHit = g.t;
         if (k.timer > 0) { startBee(g, k); k.hp = 0; }
         if (k.hp <= 0) {
           k.alive = false; var pts = k.gold ? 3 : 1; g.score += pts;
+          if (k.gem) g.drops.push({x: k.x + k.w / 2, y: k.y + k.h / 2, c: k.gem, s: Math.max(9, k.h * 0.45)});
           if (k.rocket) { g.fx = {type: 'fire', t: 8}; wallPop(g, w / 2, h * 0.55, 'Feuerball!', 1.2); tone(300, 0, .3, 'sawtooth', .05); tone(900, .05, .3, 'sawtooth', .04); }
           if (k.ice) { g.fx = {type: 'ice', t: 8}; wallPop(g, w / 2, h * 0.55, 'Eisball, ganz langsam!', 1.2); tone(1400, 0, .15, 'sine', .05); tone(1100, .12, .2, 'sine', .05); }
           if (k.multi) {
@@ -4198,6 +4263,7 @@ function updateWall(dt){
         } else tone(330, 0, .05, 'square', .04);
         break;
       }
+      if (g.ultra > 0 && b.vy > 0 && b.y + W.r > h) { b.y = h - W.r; b.vy = -Math.abs(b.vy); }
       if (b.y - W.r > h) b.gone = true;
     }
   });
@@ -4239,6 +4305,7 @@ function updateMonster(dt, W){
   }
   if (m.dead) { m.dead -= dt; if (m.dead <= 0) { g.mon = null; g.monT = 14 + Math.random() * 6; } return; }
   m.t += dt; m.y += m.vy * dt; m.x = Math.max(m.r, Math.min(w - m.r, m.x0 + Math.sin(m.t * 1.4) * m.amp));
+  if (g.shield > 0 && m.y + m.r >= W.py) { m.dead = 0.5; g.score += 5; wallPop(g, m.x, W.py - 20, 'Superschal hält!', 1); return; }
   if (m.y - m.r > W.py) { wallPop(g, m.x, W.py - 10, 'Entwischt!', 0.9); g.mon = null; g.monT = 12 + Math.random() * 6; loseHeart(); }
 }
 function drawMonster(ctx, m){
@@ -4270,8 +4337,10 @@ function updateBee(dt){
   if (tk) { tk.timer -= dt; if (tk.timer <= 0) { tk.timer = 0; wallPop(g, tk.x + tk.w / 2, tk.y + tk.h, 'Zu spät!', 0.8); g.beeT = 12 + Math.random() * 6; } }
   else if (!g.bee) {
     g.beeT -= dt;
-    var cand = g.bricks.filter(function(k){ return k.alive && !k.multi && !k.rocket && !k.ice; });
-    if (g.beeT <= 0 && cand.length >= 4) { var k = cand[Math.floor(Math.random() * cand.length)]; k.timer = 4.5; tone(660, 0, .1, 'square', .04); tone(660, .2, .1, 'square', .04); }
+    // nur Kacheln, unter denen keine andere mehr liegt: die kann der Ball direkt treffen
+    var alive = g.bricks.filter(function(k){ return k.alive; });
+    var cand = alive.filter(function(k){ return !k.multi && !k.rocket && !k.ice && !alive.some(function(o){ return o !== k && o.y > k.y && o.x < k.x + k.w && o.x + o.w > k.x; }); });
+    if (g.beeT <= 0 && alive.length >= 4 && cand.length) { var k = cand[Math.floor(Math.random() * cand.length)]; k.timer = 5; tone(660, 0, .1, 'square', .04); tone(660, .2, .1, 'square', .04); }
   }
   var b = g.bee; if (!b) return;
   b.t += dt; b.x += b.dir * w * 0.95 * dt;
@@ -4279,6 +4348,7 @@ function updateBee(dt){
   g.bricks.forEach(function(k){
     if (!k.alive || k.x > b.x + r || k.x + k.w < b.x - r || k.y > b.y + r || k.y + k.h < b.y - r) return;
     k.alive = false; var pts = k.gold ? 3 : 1; g.score += pts; SFX.spark(); g.lastHit = g.t;
+    if (k.gem) g.drops.push({x: k.x + k.w / 2, y: k.y + k.h / 2, c: k.gem, s: Math.max(9, k.h * 0.45)});
     if (k.multi && g.wb.length < WALL_MAX_BALLS) { var a2 = (Math.random() - 0.5) * 1.2, sp = wallSpeedNow(g); g.wb.push({x: k.x + k.w / 2, y: k.y + k.h + 8, vx: sp * Math.sin(a2), vy: sp * Math.cos(a2)}); }
     if (k.rocket) g.fx = {type: 'fire', t: 8};
     if (k.ice) g.fx = {type: 'ice', t: 8};
@@ -4332,8 +4402,9 @@ function drawWall(){
     ctx.fillStyle = tm ? (Math.floor(k.timer * 4) % 2 ? '#ffffff' : '#fde100') : k.multi ? '#ffffff' : k.rocket ? '#e8501f' : k.ice ? '#bfe6ff' : k.gold ? '#f0b400' : k.hp >= 2 ? '#1b1b1f' : '#fde100';
     ctx.strokeStyle = tm ? '#16171b' : k.multi ? '#fde100' : k.rocket ? '#7a1d06' : k.ice ? '#3b8fd1' : k.hp >= 2 ? '#fde100' : '#16171b'; ctx.lineWidth = k.multi || tm ? 3 : 2;
     ctx.beginPath(); ctx.roundRect ? ctx.roundRect(k.x, k.y, k.w, k.h, 5) : ctx.rect(k.x, k.y, k.w, k.h); ctx.fill(); ctx.stroke();
-    if (tm) { ctx.fillStyle = '#16171b'; ctx.font = '800 ' + Math.round(k.h * 0.85) + 'px Arial, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(String(Math.ceil(k.timer / 1.5)), cx, cy + 1); ctx.textBaseline = 'alphabetic'; return; }
+    if (tm) { ctx.fillStyle = '#16171b'; ctx.font = '800 ' + Math.round(k.h * 0.85) + 'px Arial, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(String(Math.ceil(k.timer)), cx, cy + 1); ctx.textBaseline = 'alphabetic'; return; }
     if (k.gold) drawStar(ctx, cx, cy, k.h * 0.36);
+    if (k.gem) drawGem(ctx, cx, cy, k.h * 0.36, k.gem);
     if (k.multi) drawBall(ctx, cx, cy, k.h * 0.36, '');
     if (k.rocket) { var s2 = k.h * 0.32; ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.moveTo(cx + s2 * 1.4, cy); ctx.lineTo(cx - s2 * 0.6, cy - s2 * 0.7); ctx.lineTo(cx - s2 * 0.6, cy + s2 * 0.7); ctx.closePath(); ctx.fill(); ctx.fillStyle = '#fde100'; ctx.beginPath(); ctx.moveTo(cx - s2 * 0.6, cy - s2 * 0.45); ctx.lineTo(cx - s2 * 1.6, cy); ctx.lineTo(cx - s2 * 0.6, cy + s2 * 0.45); ctx.closePath(); ctx.fill(); }
     if (k.ice) { ctx.fillStyle = '#ffffff'; for (var q = -1; q <= 1; q++) { ctx.beginPath(); ctx.moveTo(cx + q * k.h * 0.45 - k.h * 0.14, k.y + 3); ctx.lineTo(cx + q * k.h * 0.45 + k.h * 0.14, k.y + 3); ctx.lineTo(cx + q * k.h * 0.45, k.y + k.h * (q ? 0.65 : 0.85)); ctx.closePath(); ctx.fill(); } }
@@ -4348,14 +4419,24 @@ function drawWall(){
   for (var i2 = 0; i2 < 8; i2++) { ctx.fillStyle = i2 % 2 ? '#16171b' : '#fde100'; ctx.fillRect(sx + i2 * seg, W.py + nod, seg + 0.5, W.ph); }
   ctx.strokeStyle = g.wide > 0 && (g.wide > 2 || Math.floor(g.wide * 6) % 2) ? '#ffffff' : '#16171b'; ctx.lineWidth = 2; ctx.strokeRect(sx, W.py + nod, W.pw, W.ph);
   if (g.bee) drawBee(ctx, g.bee);
+  (g.drops || []).forEach(function(d){ drawGem(ctx, d.x, d.y, d.s, d.c); });
+  if (g.shield > 0) { ctx.fillStyle = 'rgba(253,225,0,' + (g.shield > 2 || Math.floor(g.shield * 6) % 2 ? .35 : .1) + ')'; ctx.fillRect(0, W.py - 3, w, W.ph + 6); }
+  if (g.ultra > 0) { ctx.strokeStyle = 'rgba(255,255,255,.5)'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(0, h - 2); ctx.lineTo(w, h - 2); ctx.stroke(); }
   (g.wb || []).forEach(function(b){
-    if (g.fx && g.fx.type === 'fire') {
+    if (g.ultra > 0) {
+      var tr = b.tr || [];
+      for (var ti = 1; ti < tr.length; ti++) { ctx.strokeStyle = 'rgba(255,255,255,' + (ti / tr.length * 0.9).toFixed(2) + ')'; ctx.lineWidth = W.r * 2 * ti / tr.length; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(tr[ti - 1][0], tr[ti - 1][1]); ctx.lineTo(tr[ti][0], tr[ti][1]); ctx.stroke(); }
+      ctx.fillStyle = 'rgba(255,255,220,.8)'; ctx.beginPath(); ctx.arc(b.x, b.y, W.r * 1.9, 0, Math.PI * 2); ctx.fill();
+    } else if (g.fx && g.fx.type === 'fire') {
       (b.tr || []).forEach(function(p, i){ ctx.fillStyle = 'rgba(255,' + (90 + i * 25) + ',0,' + (0.12 + i * 0.1).toFixed(2) + ')'; ctx.beginPath(); ctx.arc(p[0], p[1], W.r * (0.6 + i * 0.1), 0, Math.PI * 2); ctx.fill(); });
       ctx.fillStyle = 'rgba(255,150,20,.75)'; ctx.beginPath(); ctx.arc(b.x, b.y, W.r * 1.7, 0, Math.PI * 2); ctx.fill();
     } else if (g.fx && g.fx.type === 'ice') { ctx.fillStyle = 'rgba(170,225,255,.8)'; ctx.beginPath(); ctx.arc(b.x, b.y, W.r * 1.6, 0, Math.PI * 2); ctx.fill(); }
     drawBall(ctx, b.x, b.y, W.r, '');
   });
-  if (g.fx) { ctx.fillStyle = g.fx.type === 'fire' ? '#ff8a3d' : '#9fd8ff'; ctx.font = '800 ' + Math.round(h * 0.03) + 'px Arial, sans-serif'; ctx.textAlign = 'left'; ctx.fillText(FX_NAME[g.fx.type] + ' ' + Math.ceil(g.fx.t), 10, h - 10); }
+  var lab = [];
+  if (g.ultra > 0) lab.push(['#ffffff', 'Ultrarakete ' + Math.ceil(g.ultra)]); else if (g.fx) lab.push([g.fx.type === 'fire' ? '#ff8a3d' : '#9fd8ff', FX_NAME[g.fx.type] + ' ' + Math.ceil(g.fx.t)]);
+  if (g.shield > 0) lab.push(['#fde100', 'Superschal ' + Math.ceil(g.shield)]);
+  lab.forEach(function(l, i){ ctx.fillStyle = l[0]; ctx.font = '800 ' + Math.round(h * 0.03) + 'px Arial, sans-serif'; ctx.textAlign = 'left'; ctx.fillText(l[1], 10, h - 10 - i * h * 0.04); });
   if (g.wb && g.wb.length > 1) { ctx.fillStyle = 'rgba(255,255,255,.8)'; ctx.font = '700 ' + Math.round(h * 0.03) + 'px Arial, sans-serif'; ctx.textAlign = 'right'; ctx.fillText(g.wb.length + ' Bälle', w - 10, h - 10); }
   if (g.serve && g.state === 'run') { ctx.fillStyle = 'rgba(255,255,255,.85)'; ctx.font = '700 ' + Math.round(h * 0.035) + 'px Arial, sans-serif'; ctx.textAlign = 'center'; ctx.fillText('Tippen zum Abstoß', w / 2, h * 0.62); }
   g.pops.forEach(function(p){ popText(ctx, p.x, p.y, p.txt, Math.min(1, p.t / 0.4), p.txt.length > 3 ? Math.min(h * 0.06, w * 0.07) : W.r * 2.2); });
@@ -4419,7 +4500,7 @@ function draw(){
     ctx.font = '700 ' + Math.round(h * 0.04) + 'px Arial, sans-serif'; ctx.fillStyle = '#ffffff';
     ctx.fillText(g.paused ? 'Tippen zum Weiterspielen' : GAMES[g.kind].hint, w / 2, h * 0.52);
     if (g.kind === 'header' && !g.paused) ctx.fillText('Rote Bälle nicht köpfen, Sterne fangen!', w / 2, h * 0.58);
-    if (g.kind === 'wall' && !g.paused) { ctx.fillText('Räum die Torwand ab!', w / 2, h * 0.58); ctx.fillText('Spezialkacheln ausprobieren!', w / 2, h * 0.64); ctx.fillText('Triff das blaue Monster!', w / 2, h * 0.70); }
+    if (g.kind === 'wall' && !g.paused) { ctx.fillText('Räum die Torwand ab!', w / 2, h * 0.58); ctx.fillText('Bunte Steine fangen: Powerpunkte!', w / 2, h * 0.64); ctx.fillText('Triff das blaue Monster!', w / 2, h * 0.70); }
   }
 }
 function endGame(why){
@@ -4445,6 +4526,7 @@ function endGame(why){
 /* Steuerung */
 var cvEl = $('#gameCanvas');
 function canvasX(e){ var r = cvEl.getBoundingClientRect(); return e.clientX - r.left; }
+$('#gPowers').addEventListener('pointerdown', function(e){ var b = e.target.closest('[data-pow]'); if (!b) return; e.preventDefault(); usePower(b.dataset.pow); });
 [cvEl, $('#gDrag')].forEach(function(el){
   el.addEventListener('pointerdown', function(e){
     var g = GAME; if (!g) return;
