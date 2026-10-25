@@ -846,6 +846,10 @@ h2,h3{margin:0}
 .gpow.act{border-color:#ffffff}
 @keyframes powpulse{0%,100%{box-shadow:0 0 0 0 rgba(253,225,0,.6)}50%{box-shadow:0 0 0 5px rgba(253,225,0,0)}}
 #screen-game.haspow .gdrag{height:64px;margin-top:10px}
+.focuspick .rowchips .lvballs{margin-left:6px}
+.focuspick .rowchips button{display:inline-flex;align-items:center;gap:6px;height:auto;min-height:38px;padding:6px 12px}
+.focuspick .rowchips .lvballs{display:inline-flex;gap:1px;margin-left:2px}
+.focuspick .rowchips .ballico{width:15px;height:15px}
 </style>
 </head>
 <body>
@@ -885,6 +889,7 @@ h2,h3{margin:0}
     </div>
     <div id="levels"></div>
     <p class="subhint" id="subHint" hidden></p>
+    <div class="focuspick" id="storyPick" hidden></div>
     <div class="focuspick" id="focusPick" hidden></div>
     <div class="rowpick" id="rowPick" hidden></div>
     <div class="blockpick" id="blockPick" hidden></div>
@@ -1464,52 +1469,52 @@ function focusColorHTML(html, cat){
 /* ---------- Leserätsel: drei Sätze, die zusammengehören, dann eine Frage ---------- */
 // k: r Rätsel (Frage steht vorher fest), s kleine Geschichte. a[0] ist die richtige Antwort.
 var STORIES = [
-  {"k": "r", "s": ["Ich bin grau und rie·sig groß.", "Ich ha·be ei·nen lan·gen Rüs·sel.", "Da·mit sprit·ze ich mir Was·ser auf den Rü·cken."], "q": "Wer bin ich?", "a": ["Elefant", "Nashorn", "Nilpferd"]},
-  {"k": "r", "s": ["Ich bin rund und aus Le·der.", "Al·le wol·len mich ins Tor schie·ßen.", "Im Sta·di·on ju·beln dann tau·send Fans."], "q": "Was bin ich?", "a": ["Ball", "Schuh", "Fahne"]},
-  {"k": "r", "s": ["Ich ha·be vie·le Sei·ten und ei·nen De·ckel.", "In mir ste·hen span·nen·de Ge·schich·ten.", "A·bends liest Ma·ma aus mir vor."], "q": "Was bin ich?", "a": ["Buch", "Bett", "Kissen"]},
-  {"k": "r", "s": ["Ich bin gelb und krumm.", "Af·fen fres·sen mich sehr gern.", "Vor dem Es·sen zieht man mei·ne Scha·le ab."], "q": "Was bin ich?", "a": ["Banane", "Zitrone", "Gurke"]},
-  {"k": "r", "s": ["Ich ha·be vier Rä·der und ein Lenk·rad.", "Ich brau·che Ben·zin o·der Strom.", "Mit mir fahrt ihr in den Ur·laub."], "q": "Was bin ich?", "a": ["Auto", "Fahrrad", "Schiff"]},
-  {"k": "r", "s": ["Ich woh·ne im Was·ser.", "Ich ha·be Flos·sen und Schup·pen.", "Spre·chen kann ich nicht, a·ber Bla·sen ma·chen."], "q": "Wer bin ich?", "a": ["Fisch", "Frosch", "Ente"]},
-  {"k": "r", "s": ["Ich bin kalt und weiß.", "Im Win·ter fal·le ich vom Him·mel.", "Kin·der bau·en aus mir ei·nen Mann mit Ka·rot·ten·na·se."], "q": "Was bin ich?", "a": ["Schnee", "Regen", "Nebel"]},
-  {"k": "r", "s": ["Ich ste·he im Wald und bin sehr alt.", "Im Herbst ver·lie·re ich mei·ne Blät·ter.", "Vö·gel bau·en in mir ihr Nest."], "q": "Wer bin ich?", "a": ["Baum", "Pilz", "Stein"]},
-  {"k": "r", "s": ["Ich ha·be Zei·ger und ein Zif·fer·blatt.", "Ich ma·che den gan·zen Tag tick und tack.", "Ich sa·ge dir, wann die Schu·le be·ginnt."], "q": "Was bin ich?", "a": ["Uhr", "Lampe", "Tafel"]},
-  {"k": "r", "s": ["Ich bin klein und grau.", "Ich mag Kä·se sehr gern.", "Vor der Kat·ze ha·be ich gro·ße Angst."], "q": "Wer bin ich?", "a": ["Maus", "Hund", "Igel"]},
-  {"k": "r", "s": ["Ich ha·be ein ro·tes Au·to mit Blau·licht.", "Ich tra·ge ei·nen Helm und lö·sche Feu·er.", "Wenn es brennt, rufst du mich an."], "q": "Wer bin ich?", "a": ["Feuerwehr", "Polizei", "Bäckerei"]},
-  {"k": "r", "s": ["Ich bin schwarz und gelb und kann sum·men.", "Ich flie·ge von Blu·me zu Blu·me.", "Aus mei·nem Nek·tar wird sü·ßer Ho·nig."], "q": "Wer bin ich?", "a": ["Biene", "Fliege", "Käfer"]},
-  {"k": "r", "s": ["Ich ha·be ei·nen Pan·zer auf dem Rü·cken.", "Ich bin sehr, sehr lang·sam.", "Ich kann ü·ber hun·dert Jah·re alt wer·den."], "q": "Wer bin ich?", "a": ["Schildkröte", "Schnecke", "Krokodil"]},
-  {"k": "r", "s": ["Ich bin o·ben am Him·mel und sehr heiß.", "Am Tag ma·che ich al·les hell.", "Am A·bend ge·he ich schla·fen, dann kommt der Mond."], "q": "Wer bin ich?", "a": ["Sonne", "Stern", "Wolke"]},
-  {"k": "r", "s": ["Ich ha·be ei·nen sehr lan·gen Hals.", "Ich fres·se Blät·ter von ho·hen Bäu·men.", "Mein Fell hat brau·ne Fle·cken."], "q": "Wer bin ich?", "a": ["Giraffe", "Zebra", "Kamel"]},
-  {"k": "r", "s": ["Ich ha·be Bors·ten und ei·nen Stiel.", "Mor·gens und a·bends kommst du zu mir.", "Mit Zahn·pas·ta ma·che ich dei·ne Zäh·ne sau·ber."], "q": "Was bin ich?", "a": ["Zahnbürste", "Kamm", "Löffel"]},
-  {"k": "r", "s": ["Ich bin schwarz und weiß.", "Flie·gen kann ich nicht, a·ber gut schwim·men.", "Ich le·be dort, wo es Eis und Schnee gibt."], "q": "Wer bin ich?", "a": ["Pinguin", "Möwe", "Eisbär"]},
-  {"k": "r", "s": ["Ich ha·be zwei Rä·der und ei·ne Klin·gel.", "Du trittst in die Pe·da·le, dann fah·re ich los.", "Ein Helm schützt da·bei dei·nen Kopf."], "q": "Was bin ich?", "a": ["Fahrrad", "Roller", "Bus"]},
-  {"k": "r", "s": ["Ich bin aus Glas und hän·ge an der Wand.", "Wenn du hin·ein·schaust, siehst du dich selbst.", "Mor·gens kämmst du dich vor mir."], "q": "Was bin ich?", "a": ["Spiegel", "Fenster", "Bild"]},
-  {"k": "r", "s": ["Ich bin ein Tier mit Sta·cheln.", "Wenn ich Angst ha·be, rol·le ich mich zu ei·ner Ku·gel.", "Ich fres·se gern Wür·mer und Schne·cken."], "q": "Wer bin ich?", "a": ["Igel", "Hamster", "Hase"]},
-  {"k": "r", "s": ["Ich ha·be vier Bei·ne, a·ber lau·fen kann ich nicht.", "An mir sitzt die Fa·mi·li·e beim Es·sen.", "Auf mir ste·hen Tel·ler und Glä·ser."], "q": "Was bin ich?", "a": ["Tisch", "Stuhl", "Schrank"]},
-  {"k": "r", "s": ["Ich bin weiß und kom·me von der Kuh.", "Du trinkst mich zum Früh·stück o·der im Müs·li.", "Aus mir macht man Kä·se und Jo·ghurt."], "q": "Was bin ich?", "a": ["Milch", "Saft", "Wasser"]},
-  {"k": "r", "s": ["Ich bin grün und hüp·fe gern.", "Ich woh·ne am Teich und ma·che quak.", "Flie·gen fan·ge ich mit mei·ner lan·gen Zun·ge."], "q": "Wer bin ich?", "a": ["Frosch", "Ente", "Fisch"]},
-  {"k": "r", "s": ["Ich bin bunt und kom·me nach dem Re·gen.", "Ich ste·he wie ein gro·ßer Bo·gen am Him·mel.", "Nur wenn auch die Son·ne scheint, kannst du mich se·hen."], "q": "Was bin ich?", "a": ["Regenbogen", "Blitz", "Wolke"]},
-  {"k": "s", "s": ["{name} packt den Ruck·sack für den Aus·flug.", "Ein Ap·fel, ei·ne Fla·sche Was·ser und ei·ne Müt·ze kom·men hin·ein.", "Nur das Pau·sen·brot liegt noch auf dem Tisch."], "q": "Was hat {name} vergessen?", "a": ["Das Pausenbrot", "Den Apfel", "Die Mütze"]},
-  {"k": "s", "s": ["Le·na und Tim spie·len im Gar·ten Fuß·ball.", "Tim schießt den Ball viel zu hoch.", "Jetzt hängt der Ball o·ben im Ap·fel·baum."], "q": "Wo hängt der Ball?", "a": ["Im Apfelbaum", "Im Tor", "Auf dem Dach"]},
-  {"k": "s", "s": ["O·ma backt ei·nen Ku·chen mit Kir·schen.", "Sie stellt ihn zum Ab·küh·len ans Fens·ter.", "Als sie zu·rück·kommt, sitzt der Ka·ter da·ne·ben und leckt sich das Maul."], "q": "Wer war wohl am Kuchen?", "a": ["Der Kater", "Oma", "Der Hund"]},
-  {"k": "s", "s": ["Heu·te reg·net es stark.", "Paul zieht sei·ne Gum·mi·stie·fel und die Re·gen·ja·cke an.", "Dann springt er in die größ·te Pfüt·ze."], "q": "Was zieht Paul an?", "a": ["Gummistiefel und Regenjacke", "Badehose und Sandalen", "Schal und Mütze"]},
-  {"k": "s", "s": ["Im Zoo füt·tert die Wär·te·rin die Pin·gu·i·ne.", "Sie wirft je·dem Pin·gu·in ei·nen Fisch zu.", "Der kleins·te Pin·gu·in fängt sei·nen Fisch zu·erst."], "q": "Wer fängt den Fisch zuerst?", "a": ["Der kleinste Pinguin", "Die Wärterin", "Der größte Pinguin"]},
-  {"k": "s", "s": ["Mia hat heu·te Ge·burts·tag.", "Sie wird acht Jah·re alt.", "Auf ih·rem Ku·chen bren·nen acht Ker·zen."], "q": "Wie alt wird Mia?", "a": ["Acht Jahre", "Sechs Jahre", "Zehn Jahre"]},
-  {"k": "s", "s": ["Der Hund Bel·lo bud·delt im Gar·ten ein Loch.", "Er legt sei·nen Kno·chen hin·ein.", "Dann macht er das Loch wie·der zu."], "q": "Was versteckt Bello?", "a": ["Seinen Knochen", "Einen Ball", "Einen Schuh"]},
-  {"k": "s", "s": ["{name} und Pa·pa fah·ren mit der Bahn zum Sta·di·on.", "Dort spielt heu·te Dort·mund ge·gen Bay·ern.", "Am En·de ju·beln al·le, denn Dort·mund ge·winnt."], "q": "Wer gewinnt das Spiel?", "a": ["Dortmund", "Bayern", "Keiner"]},
-  {"k": "s", "s": ["Ben sucht sei·ne Bril·le.", "Sie ist nicht im Bad und nicht in der Kü·che.", "End·lich fin·det er sie auf sei·nem Kopf."], "q": "Wo war die Brille?", "a": ["Auf seinem Kopf", "Im Bad", "In der Küche"]},
-  {"k": "s", "s": ["Im Win·ter ist der See zu·ge·fro·ren.", "Die Kin·der zie·hen ih·re Schlitt·schu·he an.", "Sie fah·ren vor·sich·tig ü·ber das glat·te Eis."], "q": "Was machen die Kinder?", "a": ["Schlittschuh laufen", "Schwimmen", "Rad fahren"]},
-  {"k": "s", "s": ["Am Mor·gen klin·gelt der We·cker.", "An·na dreht sich um und schläft wei·ter.", "Als sie auf·wacht, ist sie viel zu spät dran."], "q": "Warum ist Anna zu spät?", "a": ["Sie hat weitergeschlafen", "Der Bus kam nicht", "Sie war krank"]},
-  {"k": "s", "s": ["Die Klas·se pflanzt im Schul·gar·ten Son·nen·blu·men.", "Je·den Tag gie·ßen die Kin·der die klei·nen Pflan·zen.", "Nach ein paar Wo·chen sind die Blu·men grö·ßer als die Kin·der."], "q": "Was pflanzt die Klasse?", "a": ["Sonnenblumen", "Tomaten", "Tulpen"]},
-  {"k": "s", "s": ["O·pa und {name} ge·hen an·geln.", "Lan·ge beißt kein Fisch an.", "Dann zap·pelt plötz·lich ein gro·ßer Fisch an der An·gel."], "q": "Was passiert am Ende?", "a": ["Ein Fisch beißt an", "Es fängt an zu regnen", "Opa fällt ins Wasser"]},
-  {"k": "s", "s": ["Li·sa malt ein Bild für ih·re Ma·ma.", "Sie malt ei·ne Son·ne, ein Haus und ei·nen Hund.", "Ma·ma hängt das Bild an den Kühl·schrank."], "q": "Wo hängt das Bild?", "a": ["Am Kühlschrank", "Im Flur", "In der Schule"]},
-  {"k": "s", "s": ["Der Bus kommt heu·te zu spät.", "Die Kin·der war·ten an der Hal·te·stel·le.", "End·lich biegt der gel·be Bus um die E·cke."], "q": "Welche Farbe hat der Bus?", "a": ["Gelb", "Rot", "Blau"]},
-  {"k": "s", "s": ["In der Nacht hört Max ein Ge·räusch.", "Er schaut un·ter das Bett und fin·det nichts.", "Dann sieht er die Kat·ze auf dem Schrank sit·zen."], "q": "Wer hat das Geräusch gemacht?", "a": ["Die Katze", "Ein Gespenst", "Papa"]},
-  {"k": "s", "s": ["Fa·mi·li·e We·ber fährt in den Ur·laub ans Meer.", "Die Kin·der bau·en am Strand ei·ne gro·ße Sand·burg.", "Am A·bend kommt die Flut und spült al·les weg."], "q": "Was macht die Flut mit der Sandburg?", "a": ["Sie spült sie weg", "Sie macht sie größer", "Nichts"]},
-  {"k": "s", "s": ["{name} hat Bauch·weh.", "Zum Früh·stück gab es drei Stü·cke Ku·chen und viel Scho·ko·la·de.", "Pa·pa sagt: Mor·gen gibt es wie·der Müs·li."], "q": "Warum hat {name} Bauchweh?", "a": ["Zu viel Süßes gegessen", "Zu wenig geschlafen", "Zu schnell gerannt"]},
-  {"k": "s", "s": ["Im Herbst sam·meln Jo·nas und El·la Kas·ta·ni·en.", "Sie fül·len da·mit zwei gro·ße Kör·be.", "Zu Hau·se bas·teln sie dar·aus lus·ti·ge Tie·re."], "q": "Was basteln die Kinder?", "a": ["Lustige Tiere", "Eine Kette", "Einen Drachen"]},
-  {"k": "s", "s": ["Der Brief·trä·ger klin·gelt an der Tür.", "Er bringt ein gro·ßes Pa·ket von Tan·te E·va.", "Dar·in ist ein neu·es Fuß·ball·tri·kot."], "q": "Was ist im Paket?", "a": ["Ein Fußballtrikot", "Ein Buch", "Ein Teddy"]},
-  {"k": "s", "s": ["Ein klei·ner Vo·gel ist aus dem Nest ge·fal·len.", "E·mil bringt ihn vor·sich·tig zur Tier·ärz·tin.", "Nach ei·ner Wo·che kann der Vo·gel wie·der flie·gen."], "q": "Wohin bringt Emil den Vogel?", "a": ["Zur Tierärztin", "In die Schule", "Nach Hause"]},
-  {"k": "s", "s": ["Beim Elf·me·ter läuft {name} an.", "Der Tor·wart springt in die lin·ke E·cke.", "Der Ball fliegt a·ber ge·nau in die rech·te E·cke."], "q": "Ist der Ball im Tor?", "a": ["Ja, Tor!", "Nein, gehalten", "Nein, daneben"]}
+  {"k": "r", "s": ["Ich bin grau, sehr schwer und rie·sig groß.", "Vor·ne an mei·nem Kopf ha·be ich ei·nen lan·gen Rüs·sel.", "Da·mit sprit·ze ich mir an hei·ßen Ta·gen Was·ser auf den Rü·cken."], "q": "Wer bin ich?", "a": ["Elefant", "Nashorn", "Nilpferd"]},
+  {"k": "r", "s": ["Ich bin rund und meis·tens aus Le·der ge·macht.", "Al·le Spie·ler auf dem Platz wol·len mich ins Tor schie·ßen.", "Wenn ich im Netz lan·de, ju·beln im Sta·di·on tau·send Fans."], "q": "Was bin ich?", "a": ["Ball", "Schuh", "Fahne"]},
+  {"k": "r", "s": ["Ich ha·be vie·le Sei·ten und ei·nen fes·ten De·ckel.", "In mir ste·hen span·nen·de Ge·schich·ten von Dra·chen und Pi·ra·ten.", "Am A·bend liest Ma·ma dir aus mir et·was vor."], "q": "Was bin ich?", "a": ["Buch", "Bett", "Kissen"]},
+  {"k": "r", "s": ["Ich bin gelb, ein biss·chen krumm und schme·cke süß.", "Die Af·fen im Zoo fres·sen mich ganz be·son·ders gern.", "Vor dem Es·sen ziehst du mei·ne di·cke Scha·le ab."], "q": "Was bin ich?", "a": ["Banane", "Zitrone", "Gurke"]},
+  {"k": "r", "s": ["Ich ha·be vier Rä·der, vier Tü·ren und ein Lenk·rad.", "Da·mit ich fah·ren kann, brau·che ich Ben·zin o·der Strom.", "Mit mir fahrt ihr im Som·mer in den Ur·laub ans Meer."], "q": "Was bin ich?", "a": ["Auto", "Fahrrad", "Schiff"]},
+  {"k": "r", "s": ["Ich woh·ne mein gan·zes Le·ben lang im Was·ser.", "Ich ha·be glän·zen·de Schup·pen und klei·ne Flos·sen am Kör·per.", "Spre·chen kann ich nicht, a·ber ich ma·che lus·ti·ge Bla·sen."], "q": "Wer bin ich?", "a": ["Fisch", "Frosch", "Ente"]},
+  {"k": "r", "s": ["Ich bin kalt und weiß und glit·ze·re in der Son·ne.", "Im Win·ter fal·le ich lei·se und lang·sam vom Him·mel.", "Die Kin·der bau·en aus mir ei·nen Mann mit Ka·rot·ten·na·se."], "q": "Was bin ich?", "a": ["Schnee", "Regen", "Nebel"]},
+  {"k": "r", "s": ["Ich ste·he im Wald und bin schon sehr alt.", "Im Herbst wer·den mei·ne Blät·ter bunt und fal·len her·un·ter.", "In mei·nen Äs·ten bau·en die Vö·gel im Früh·ling ihr Nest."], "q": "Wer bin ich?", "a": ["Baum", "Pilz", "Stein"]},
+  {"k": "r", "s": ["Ich ha·be zwei Zei·ger und ein run·des Zif·fer·blatt.", "Ich ma·che den gan·zen Tag lang lei·se tick und tack.", "Ich zei·ge dir ge·nau an, wann die Schu·le be·ginnt."], "q": "Was bin ich?", "a": ["Uhr", "Lampe", "Tafel"]},
+  {"k": "r", "s": ["Ich bin ein klei·nes Tier mit grau·em Fell.", "Am liebs·ten knab·be·re ich an ei·nem Stück Kä·se.", "Vor der Kat·ze ha·be ich gro·ße Angst und ren·ne weg."], "q": "Wer bin ich?", "a": ["Maus", "Hund", "Igel"]},
+  {"k": "r", "s": ["Ich ha·be ein gro·ßes ro·tes Au·to mit Blau·licht.", "Ich tra·ge ei·nen Helm und lö·sche mit Was·ser das Feu·er.", "Wenn es ir·gend·wo brennt, rufst du mich ganz schnell an."], "q": "Wer bin ich?", "a": ["Feuerwehr", "Polizei", "Bäckerei"]},
+  {"k": "r", "s": ["Ich bin schwarz und gelb ge·streift und kann laut sum·men.", "Den gan·zen Tag flie·ge ich von ei·ner Blu·me zur nächs·ten.", "Aus mei·nem Nek·tar wird spä·ter sü·ßer und le·cke·rer Ho·nig."], "q": "Wer bin ich?", "a": ["Biene", "Fliege", "Käfer"]},
+  {"k": "r", "s": ["Auf mei·nem Rü·cken tra·ge ich ei·nen di·cken, har·ten Pan·zer.", "Ich bin sehr, sehr lang·sam und ha·be nie·mals Ei·le.", "Man·che von uns wer·den so·gar ü·ber hun·dert Jah·re alt."], "q": "Wer bin ich?", "a": ["Schildkröte", "Schnecke", "Krokodil"]},
+  {"k": "r", "s": ["Ich ste·he hoch o·ben am Him·mel und bin sehr heiß.", "Am Tag ma·che ich mit mei·nen Strah·len al·les hell.", "Am A·bend ge·he ich schla·fen, und dann kommt der Mond."], "q": "Wer bin ich?", "a": ["Sonne", "Stern", "Wolke"]},
+  {"k": "r", "s": ["Ich ha·be ei·nen sehr lan·gen Hals und lan·ge Bei·ne.", "Ich fres·se am liebs·ten Blät·ter von ganz ho·hen Bäu·men.", "Mein gel·bes Fell hat vie·le gro·ße brau·ne Fle·cken."], "q": "Wer bin ich?", "a": ["Giraffe", "Zebra", "Kamel"]},
+  {"k": "r", "s": ["Ich ha·be ei·nen lan·gen Stiel und vie·le klei·ne Bors·ten.", "Mor·gens und a·bends kommst du zu mir ins Bad.", "Mit Zahn·pas·ta ma·che ich dei·ne Zäh·ne wie·der schön sau·ber."], "q": "Was bin ich?", "a": ["Zahnbürste", "Kamm", "Löffel"]},
+  {"k": "r", "s": ["Ich se·he aus, als hät·te ich ei·nen schwar·zen Frack an.", "Flie·gen kann ich nicht, a·ber ich schwim·me rich·tig gut.", "Ich le·be dort, wo es ganz viel Eis und Schnee gibt."], "q": "Wer bin ich?", "a": ["Pinguin", "Möwe", "Eisbär"]},
+  {"k": "r", "s": ["Ich ha·be zwei Rä·der, ei·nen Sat·tel und ei·ne Klin·gel.", "Wenn du kräf·tig in die Pe·da·le trittst, fah·re ich los.", "Ein Helm schützt da·bei im·mer dei·nen Kopf vor Beu·len."], "q": "Was bin ich?", "a": ["Fahrrad", "Roller", "Bus"]},
+  {"k": "r", "s": ["Ich bin aus glat·tem Glas und hän·ge an der Wand.", "Wenn du in mich hin·ein·schaust, siehst du dich selbst.", "Je·den Mor·gen kämmst du dir vor mir die Haa·re."], "q": "Was bin ich?", "a": ["Spiegel", "Fenster", "Bild"]},
+  {"k": "r", "s": ["Ich bin ein klei·nes Tier mit vie·len spit·zen Sta·cheln.", "Wenn ich Angst ha·be, rol·le ich mich zu ei·ner Ku·gel.", "Am liebs·ten fres·se ich in der Nacht Wür·mer und Schne·cken."], "q": "Wer bin ich?", "a": ["Igel", "Hamster", "Hase"]},
+  {"k": "r", "s": ["Ich ha·be vier Bei·ne, a·ber lau·fen kann ich nicht.", "An mir sitzt die gan·ze Fa·mi·li·e beim Es·sen zu·sam·men.", "Auf mir ste·hen je·den Tag Tel·ler, Tas·sen und Glä·ser."], "q": "Was bin ich?", "a": ["Tisch", "Stuhl", "Schrank"]},
+  {"k": "r", "s": ["Ich bin weiß und kom·me je·den Mor·gen von der Kuh.", "Du trinkst mich zum Früh·stück o·der kippst mich ins Müs·li.", "Aus mir macht man auch le·cke·ren Kä·se und Jo·ghurt."], "q": "Was bin ich?", "a": ["Milch", "Saft", "Wasser"]},
+  {"k": "r", "s": ["Ich bin grün und hüp·fe gern am U·fer her·um.", "Ich woh·ne an ei·nem klei·nen Teich und ma·che laut quak.", "Mit mei·ner lan·gen Zun·ge fan·ge ich mir schnel·le Flie·gen."], "q": "Wer bin ich?", "a": ["Frosch", "Ente", "Fisch"]},
+  {"k": "r", "s": ["Ich bin ganz bunt und kom·me oft nach ei·nem Re·gen.", "Ich ste·he wie ein gro·ßer Bo·gen hoch am Him·mel.", "Nur wenn auch die Son·ne scheint, kannst du mich se·hen."], "q": "Was bin ich?", "a": ["Regenbogen", "Blitz", "Wolke"]},
+  {"k": "s", "s": ["{name} packt am Mor·gen den Ruck·sack für den Aus·flug.", "Ein Ap·fel, ei·ne Fla·sche Was·ser und ei·ne Müt·ze kom·men hin·ein.", "Nur das Pau·sen·brot liegt am En·de noch auf dem Tisch."], "q": "Was hat {name} vergessen?", "a": ["Das Pausenbrot", "Den Apfel", "Die Mütze"]},
+  {"k": "s", "s": ["Le·na und Tim spie·len nach der Schu·le im Gar·ten Fuß·ball.", "Tim schießt den Ball mit vol·ler Kraft viel zu hoch.", "Jetzt hängt der Ball ganz o·ben im al·ten Ap·fel·baum."], "q": "Wo hängt der Ball?", "a": ["Im Apfelbaum", "Im Tor", "Auf dem Dach"]},
+  {"k": "s", "s": ["O·ma backt am Sonn·tag ei·nen le·cke·ren Ku·chen mit Kir·schen.", "Sie stellt ihn zum Ab·küh·len auf die Bank vor dem Fens·ter.", "Als sie zu·rück·kommt, sitzt der Ka·ter da·ne·ben und leckt sich das Maul."], "q": "Wer war wohl am Kuchen?", "a": ["Der Kater", "Oma", "Der Hund"]},
+  {"k": "s", "s": ["Heu·te reg·net es schon seit dem frü·hen Mor·gen sehr stark.", "Paul zieht sei·ne Gum·mi·stie·fel und die gel·be Re·gen·ja·cke an.", "Dann springt er mit gro·ßem An·lauf in die größ·te Pfüt·ze."], "q": "Was zieht Paul an?", "a": ["Gummistiefel und Regenjacke", "Badehose und Sandalen", "Schal und Mütze"]},
+  {"k": "s", "s": ["Im Zoo füt·tert die Wär·te·rin am Nach·mit·tag die Pin·gu·i·ne.", "Sie wirft je·dem Pin·gu·in ei·nen klei·nen Fisch in die Luft.", "Der kleins·te Pin·gu·in fängt sei·nen Fisch im·mer als Ers·ter."], "q": "Wer fängt den Fisch zuerst?", "a": ["Der kleinste Pinguin", "Die Wärterin", "Der größte Pinguin"]},
+  {"k": "s", "s": ["Mia hat heu·te Ge·burts·tag und ist schon ganz früh wach.", "Sie wird heu·te acht Jah·re alt und freut sich sehr.", "Auf ih·rem gro·ßen Scho·ko·la·den·ku·chen bren·nen acht bun·te Ker·zen."], "q": "Wie alt wird Mia?", "a": ["Acht Jahre", "Sechs Jahre", "Zehn Jahre"]},
+  {"k": "s", "s": ["Der Hund Bel·lo bud·delt hin·ten im Gar·ten ein tie·fes Loch.", "Ganz vor·sich·tig legt er sei·nen gro·ßen Kno·chen hin·ein.", "Da·nach schiebt er mit der Na·se die Er·de wie·der zu."], "q": "Was versteckt Bello?", "a": ["Seinen Knochen", "Einen Ball", "Einen Schuh"]},
+  {"k": "s", "s": ["{name} und Pa·pa fah·ren am Sams·tag mit der Bahn zum Sta·di·on.", "Dort spielt heu·te Dort·mund ge·gen Bay·ern vor vol·len Rän·gen.", "Am En·de ju·beln al·le Fans, denn Dort·mund ge·winnt das Spiel."], "q": "Wer gewinnt das Spiel?", "a": ["Dortmund", "Bayern", "Keiner"]},
+  {"k": "s", "s": ["Ben sucht schon seit zehn Mi·nu·ten ü·ber·all sei·ne Bril·le.", "Sie liegt nicht im Bad und auch nicht in der Kü·che.", "End·lich merkt er, dass die Bril·le auf sei·nem Kopf sitzt."], "q": "Wo war die Brille?", "a": ["Auf seinem Kopf", "Im Bad", "In der Küche"]},
+  {"k": "s", "s": ["Im Win·ter ist der klei·ne See im Park ganz zu·ge·fro·ren.", "Die Kin·der zie·hen am U·fer ih·re war·men Schlitt·schu·he an.", "Dann fah·ren sie vor·sich·tig ü·ber das glat·te, glän·zen·de Eis."], "q": "Was machen die Kinder?", "a": ["Schlittschuh laufen", "Schwimmen", "Rad fahren"]},
+  {"k": "s", "s": ["Am Mor·gen klin·gelt der We·cker laut ne·ben An·nas Bett.", "An·na dreht sich ein·fach um und schläft noch wei·ter.", "Als sie wie·der auf·wacht, ist sie viel zu spät dran."], "q": "Warum ist Anna zu spät?", "a": ["Sie hat weitergeschlafen", "Der Bus kam nicht", "Sie war krank"]},
+  {"k": "s", "s": ["Die Klas·se pflanzt im Früh·ling Son·nen·blu·men im Schul·gar·ten.", "Je·den Tag gie·ßen die Kin·der die klei·nen grü·nen Pflan·zen.", "Nach ein paar Wo·chen sind die Blu·men grö·ßer als die Kin·der."], "q": "Was pflanzt die Klasse?", "a": ["Sonnenblumen", "Tomaten", "Tulpen"]},
+  {"k": "s", "s": ["O·pa und {name} ge·hen am Sams·tag zu·sam·men an den See an·geln.", "Lan·ge Zeit beißt ein·fach kein ein·zi·ger Fisch an.", "Dann zap·pelt plötz·lich ein gro·ßer Fisch an der An·gel."], "q": "Was passiert am Ende?", "a": ["Ein Fisch beißt an", "Es fängt an zu regnen", "Opa fällt ins Wasser"]},
+  {"k": "s", "s": ["Li·sa malt am Nach·mit·tag ein schö·nes Bild für ih·re Ma·ma.", "Sie malt ei·ne Son·ne, ein ro·tes Haus und ei·nen Hund.", "Ma·ma freut sich und hängt das Bild an den Kühl·schrank."], "q": "Wo hängt das Bild?", "a": ["Am Kühlschrank", "Im Flur", "In der Schule"]},
+  {"k": "s", "s": ["Der Schul·bus kommt heu·te lei·der viel zu spät.", "Die Kin·der war·ten frie·rend und mü·de an der Hal·te·stel·le.", "End·lich biegt der gel·be Bus lang·sam um die E·cke."], "q": "Welche Farbe hat der Bus?", "a": ["Gelb", "Rot", "Blau"]},
+  {"k": "s", "s": ["Mit·ten in der Nacht hört Max ein ko·mi·sches Ge·räusch.", "Er schaut un·ter das Bett, a·ber er fin·det nichts.", "Dann sieht er die Kat·ze o·ben auf dem Schrank sit·zen."], "q": "Wer hat das Geräusch gemacht?", "a": ["Die Katze", "Ein Gespenst", "Papa"]},
+  {"k": "s", "s": ["Fa·mi·li·e We·ber fährt in den Som·mer·fe·ri·en an das Meer.", "Die Kin·der bau·en am Strand ei·ne rie·si·ge Sand·burg mit Tür·men.", "Am A·bend kommt die Flut und spült al·les wie·der weg."], "q": "Was macht die Flut mit der Sandburg?", "a": ["Sie spült sie weg", "Sie macht sie größer", "Nichts"]},
+  {"k": "s", "s": ["{name} liegt auf dem So·fa und hat schlim·mes Bauch·weh.", "Zum Früh·stück gab es drei Stü·cke Ku·chen und viel Scho·ko·la·de.", "Pa·pa sagt: Mor·gen gibt es zum Früh·stück wie·der Müs·li."], "q": "Warum hat {name} Bauchweh?", "a": ["Zu viel Süßes gegessen", "Zu wenig geschlafen", "Zu schnell gerannt"]},
+  {"k": "s", "s": ["Im Herbst sam·meln Jo·nas und El·la im Park vie·le Kas·ta·ni·en.", "Sie fül·len da·mit zwei gro·ße Kör·be bis ganz o·ben.", "Zu Hau·se bas·teln sie dar·aus vie·le lus·ti·ge klei·ne Tie·re."], "q": "Was basteln die Kinder?", "a": ["Lustige Tiere", "Eine Kette", "Einen Drachen"]},
+  {"k": "s", "s": ["Am Vor·mit·tag klin·gelt der Brief·trä·ger an un·se·rer Tür.", "Er bringt ein gro·ßes Pa·ket von Tan·te E·va aus Ber·lin.", "Dar·in liegt ein neu·es gel·bes Fuß·ball·tri·kot mit Rü·cken·num·mer."], "q": "Was ist im Paket?", "a": ["Ein Fußballtrikot", "Ein Buch", "Ein Teddy"]},
+  {"k": "s", "s": ["Ein klei·ner Vo·gel ist im Gar·ten aus dem Nest ge·fal·len.", "E·mil bringt ihn ganz vor·sich·tig zur Tier·ärz·tin in der Stadt.", "Nach ei·ner Wo·che kann der klei·ne Vo·gel wie·der flie·gen."], "q": "Wohin bringt Emil den Vogel?", "a": ["Zur Tierärztin", "In die Schule", "Nach Hause"]},
+  {"k": "s", "s": ["Beim Elf·me·ter nimmt {name} An·lauf und schießt ganz fest.", "Der Tor·wart springt mit lan·gen Ar·men in die lin·ke E·cke.", "Der Ball fliegt a·ber ge·nau in die rech·te o·be·re E·cke."], "q": "Ist der Ball im Tor?", "a": ["Ja, Tor!", "Nein, gehalten", "Nein, daneben"]}
 ];
 function buildStory(st, name){
   var parts = st.s.map(function(s){ return buildItem(s, 'sentence', name); });
@@ -1697,8 +1702,9 @@ function todayKey(){ var d = new Date(); return d.getFullYear() + '-' + (d.getMo
    Kurze Wörter, Training, Blitzlesen, Rechnen: ein Spiel nach drei Runden.
    Lange Wörter: nach zwei Runden. Sätze: sofort, ganz kurz 1, mittel 2, lang 3. */
 var GAME_UNIT = 6, GAME_MAX = 3;
-var GAME_VALUE = {w1: 2, w2: 3, s0: 6, s1: 12, s2: 18, check: 6, fokus: 6, story: 6};
-function gameValue(mode, sub){ return mode === 'read' && GAME_VALUE[sub] ? GAME_VALUE[sub] : 2; }
+var GAME_VALUE = {w1: 2, w2: 3, s0: 6, s1: 9, s2: 12, check: 6, fokus: 6};
+function storyN(){ return [2, 4, 6].indexOf(S.storyN) >= 0 ? S.storyN : 2; }
+function gameValue(mode, sub){ if (mode === 'read' && sub === 'story') return storyN() * 3; return mode === 'read' && GAME_VALUE[sub] ? GAME_VALUE[sub] : 2; }
 function playOf(pid){
   if (!S.play) S.play = {};
   if (S.play[pid] == null && S.balls && S.balls[pid]) S.play[pid] = Math.round(Math.min(3, S.balls[pid]) * 2);
@@ -1707,7 +1713,7 @@ function playOf(pid){
 function gamesOf(pid){ return Math.floor(playOf(pid) / GAME_UNIT); }
 function addPlay(pid, n){ var b = playOf(pid), a = Math.min(GAME_UNIT * GAME_MAX, b + n); S.play[pid] = a; save(); return a - b; }
 function usePlay(pid){ if (gamesOf(pid) < 1) return false; S.play[pid] = playOf(pid) - GAME_UNIT; save(); return true; }
-function fmtGames(n){ return n === 1 ? 'ein Spiel' : n === 2 ? 'zwei Spiele' : n === 3 ? 'drei Spiele' : n + ' Spiele'; }
+function fmtGames(n){ return n === 1.5 ? 'anderthalb Spiele' : n === 1 ? 'ein Spiel' : n === 2 ? 'zwei Spiele' : n === 3 ? 'drei Spiele' : n + ' Spiele'; }
 function roundsToNext(pid, mode, sub){ var rest = GAME_UNIT - playOf(pid) % GAME_UNIT; return Math.ceil(rest / gameValue(mode, sub)); }
 var BALL_UID = 0;
 function ballIcon(state){
@@ -1920,7 +1926,7 @@ function ballRowHTML(pid){
   var rd = recOf(pid, 'dribble', lvl), rh = recOf(pid, 'header', lvl), rw = recOf(pid, 'wall', lvl);
   var rec = [rd ? 'Dribbling ' + rd : '', rh ? 'Kopfball ' + rh : '', rw ? 'Torwand ' + rw : ''].filter(Boolean).join(' · ');
   var head = n >= 1 ? (n === 1 ? 'Ein Spiel bereit! Such dir eins aus.' : (n === 2 ? 'Zwei' : 'Drei') + ' Spiele bereit! Such dir eins aus.') : (v % GAME_UNIT ? 'Dein Ball füllt sich' : 'Noch kein Spiel bereit');
-  var sub = n >= 1 ? (rec ? 'Rekorde ' + GAME_LEVELS[lvl].name + ': ' + rec : 'Jeder volle Ball ist ein Spiel') : adult ? 'Drei Runden Rechnen bringen ein Spiel' : 'Sätze bringen sofort Spiele: kurze 1, mittlere 2, lange 3';
+  var sub = n >= 1 ? (rec ? 'Rekorde ' + GAME_LEVELS[lvl].name + ': ' + rec : 'Jeder volle Ball ist ein Spiel') : adult ? 'Drei Runden Rechnen bringen ein Spiel' : 'Lange Sätze bringen 2 Spiele, je zwei Leserätsel eins';
   // Die Spiele sind immer zu sehen, ohne vollen Ball nur gesperrt
   return '<div class="ballrow ' + (n >= 1 ? 'ready' : 'wait') + '"><div class="balls">' + ballIcons(v) + '</div><div class="balltext"><b>' + head + '</b><span id="ballSub">' + sub + '</span></div>' +
     playBtns(n >= 1 ? 'data-act="game"' : 'data-act="gamelock" aria-disabled="true"') + '</div>';
@@ -1936,7 +1942,7 @@ function cityCardHTML(p){
     (nm ? '<div class="citymile">Als Nächstes: ' + esc(nm.name) + ' in ' + (nm.inN === 1 ? '1 Licht' : nm.inN + ' Lichtern') + '</div>' : '') +
     '</div></div></div>' + ballRowHTML(p.id) +
     '<details class="cityhow"><summary>So gibt es Sterne und Bälle</summary><ul>' + SPARK_RULES.map(function(r){ return '<li><span>' + esc(r[0]) + '</span><b>+' + r[1] + '</b></li>'; }).join('') + '</ul>' +
-    '<p>Im Lesecheck zählt jedes gelesene Wort, auch wenn es noch hakt. Jeder volle Ball ist ein Spiel: Dribbling, Kopfball oder Torwand, jeweils mit fünf Herzen. Eine Runde lange Sätze bringt drei Spiele, mittlere Sätze zwei, ganz kurze Sätze, Leserätsel mit vier Rätseln, Stolpersteine und der Lesecheck eins. Lange Wörter füllen einen Ball in zwei Runden, kurze Wörter, Training, Blitzlesen und Rechnen in drei Runden. Mehr als drei Spiele gibt es nicht auf Vorrat. Bisher gesammelt: <b>' + total + '</b> Sterne.</p></details>';
+    '<p>Im Lesecheck zählt jedes gelesene Wort, auch wenn es noch hakt. Jeder volle Ball ist ein Spiel: Dribbling, Kopfball oder Torwand, jeweils mit fünf Herzen. Eine Runde lange Sätze bringt zwei Spiele, mittlere Sätze anderthalb, ganz kurze Sätze, Stolpersteine und der Lesecheck eins. Bei den Leserätseln bringen je zwei Rätsel ein Spiel. Lange Wörter füllen einen Ball in zwei Runden, kurze Wörter, Training, Blitzlesen und Rechnen in drei Runden. Mehr als drei Spiele gibt es nicht auf Vorrat. Bisher gesammelt: <b>' + total + '</b> Sterne.</p></details>';
 }
 
 /* =====================================================================
@@ -2674,7 +2680,7 @@ var READ_SUBS = [
   {id:'s0', name:'Ganz kurze Sätze', group:'Freies Lesen', hint:'Sätze mit zwei bis vier Wörtern. Zählt auch fürs Leseprofil.'},
   {id:'s1', name:'Mittlere Sätze', group:'Freies Lesen', hint:'Sätze mit fünf bis sechs Wörtern. Zählt auch fürs Leseprofil.'},
   {id:'s2', name:'Lange Sätze', group:'Freies Lesen', hint:'Lange Sätze mit sieben und mehr Wörtern. Zählt auch fürs Leseprofil.'},
-  {id:'story', name:'Leserätsel', group:'Lesen und verstehen', hint:'Vier kleine Lesehäppchen aus je drei Sätzen, die zusammengehören. Bei einem Rätsel steht die Frage „Wer bin ich?“ schon vorher da, bei einer kleinen Geschichte kommt die Frage erst danach. Erst laut lesen und Stopp drücken, dann tippt das Kind die richtige Antwort an. Gemessen wird das Lesetempo in Wörtern pro Minute.'}
+  {id:'story', name:'Leserätsel', group:'Lesen und verstehen', hint:'Lesehäppchen aus je drei langen Sätzen, die zusammengehören. Darunter wählst du 2, 4 oder 6 Rätsel, je zwei bringen ein Spiel. Bei einem Rätsel steht die Frage „Wer bin ich?“ schon vorher da, bei einer kleinen Geschichte kommt die Frage erst danach. Erst laut lesen und Stopp drücken, dann tippt das Kind die richtige Antwort an. Gemessen wird das Lesetempo in Wörtern pro Minute.'}
 ];
 function subInfo(id){ return READ_SUBS.filter(function(s){ return s.id === id; })[0] || READ_SUBS[0]; }
 function levelName(mode, level){ return mode === 'math' ? MATH[level - 1].name : subInfo(level).name; }
@@ -2763,17 +2769,20 @@ function renderStart(){
     READ_SUBS.forEach(function(s){ (groups[s.group] = groups[s.group] || []).push(s); });
     $('#levels').innerHTML = Object.keys(groups).map(function(g){
       return '<div class="lvgroup"><span class="lvlabel">' + esc(g) + '</span><div class="levels">' + groups[g].map(function(s){
-        var ng = S.gameOn !== false ? Math.floor(gameValue('read', s.id) / GAME_UNIT) : 0, bi = '';
-        for (var j = 0; j < ng; j++) bi += ballIcon(1);
+        var gvs = S.gameOn !== false ? gameValue('read', s.id) : 0, ng = gvs / GAME_UNIT, bi = '';
+        for (var j = 0; j < ng; j++) bi += ballIcon(Math.min(1, ng - j));
+        if (ng < 1) ng = 0;
         return '<button class="level" type="button" data-level="' + s.id + '" aria-pressed="' + (lv === s.id) + '">' + esc(s.name) + (ng ? '<span class="lvballs" aria-label="' + fmtGames(ng) + ' pro Runde">' + bi + '</span>' : '') + '</button>';
       }).join('') + '</div></div>';
     }).join('');
   }
+  var sp2 = $('#storyPick'); sp2.hidden = !(isRead && lv === 'story');
+  if (!sp2.hidden) sp2.innerHTML = '<span class="lvlabel">Wie viele Rätsel?</span><div class="rowchips">' + [2, 4, 6].map(function(n){ var b2 = ''; for (var j = 0; j < n / 2; j++) b2 += ballIcon(1); return '<button type="button" data-sn="' + n + '" aria-pressed="' + (storyN() === n) + '">' + n + ' Rätsel<span class="lvballs">' + b2 + '</span></button>'; }).join('') + '</div>';
   var fp = $('#focusPick'); fp.hidden = !(isRead && lv === 'fokus');
   if (!fp.hidden) fp.innerHTML = focusPanelHTML(p);
   var hint = $('#subHint'), gi = !isRead ? goalInfo(lv) : null;
   hint.hidden = !(isRead || gi);
-  if (isRead) { var gv = gameValue('read', lv); hint.textContent = subInfo(lv).hint + (S.gameOn === false ? '' : gv >= GAME_UNIT ? ' Eine Runde bringt ' + fmtGames(gv / GAME_UNIT) + ', danach darfst du sofort spielen.' : ' Nach ' + (GAME_UNIT / gv === 2 ? 'zwei' : 'drei') + ' Runden gibt es ein Spiel.'); }
+  if (isRead) { var gv = gameValue('read', lv); hint.textContent = subInfo(lv).hint + (S.gameOn === false ? '' : gv % GAME_UNIT && gv > GAME_UNIT ? ' Eine Runde bringt anderthalb Spiele.' : gv >= GAME_UNIT ? ' Eine Runde bringt ' + fmtGames(gv / GAME_UNIT) + ', danach darfst du sofort spielen.' : ' Nach ' + (GAME_UNIT / gv === 2 ? 'zwei' : 'drei') + ' Runden gibt es ein Spiel.'); }
   else if (gi) {
     var cv = factsFor(lv).length ? coverage(p.id, lv) : null, rs = rowsOf(p.id, lv);
     hint.textContent = rs.length && cv ? 'Ausgewählt: ' + rowsText(rs) + ' mit ' + cv.all + ' Aufgaben, davon schon gerechnet: ' + cv.done + '. Die langsamen kommen öfter dran, und alles fließt in die Tafel im Rechenprofil ein.'
@@ -2890,6 +2899,7 @@ $('#levels').addEventListener('click', function(e){
   var b = e.target.closest('.level'); if (!b) return;
   S.level[levelKey()] = S.mode === 'math' ? +b.dataset.level : b.dataset.level; save(); renderStart();
 });
+$('#storyPick').addEventListener('click', function(e){ var b = e.target.closest('[data-sn]'); if (!b) return; S.storyN = +b.dataset.sn; save(); renderStart(); });
 $('#focusPick').addEventListener('click', function(e){
   var c = e.target.closest('[data-fcat]');
   if (c) { S.focusCat = c.dataset.fcat; save(); renderStart(); return; }
@@ -2925,7 +2935,7 @@ $('#cityCard').addEventListener('click', function(e){
   if (b.dataset.act === 'gameon') { S.gameOn = true; save(); renderStart(); }
   if (b.dataset.act === 'gamelock') {
     var sb = $('#ballSub'), p = curPlayer();
-    if (sb) { sb.textContent = 'Noch kein voller Ball. ' + (isAdult(p) ? 'Drei Runden Rechnen bringen ein Spiel.' : 'Lange Sätze bringen sofort drei Spiele, Leserätsel eins.'); sb.classList.remove('flash'); void sb.offsetWidth; sb.classList.add('flash'); }
+    if (sb) { sb.textContent = 'Noch kein voller Ball. ' + (isAdult(p) ? 'Drei Runden Rechnen bringen ein Spiel.' : 'Lange Sätze bringen zwei Spiele, je zwei Leserätsel eins.'); sb.classList.remove('flash'); void sb.offsetWidth; sb.classList.add('flash'); }
   }
 });
 [['optAuto','auto'],['optSpeak','speak'],['optSyl','syl'],['optCaps','caps'],['optRetry','retry'],['optSound','sound']].forEach(function(pair){
@@ -3005,7 +3015,7 @@ function startRound(){
   else if (sub === 'train') { var tq = trainQueue(player, S.count); queue = tq.items; focus = tq.focus; }
   else if (sub === 'flash') queue = flashQueue(S.count);
   else if (sub === 'fokus') { focus = focusCat(); queue = focusQueue(player, focus); }
-  else if (sub === 'story') queue = storyQueue(player, 4);
+  else if (sub === 'story') queue = storyQueue(player, storyN());
   else queue = freeQueue(sub, S.count, player.name, player.id);
   var g = G = {mode:mode, level:level, sub:sub, player:player, queue:queue, focus:focus, idx:0, results:[], timing:false, voiceOn:false, tries:0, typed:''};
   g.voiceOn = effectiveInput() === 'voice' && sub !== 'check';
@@ -4517,7 +4527,7 @@ function endGame(why){
   ov.innerHTML = '<div class="gocard"><div class="gotitle">Abpfiff!</div>' +
     '<div class="goscore">' + ballIcon(true) + '<b>' + g.score + '</b><span>' + (g.score === 1 ? u[0] : u[1]) + '</span></div>' +
     '<p>' + (why === 'hearts' ? 'Alle Herzen weg. ' : why === 'time' ? 'Die Zeit ist um. ' : '') + (g.kind === 'wall' ? 'Bis Level ' + g.wl + ' gekommen. ' : '') + (rec && g.score > 0 ? 'Neuer Rekord auf ' + g.L.name + ', ' + esc(g.name) + '!' : prev ? 'Rekord auf ' + g.L.name + ': ' + prev : '') + '</p>' +
-    (left >= 1 ? '<p class="goagain">Du hast noch ' + fmtGames(left) + '!</p>' + playBtns('data-again="1"') : '<p class="gonext">Fürs nächste Spiel wieder lesen oder rechnen. Lange Sätze bringen gleich drei Spiele.</p>') +
+    (left >= 1 ? '<p class="goagain">Du hast noch ' + fmtGames(left) + '!</p>' + playBtns('data-again="1"') : '<p class="gonext">Fürs nächste Spiel wieder lesen oder rechnen. Lange Sätze bringen gleich zwei Spiele.</p>') +
     '<button class="go' + (left >= 1 ? ' ghost' : '') + '" type="button" id="gameDone">Zurück zur Stadt</button></div>';
   ov.hidden = false;
   $('#gameDone').addEventListener('click', function(){ GAME = null; show('start'); renderStart(); });
