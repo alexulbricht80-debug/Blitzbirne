@@ -850,6 +850,8 @@ h2,h3{margin:0}
 .focuspick .rowchips button{display:inline-flex;align-items:center;gap:6px;height:auto;min-height:38px;padding:6px 12px}
 .focuspick .rowchips .lvballs{display:inline-flex;gap:1px;margin-left:2px}
 .focuspick .rowchips .ballico{width:15px;height:15px}
+
+.verline{margin:8px 2px 0;font-size:.75rem;color:var(--muted)}
 </style>
 </head>
 <body>
@@ -915,6 +917,7 @@ h2,h3{margin:0}
       <div class="opt" id="resetRow"><span class="opt-label">Neu anfangen<span class="opt-hint" id="resetHint"></span></span><div class="resetbtns"><button class="btn" type="button" data-reset="city">Stadt dunkel</button><button class="btn danger" type="button" data-reset="all">Alles löschen</button></div></div>
     </div>
     <p class="voice-note" id="voiceNote"></p>
+    <p class="verline" id="verLine"></p>
   </details>
 
   <div class="startbar">
@@ -1025,7 +1028,7 @@ h2,h3{margin:0}
 
 </div>
 
-<script>window.__BLITZ_PWA = true;</script>
+<script>window.__BLITZ_PWA = true; window.__BLITZ_BUILD = "20261025075905";</script>
 <script>
 (function(){
 'use strict';
@@ -2843,6 +2846,7 @@ function renderStart(){
   note.className = 'voice-note' + (vs.ok ? ' ok' : '');
   note.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></svg><span>' + esc(vs.msg) + '</span>';
   note.hidden = isCheck;
+  var vl = $('#verLine'); if (vl) vl.textContent = buildLabel(window.__BLITZ_BUILD);
 
   var name = levelName(S.mode, lv), b = S.best[bestKey(p.id, S.mode, lv)];
   var bl = $('#bestLine');
@@ -2935,7 +2939,8 @@ $('#cityCard').addEventListener('click', function(e){
   if (b.dataset.act === 'gameon') { S.gameOn = true; save(); renderStart(); }
   if (b.dataset.act === 'gamelock') {
     var sb = $('#ballSub'), p = curPlayer();
-    if (sb) { sb.textContent = 'Noch kein voller Ball. ' + (isAdult(p) ? 'Drei Runden Rechnen bringen ein Spiel.' : 'Lange Sätze bringen zwei Spiele, je zwei Leserätsel eins.'); sb.classList.remove('flash'); void sb.offsetWidth; sb.classList.add('flash'); }
+    var rl = roundsToNext(p.id, 'math', null);
+    if (sb) { sb.textContent = 'Noch kein voller Ball. ' + (isAdult(p) ? 'Noch ' + (rl === 1 ? 'eine Runde' : rl + ' Runden') + ' Rechnen bis zum nächsten Spiel.' : 'Lange Sätze bringen zwei Spiele, je zwei Leserätsel eins.'); sb.classList.remove('flash'); void sb.offsetWidth; sb.classList.add('flash'); }
   }
 });
 [['optAuto','auto'],['optSpeak','speak'],['optSyl','syl'],['optCaps','caps'],['optRetry','retry'],['optSound','sound']].forEach(function(pair){
@@ -3003,6 +3008,7 @@ $('#profOpen').addEventListener('click', function(){ if (S.mode === 'math') open
 var G = null;
 var TYMAP = {word:'w', pseudo:'p', sight:'g', sentence:'s'};
 function show(which){
+  if (which === 'start' && window.__updateWaiting) { window.__updateWaiting = false; setTimeout(checkUpdate, 50); }
   ['start', 'play', 'done', 'profile', 'figure', 'game', 'rank'].forEach(function(s){ $('#screen-' + s).hidden = s !== which; });
   window.scrollTo(0, 0);
 }
@@ -3728,6 +3734,25 @@ renderStart();
 if (S.players[0].name === DEFAULTS.players[0].name && S.players[1].name === DEFAULTS.players[1].name && !(S.history.p1 || S.history.p2)) {
   $('#nameForm').hidden = false; renderNameForm(true);
 }
+/* Neue Version automatisch laden, sobald die App wieder geöffnet wird (nie mitten in einer Runde oder einem Spiel) */
+function buildLabel(b){ if (!b) return 'Version in Claude'; var d = b.slice(6, 8) + '.' + b.slice(4, 6) + '.' + b.slice(0, 4); return 'Version vom ' + d + ', ' + b.slice(8, 10) + ':' + b.slice(10, 12) + ' UTC'; }
+function checkUpdate(){
+  if (!window.__BLITZ_BUILD || !/^https?:$/.test(location.protocol)) return;
+  fetch('version.json?t=' + Date.now(), {cache: 'no-store'}).then(function(r){ return r.json(); }).then(function(v){
+    if (!v || !/^\d{14}$/.test(v.build) || v.build <= window.__BLITZ_BUILD) return;   // nur echte neuere Versionen
+    // Pro Version höchstens ein Versuch, damit nie eine Endlosschleife entsteht, falls irgendwo noch die alte Seite liegt
+    var tried = location.search.indexOf('v=' + v.build) >= 0;
+    try { if (sessionStorage.getItem('bbUpd') === v.build) tried = true; } catch (e) {}
+    if (tried) return;
+    var busy = !$('#screen-play').hidden || !$('#screen-game').hidden;
+    if (busy) { window.__updateWaiting = true; return; }
+    try { sessionStorage.setItem('bbUpd', v.build); } catch (e) {}
+    location.replace(location.pathname + '?v=' + v.build + location.hash);   // eigene Adresse, damit kein Zwischenspeicher die alte Seite liefert
+  }).catch(function(){});
+}
+document.addEventListener('visibilitychange', function(){ if (!document.hidden) checkUpdate(); });
+window.addEventListener('pageshow', function(){ checkUpdate(); });
+setInterval(function(){ if (!document.hidden) checkUpdate(); }, 5 * 60 * 1000);
 if (window.__BLITZ_PWA && 'serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
   window.addEventListener('load', function(){ try { navigator.serviceWorker.register('sw.js').catch(function(){}); } catch (e) {} });
 }
